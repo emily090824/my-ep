@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emily Maranto Hill</title>
+  <meta name="description" content="Emily Maranto Hill — marketer, academic, writer, and content creator.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <a class="monogram" href="./" aria-label="Emily Maranto Hill, home">
+      <span>E</span><span>M</span><span>H</span>
+    </a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ol>
+        <li><a href="#rolodex">What are you looking for?</a></li>
+        <li><a href="#about">About Emily</a></li>
+        <li><a href="#links">The Links You're Looking For</a></li>
+        <li><a href="#read-me">Read Me</a></li>
+        <li><a href="#press">Press</a></li>
+        <li><a href="#contact">Don't Be a Stranger</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Above the fold -->
+    <section class="hero">
+      <div class="hero__intro">
+        <figure class="portrait">
+          <div class="portrait__frame">
+            <img src="assets/headshot.jpg" alt="Portrait of Emily Maranto Hill"
+                 onerror="this.remove()">
+            <span class="portrait__fallback" aria-hidden="true">EMH</span>
+          </div>
+          <figcaption>Est. Louisiana</figcaption>
+        </figure>
+
+        <div class="hero__copy">
+          <p class="kicker">The card file of</p>
+          <h1>Emily <em>Maranto</em> Hill</h1>
+          <p class="hero__lede">Marketer, scholar, author, and creator — one person, several cards. Pull the one you came for.</p>
+          <div class="hero__actions">
+            <a class="btn btn--solid" href="#rolodex">What are you looking for?</a>
+            <a class="btn" href="#about">About me</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__rolodex" id="rolodex" tabindex="-1">
+        <p class="rolodex__label"><span>What are you looking for?</span></p>
+
+        <div class="rolodex" aria-roledescription="carousel" aria-label="Emily's personas">
+          <div class="rolodex__stage" id="rolodex-stage">
+            <div class="rolodex__wheel" id="rolodex-wheel"></div>
+          </div>
+          <div class="rolodex__hardware" aria-hidden="false">
+            <button class="knob knob--left" id="rolodex-prev" aria-label="Previous card"></button>
+            <span class="rod" aria-hidden="true"></span>
+            <button class="knob knob--right" id="rolodex-next" aria-label="Next card"></button>
+            <span class="base" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <ol class="rolodex__index" id="rolodex-index" aria-label="Jump to a card"></ol>
+        <p class="rolodex__hint">Scroll, drag, or turn the knobs · click the front card to open it</p>
+        <p class="sr-only" id="rolodex-status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="sheet">
+      <header class="sheet__head">
+        <span class="sheet__no">No. 02</span>
+        <h2>About Emily</h2>
+      </header>
+      <div class="sheet__body two-col">
+        <p class="dropcap">Emily Maranto Hill is a marketing professional, author, and media studies scholar from Louisiana. She studies how audiences gather, talk, and fall in love with stories online — and then puts that knowledge to work.</p>
+        <p>She holds an M.A. from Old Dominion University (Summa Cum Laude, 2025), where her thesis examined BookTok and the cultural legitimacy of romance readers, and a Bachelor of Mass Communication from Louisiana State University (Summa Cum Laude, 2021). Today she teaches media audiences and critical methods at ODU. <span class="todo">Add a line about your marketing and writing work.</span></p>
+      </div>
+    </section>
+
+    <!-- Links -->
+    <section id="links" class="sheet">
+      <header class="sheet__head">
+        <span class="sheet__no">No. 03</span>
+        <h2>The Links You're Looking For</h2>
+      </header>
+      <ul class="link-list">
+        <li><a href="https://www.linkedin.com/in/emilymarantohill/" rel="noopener">LinkedIn <span>Professional record</span></a></li>
+        <li><a href="https://doi.org/10.25777/67hyyr98" rel="noopener">Thesis <span>Reading the Romance Reader</span></a></li>
+        <li><a href="https://emilymhill.portfolial.com/" rel="noopener">Previous ePortfolio <span>The archive</span></a></li>
+        <li><a href="mailto:eemaranto@gmail.com">Email <span>eemaranto@gmail.com</span></a></li>
+      </ul>
+    </section>
+
+    <!-- Read Me -->
+    <section id="read-me" class="sheet">
+      <header class="sheet__head">
+        <span class="sheet__no">No. 04</span>
+        <h2>Read Me</h2>
+      </header>
+      <div class="reading">
+        <article class="reading__item">
+          <p class="reading__meta">Thesis · 2025</p>
+          <h3><a href="https://doi.org/10.25777/67hyyr98">Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</a></h3>
+        </article>
+        <article class="reading__item">
+          <p class="reading__meta">Book · In press</p>
+          <h3>Designing Positive Family Communication <span class="reading__with">with Thomas Socha</span></h3>
+        </article>
+        <article class="reading__item">
+          <p class="reading__meta">Writing</p>
+          <h3><span class="todo">Your books and essays go here</span></h3>
+        </article>
+      </div>
+    </section>
+
+    <!-- Press -->
+    <section id="press" class="sheet">
+      <header class="sheet__head">
+        <span class="sheet__no">No. 05</span>
+        <h2>Press</h2>
+      </header>
+      <p class="sheet__empty"><span class="todo">Interviews, features, podcasts, and mentions.</span></p>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="sheet sheet--contact">
+      <header class="sheet__head">
+        <span class="sheet__no">No. 06</span>
+        <h2>Don't Be a Stranger</h2>
+      </header>
+      <p class="contact__line">Speaking, collaborations, consulting, or just a good book recommendation —</p>
+      <a class="contact__mail" href="mailto:eemaranto@gmail.com">eemaranto@gmail.com</a>
+    </section>
+  </main>
+
+  <footer class="colophon">
+    <p>© <span id="year"></span> Emily Maranto Hill · Filed with care</p>
+  </footer>
+
+  <script src="js/personas.js"></script>
+  <script src="js/site.js"></script>
+  <script src="js/rolodex.js"></script>
+</body>
+</html>
