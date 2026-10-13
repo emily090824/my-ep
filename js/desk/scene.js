@@ -297,26 +297,79 @@ function buildRoom(scene) {
   sky.position.set(60, 52, -200);
   scene.add(sky);
 
-  // A small trailing plant on the sill.
-  const pot = add(new THREE.CylinderGeometry(4.2, 3.2, 7, 32), new THREE.MeshStandardMaterial({ color: "#a65b3c", roughness: 0.85 }), win.x0 + 13, win.y0 + 3.5, WALL_Z - 4);
-  const leafMat = new THREE.MeshStandardMaterial({ color: "#3e6a3f", roughness: 0.6, side: THREE.DoubleSide });
-  const leafGeo = new THREE.SphereGeometry(1, 12, 8);
-  leafGeo.scale(1.6, 0.25, 0.9);
-  const rnd = mulberry(3);
-  for (let i = 0; i < 46; i++) {
-    const a = rnd() * Math.PI * 2, r = 1 + rnd() * 4.5;
-    const trailing = i > 28;
-    const m = new THREE.Mesh(leafGeo, leafMat);
-    m.position.set(
-      pot.position.x + Math.cos(a) * r * (trailing ? 1.2 : 1),
-      trailing ? pot.position.y + 2 - rnd() * 12 : pot.position.y + 4 + rnd() * 6,
-      pot.position.z + Math.sin(a) * r * 0.8 + (trailing ? 3.5 : 0)
-    );
-    m.rotation.set(rnd() * 1.2 - 0.6, a, rnd() * 1.4 - 0.7);
-    m.scale.setScalar(0.8 + rnd() * 0.7);
-    m.castShadow = true;
-    scene.add(m);
+  // A golden pothos on the sill: a full mound of heart-shaped leaves, vines spilling over the edge.
+  const potX = win.x0 + 13, potZ = WALL_Z - 4, sillY = win.y0;
+  const potProf = [[0, 0], [3.3, 0], [3.5, 0.3], [4.1, 5.5], [4.7, 5.6], [4.8, 7.2], [4.4, 7.3], [4.1, 6.4], [0, 6.3]].map(([x, y]) => new THREE.Vector2(x, y));
+  const pot = add(new THREE.LatheGeometry(potProf, 40), new THREE.MeshStandardMaterial({ color: "#a65b3c", roughness: 0.88 }), potX, sillY, potZ);
+  const soil = add(new THREE.CircleGeometry(4.1, 28), new THREE.MeshStandardMaterial({ color: "#2a1a10", roughness: 1 }), potX, sillY + 6.4, potZ);
+  soil.rotation.x = -Math.PI / 2;
+
+  // leaf: a pointed heart, cupped and curled back a little
+  const heart = new THREE.Shape();
+  heart.moveTo(0, 0);
+  heart.bezierCurveTo(-0.32, -0.14, -0.64, 0.22, -0.52, 0.55);
+  heart.bezierCurveTo(-0.42, 0.82, -0.14, 0.98, 0, 1.18);
+  heart.bezierCurveTo(0.14, 0.98, 0.42, 0.82, 0.52, 0.55);
+  heart.bezierCurveTo(0.64, 0.22, 0.32, -0.14, 0, 0);
+  const leafGeo = new THREE.ShapeGeometry(heart, 8);
+  const lp = leafGeo.attributes.position, luv = leafGeo.attributes.uv;
+  for (let i = 0; i < lp.count; i++) {
+    const x = lp.getX(i), y = lp.getY(i);
+    luv.setXY(i, x / 1.3 + 0.5, (y + 0.15) / 1.35);
+    lp.setZ(i, 0.12 * x * x * 4 - 0.18 * y * y);   // cup across the midrib, curl back toward the tip
   }
+  leafGeo.computeVertexNormals();
+  const leafMat = new THREE.MeshStandardMaterial({ map: TX.pothosLeafTexture(), roughness: 0.42, side: THREE.DoubleSide });
+  const leaves = [];
+  const rnd = mulberry(3);
+  const top = new THREE.Vector3(potX, sillY + 7.2, potZ);
+
+  // the mound: leaves facing outward and up from a dome over the pot
+  for (let i = 0; i < 190; i++) {
+    const a = rnd() * Math.PI * 2, el = Math.pow(rnd(), 0.7) * Math.PI * 0.45;
+    const r = 3.5 + rnd() * 8.5;
+    const dir = new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el) * 1.1 + 0.15, Math.sin(a) * Math.cos(el) * 0.8);
+    leaves.push({ p: top.clone().addScaledVector(dir.normalize(), r), out: dir, size: 2.8 + rnd() * 2.0, droop: 0.2 + rnd() * 0.6 });
+  }
+  // vines: from the rim, over the sill's front edge, then hanging down the wall
+  const sillFront = WALL_Z + 5;
+  const vineMat = new THREE.MeshStandardMaterial({ color: "#5a6b2e", roughness: 0.6 });
+  for (let v = 0; v < 9; v++) {
+    const x0 = potX + (v - 4) * 1.6 + (rnd() - 0.5);
+    const drop = 6 + rnd() * 9, sway = (rnd() - 0.5) * 6;
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(x0, sillY + 6.8, potZ + 3),
+      new THREE.Vector3(x0 + sway * 0.2, sillY + 2.5, sillFront - 1.5),
+      new THREE.Vector3(x0 + sway * 0.4, sillY - 1, sillFront + 0.8),
+      new THREE.Vector3(x0 + sway * 0.8, sillY - drop * 0.5, sillFront + 1.5),
+      new THREE.Vector3(x0 + sway, sillY - drop, sillFront + 1.2 + rnd())
+    ]);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.11, 6), vineMat);
+    tube.castShadow = true;
+    scene.add(tube);
+    const n = 9 + Math.floor(rnd() * 5);
+    for (let k = 1; k <= n; k++) {
+      const t = k / (n + 1), p = curve.getPoint(t), side = k % 2 ? 1 : -1;
+      const out = new THREE.Vector3(side * 0.7, -0.2, 1).normalize();
+      leaves.push({ p: p.clone().add(new THREE.Vector3(side * 0.5, 0, 0.4)), out, size: (3 - t * 1.4) * (0.85 + rnd() * 0.3), droop: 1.1 + rnd() * 0.5, hang: true });
+    }
+  }
+  const inst = new THREE.InstancedMesh(leafGeo, leafMat, leaves.length);
+  inst.castShadow = inst.receiveShadow = true;
+  const dummy = new THREE.Object3D(), col = new THREE.Color();
+  leaves.forEach((L, i) => {
+    dummy.position.copy(L.p);
+    dummy.up.set(0, 1, 0);
+    dummy.lookAt(L.p.clone().add(L.out));
+    dummy.rotateX(-L.droop);                      // tip the leaf over
+    dummy.rotateZ((rnd() - 0.5) * (L.hang ? 0.8 : 1.6));
+    if (L.hang) dummy.rotateX(-0.9);              // hanging leaves point downward
+    dummy.scale.setScalar(L.size);
+    dummy.updateMatrix();
+    inst.setMatrixAt(i, dummy.matrix);
+    inst.setColorAt(i, col.setHSL(0.28 + (rnd() - 0.5) * 0.05, 0.55, 0.32 + rnd() * 0.2).multiplyScalar(1.9));
+  });
+  scene.add(inst);
 }
 
 /* ==========================================================================
@@ -769,54 +822,78 @@ function buildProps(scene) {
   tilt.rotation.x = -0.16;
   frame.add(tilt);
   const frameMat = new THREE.MeshPhysicalMaterial({ color: "#3a2416", roughness: 0.38, clearcoat: 0.6 });
-  // antique gilt: a scalloped moulding with acanthus relief, beading and corner rosettes
-  const gilt = TX.giltTextures();
-  const gold = new THREE.MeshStandardMaterial({ map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.6, color: "#e3bd78", metalness: 1, roughness: 0.36, envMap: scene.environment, envMapIntensity: 0.9 });
-  const goldPlain = new THREE.MeshStandardMaterial({ color: "#d4a955", metalness: 1, roughness: 0.3, envMap: scene.environment, envMapIntensity: 0.9 });
-  const OW = 14, OH = 17.2, IW = 10.4, IH = 13.6;
-  const outline = new THREE.Shape();
-  const lobes = (x0, y0, x1, y1, n, out) => {     // scalloped edge between two points
-    for (let i = 1; i <= n; i++) {
-      const t0 = (i - 1) / n, t1 = i / n, tm = (t0 + t1) / 2;
-      const mx = x0 + (x1 - x0) * tm + out[0], my = y0 + (y1 - y0) * tm + out[1];
-      outline.quadraticCurveTo(mx, my, x0 + (x1 - x0) * t1, y0 + (y1 - y0) * t1);
-    }
-  };
-  outline.moveTo(-OW / 2, -OH / 2);
-  lobes(-OW / 2, -OH / 2, OW / 2, -OH / 2, 7, [0, -0.45]);
-  lobes(OW / 2, -OH / 2, OW / 2, OH / 2, 9, [0.45, 0]);
-  lobes(OW / 2, OH / 2, -OW / 2, OH / 2, 7, [0, 0.45]);
-  lobes(-OW / 2, OH / 2, -OW / 2, -OH / 2, 9, [-0.45, 0]);
-  const opening = new THREE.Path();
-  opening.moveTo(-IW / 2, -IH / 2); opening.lineTo(-IW / 2, IH / 2); opening.lineTo(IW / 2, IH / 2); opening.lineTo(IW / 2, -IH / 2);
-  outline.holes.push(opening);
-  const moulding = new THREE.ExtrudeGeometry(outline, { depth: 0.6, bevelEnabled: true, bevelThickness: 0.45, bevelSize: 0.55, bevelSegments: 5, curveSegments: 8 });
-  moulding.translate(0, 0, -0.3);
-  add(moulding, gold, 0, 7.9, 0, tilt);
-  add(new THREE.BoxGeometry(OW - 0.4, OH - 0.4, 0.3), frameMat, 0, 7.9, -0.65, tilt);          // backing
-  // a row of pearls around the opening
-  const beadGeo = new THREE.SphereGeometry(0.16, 10, 8);
-  const beadPts = [];
-  for (let x = -IW / 2; x <= IW / 2 + 0.01; x += 0.42) beadPts.push([x, -IH / 2 - 0.25], [x, IH / 2 + 0.25]);
-  for (let y = -IH / 2 + 0.42; y < IH / 2; y += 0.42) beadPts.push([-IW / 2 - 0.25, y], [IW / 2 + 0.25, y]);
-  const beads = new THREE.InstancedMesh(beadGeo, goldPlain, beadPts.length);
-  const bm = new THREE.Matrix4();
-  beadPts.forEach(([x, y], i) => beads.setMatrixAt(i, bm.makeTranslation(x, 7.9 + y, 0.78)));
-  tilt.add(beads);
-  // corner rosettes
-  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
-    const cx = sx * (OW / 2 - 0.9), cy = 7.9 + sy * (OH / 2 - 0.9);
-    const ros = add(new THREE.SphereGeometry(0.85, 20, 12), gold, cx, cy, 0.75, tilt);
-    ros.scale.set(1, 1, 0.55);
-    for (let k = 0; k < 6; k++) {
-      const a = (k / 6) * Math.PI * 2;
-      const petal = add(new THREE.SphereGeometry(0.42, 12, 8), goldPlain, cx + Math.cos(a) * 0.95, cy + Math.sin(a) * 0.95, 0.65, tilt);
-      petal.scale.set(1, 1, 0.5);
-    }
+  // gold-leaf moulding: a fine ornamented outer border, a deep rounded cove, a small inner lip,
+  // swept around the opening so the corners mitre; carved medallions at the centre of each side
+  const IW = 10.4, IH = 13.6;
+  const prof = [[0, -0.3], [0, 0.35], [0.08, 0.45], [0.22, 0.45], [0.3, 0.38]];
+  for (let i = 1; i <= 18; i++) {
+    const t = i / 18;
+    prof.push([0.3 + 1.2 * t, 0.38 + 0.6 * Math.pow(Math.sin(Math.PI * t), 0.85) - 0.0 * t]);
+  }
+  prof.push([1.56, 0.5], [1.62, 0.58], [1.78, 0.64], [1.94, 0.58], [2.0, 0.45], [2.03, 0.2], [2.03, -0.3]);
+  // v = arc length across the profile, so the texture follows the shape
+  const arc = [0];
+  for (let i = 1; i < prof.length; i++) arc.push(arc[i - 1] + Math.hypot(prof[i][0] - prof[i - 1][0], prof[i][1] - prof[i - 1][1]));
+  const vAt = (d) => { const i = prof.findIndex((p) => p[0] >= d); return arc[i] / arc[arc.length - 1]; };
+  const gilt = TX.giltMouldingTextures([vAt(1.58), vAt(1.98)]);
+  const gold = new THREE.MeshStandardMaterial({
+    map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.4, color: "#f4dcae", metalness: 1, roughness: 0.32,
+    envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide
   });
-  // crest at the top centre
-  const crest = add(new THREE.SphereGeometry(1.1, 24, 12), gold, 0, 7.9 + OH / 2 + 0.25, 0.4, tilt);
-  crest.scale.set(1.6, 0.9, 0.5);
+  const goldCarved = new THREE.MeshStandardMaterial({ color: "#c99840", metalness: 1, roughness: 0.38, envMap: scene.environment, envMapIntensity: 0.9 });
+  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  const pos = [], uv = [], idx = [];
+  for (let sIdx = 0; sIdx < 4; sIdx++) {
+    const c0 = corners[sIdx], c1 = corners[(sIdx + 1) % 4];
+    const alongX = sIdx % 2 === 0;
+    const base = pos.length / 3;
+    prof.forEach(([d, z], j) => {
+      [c0, c1].forEach((c) => {
+        const x = c[0] * (IW / 2 + d), y = c[1] * (IH / 2 + d);
+        pos.push(x, y, z);
+        uv.push((alongX ? x : y) / 4, arc[j] / arc[arc.length - 1]);
+      });
+    });
+    for (let j = 0; j < prof.length - 1; j++) {
+      const a0 = base + j * 2, b0 = a0 + 1, a1 = a0 + 2, b1 = a0 + 3;
+      idx.push(a0, b0, b1, a0, b1, a1);
+    }
+  }
+  const mould = new THREE.BufferGeometry();
+  mould.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  mould.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  mould.setIndex(idx);
+  mould.computeVertexNormals();
+  add(mould, gold, 0, 7.9, 0, tilt);
+  const OW = IW + 4.06, OH = IH + 4.06;
+  add(new THREE.BoxGeometry(OW - 0.1, OH - 0.1, 0.3), frameMat, 0, 7.9, -0.45, tilt);          // backing
+
+  // medallions: a round boss in a ring, flanked by C-scrolls and leaves
+  const bossGeo = new THREE.SphereGeometry(0.42, 20, 12);
+  const ringGeo = new THREE.TorusGeometry(0.58, 0.11, 10, 28);
+  const scrollGeo = new THREE.TorusGeometry(0.3, 0.085, 8, 20, Math.PI * 1.5);
+  const leafGeo = new THREE.SphereGeometry(0.3, 12, 8);
+  [[0, IH / 2 + 0.9, 0], [0, -IH / 2 - 0.9, Math.PI], [-IW / 2 - 0.9, 0, Math.PI / 2], [IW / 2 + 0.9, 0, -Math.PI / 2]].forEach(([x, y, r]) => {
+    const m = new THREE.Group();
+    m.position.set(x, 7.9 + y, 0.98);
+    m.rotation.z = r;
+    tilt.add(m);
+    const boss = add(bossGeo, gold, 0, 0, 0.05, m); boss.scale.set(1, 1, 0.6);
+    add(ringGeo, goldCarved, 0, 0, 0, m);
+    [-1, 1].forEach((sd) => {
+      const sc = add(scrollGeo, goldCarved, sd * 0.95, 0.05, -0.02, m);
+      sc.rotation.z = sd > 0 ? Math.PI * 0.75 : -Math.PI * 0.25;
+      const sc2 = add(scrollGeo, goldCarved, sd * 1.55, -0.05, -0.06, m);
+      sc2.scale.setScalar(0.7);
+      sc2.rotation.z = sd > 0 ? -Math.PI * 0.25 : Math.PI * 0.75;
+      const lf = add(leafGeo, goldCarved, sd * 2.05, 0, -0.1, m);
+      lf.scale.set(1.8, 0.6, 0.4);
+      const lf2 = add(leafGeo, goldCarved, sd * 0.45, 0.62, -0.04, m);
+      lf2.scale.set(0.9, 0.5, 0.4); lf2.rotation.z = sd * 0.6;
+      const lf3 = add(leafGeo, goldCarved, sd * 0.45, -0.62, -0.04, m);
+      lf3.scale.set(0.9, 0.5, 0.4); lf3.rotation.z = -sd * 0.6;
+    });
+  });
   add(new THREE.PlaneGeometry(IW, IH), new THREE.MeshStandardMaterial({ color: "#efe7d4", roughness: 0.95 }), 0, 7.9, 0.1, tilt);
   const photo = add(new THREE.PlaneGeometry(7.8, 10.2), new THREE.MeshStandardMaterial({ map: TX.photoTexture("assets/headshot.jpg"), roughness: 0.7 }), 0, 8.2, 0.11, tilt);
   photo.castShadow = false;

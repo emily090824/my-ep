@@ -730,51 +730,91 @@ export function keyboardTexture() {
   return toTexture(c);
 }
 
-/* ---------------- Antique gilt: scrolling acanthus relief ----------------
-   Tiles every 4 cm; returns a colour map and a matching bump map. */
-export function giltTextures() {
-  const S = 512;
-  const rnd = mulberry32(57);
-  const [hc, h] = canvas(S, S);           // height: white = raised
-  h.fillStyle = "#5a5a5a"; h.fillRect(0, 0, S, S);
-  h.lineCap = "round";
-  function scroll(x, y, r, dir, w) {
-    h.lineWidth = w;
-    h.beginPath();
-    for (let a = 0; a < Math.PI * 3.2; a += 0.08) {
-      const rr = r * (1 - a / (Math.PI * 3.6));
-      const px = x + Math.cos(a * dir) * rr, py = y + Math.sin(a * dir) * rr;
-      a === 0 ? h.moveTo(px, py) : h.lineTo(px, py);
-    }
-    h.stroke();
-  }
-  for (let pass = 0; pass < 2; pass++) {
-    h.strokeStyle = pass ? "#f2f2f2" : "#9a9a9a";
-    const w = pass ? 9 : 22;
-    for (let k = -1; k <= 1; k++) for (let j = -1; j <= 1; j++) {
-      const ox = k * S, oy = j * S;
-      scroll(ox + 128, oy + 128, 100, 1, w);
-      scroll(ox + 384, oy + 384, 100, -1, w);
-      scroll(ox + 384, oy + 128, 70, 1, w * 0.8);
-      scroll(ox + 128, oy + 384, 70, -1, w * 0.8);
-    }
-  }
-  // stippled ground between the scrolls, as on old gesso
-  for (let i = 0; i < 5000; i++) {
-    h.fillStyle = `rgba(40,40,40,${0.2 + rnd() * 0.3})`;
-    h.fillRect(rnd() * S, rnd() * S, 2, 2);
-  }
-  const bump = toTexture(hc, { srgb: false, repeat: [1 / 4, 1 / 4] });
+/* ---------------- Gold-leaf moulding ----------------
+   UV: u runs along a side (one tile = 4 cm), v across the profile, inner edge (0) to outer (1).
+   band: [v0, v1] of the ornamented outer border. Returns colour + bump maps. */
+export function giltMouldingTextures(band) {
+  const W = 1024, H = 256;
+  const rnd = mulberry32(61);
+  const [cc, c] = canvas(W, H);
+  const [bc, b] = canvas(W, H);
+  const vy = (v) => (1 - v) * H;
 
-  // colour: gold on the raised parts, brown patina in the recesses
-  const [cc, cx] = canvas(S, S);
-  const img = h.getImageData(0, 0, S, S).data;
-  const out = cx.createImageData(S, S);
-  for (let i = 0; i < img.length; i += 4) {
-    const t = img[i] / 255;
-    out.data[i] = 120 + t * 130; out.data[i + 1] = 86 + t * 112; out.data[i + 2] = 32 + t * 56; out.data[i + 3] = 255;
+  // gold leaf: warm base with long burnished streaks along the moulding
+  c.fillStyle = "#c99a3e"; c.fillRect(0, 0, W, H);
+  for (let i = 0; i < 260; i++) {
+    const y = rnd() * H, x = rnd() * W, len = 80 + rnd() * 500;
+    c.strokeStyle = rnd() < 0.6 ? `rgba(255, 226, 150, ${0.1 + rnd() * 0.25})` : `rgba(120, 80, 25, ${0.08 + rnd() * 0.15})`;
+    c.lineWidth = 1 + rnd() * 4;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + len, y + (rnd() - 0.5) * 3); c.stroke();
+    c.beginPath(); c.moveTo(x - W, y); c.lineTo(x - W + len, y); c.stroke();     // wrap
   }
-  cx.putImageData(out, 0, 0);
-  const map = toTexture(cc, { repeat: [1 / 4, 1 / 4] });
-  return { map, bump };
+  // patina pooled in the hollows either side of the cove
+  [[0, 0.1], [band[0] - 0.05, band[0] + 0.02]].forEach(([v0, v1]) => {
+    const g = c.createLinearGradient(0, vy(v1), 0, vy(v0));
+    g.addColorStop(0, "rgba(60, 35, 10, 0)"); g.addColorStop(0.5, "rgba(60, 35, 10, 0.55)"); g.addColorStop(1, "rgba(60, 35, 10, 0)");
+    c.fillStyle = g; c.fillRect(0, vy(v1), W, vy(v0) - vy(v1));
+  });
+  b.fillStyle = "#808080"; b.fillRect(0, 0, W, H);
+
+  // the outer border: a running rocaille of little leaves and nubs, darkened between
+  const y0 = vy(band[1]), y1 = vy(band[0]), bh = y1 - y0;
+  c.fillStyle = "#3a230c"; c.fillRect(0, y0, W, bh);
+  b.fillStyle = "#3a3a3a"; b.fillRect(0, y0, W, bh);
+  for (let k = -1; k <= 1; k++) {
+    let x = k * W;
+    while (x < (k + 1) * W) {
+      const w = 14 + rnd() * 26, h = bh * (0.35 + rnd() * 0.45), cy = y0 + bh / 2 + (rnd() - 0.5) * bh * 0.3;
+      const rot = (rnd() - 0.5) * 1.2;
+      [[c, "#e6bd62"], [b, "#f0f0f0"]].forEach(([ctx, col]) => {
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.ellipse(x + w / 2, cy, w / 2, h / 2, rot, 0, Math.PI * 2); ctx.fill();
+      });
+      // highlight on top of each nub
+      c.fillStyle = "rgba(255, 236, 170, 0.6)";
+      c.beginPath(); c.ellipse(x + w / 2 - 2, cy - h / 6, w / 5, h / 6, rot, 0, Math.PI * 2); c.fill();
+      x += w * (0.7 + rnd() * 0.5);
+    }
+  }
+  // distressing: dark flecks where the leaf has worn through
+  for (let i = 0; i < 700; i++) {
+    const inBand = rnd() < 0.5;
+    const y = inBand ? y0 + rnd() * bh : rnd() * H;
+    c.fillStyle = `rgba(40, 20, 5, ${0.25 + rnd() * 0.5})`;
+    c.fillRect(rnd() * W, y, 1 + rnd() * 4, 1 + rnd() * 2);
+  }
+  return {
+    map: toTexture(cc, { repeat: [1, 1] }),
+    bump: toTexture(bc, { srgb: false, repeat: [1, 1] })
+  };
+}
+
+/* ---------------- Pothos leaf: glossy, veined, a little marbled ---------------- */
+export function pothosLeafTexture() {
+  const S = 256;
+  const rnd = mulberry32(77);
+  const [c, ctx] = canvas(S, S);
+  const g = ctx.createLinearGradient(0, S, 0, 0);
+  g.addColorStop(0, "#2f5a26"); g.addColorStop(0.6, "#3f7431"); g.addColorStop(1, "#4d863a");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+  // golden marbling, as on a golden pothos
+  for (let i = 0; i < 14; i++) {
+    ctx.strokeStyle = `rgba(200, 210, 110, ${0.12 + rnd() * 0.2})`;
+    ctx.lineWidth = 2 + rnd() * 6;
+    const x = S / 2 + (rnd() - 0.5) * S * 0.7;
+    ctx.beginPath(); ctx.moveTo(S / 2, S * 0.95);
+    ctx.quadraticCurveTo(x, S * 0.5, x + (rnd() - 0.5) * 40, S * (0.1 + rnd() * 0.3)); ctx.stroke();
+  }
+  // midrib and paired veins
+  ctx.strokeStyle = "rgba(190, 215, 140, 0.75)"; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(S / 2, S); ctx.lineTo(S / 2, S * 0.04); ctx.stroke();
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 6; i++) {
+    const y = S * (0.88 - i * 0.14);
+    [-1, 1].forEach((sd) => {
+      ctx.beginPath(); ctx.moveTo(S / 2, y);
+      ctx.quadraticCurveTo(S / 2 + sd * S * 0.22, y - S * 0.06, S / 2 + sd * S * 0.38, y - S * 0.16); ctx.stroke();
+    });
+  }
+  return toTexture(c);
 }
