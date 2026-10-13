@@ -3,13 +3,23 @@
 A static site (plain HTML/CSS/JS, no build step) built around a rolodex of personas.
 
 ```
-index.html        Parent page: headshot, rolodex, About, Links, Read Me, Press, Contact
-persona.html      One template for every persona page (persona.html?p=academic)
-js/personas.js    ← edit this: every card's text, icon, and visibility
-js/rolodex.js     The flip-file animation and controls
-css/styles.css    Palette (brown · ivory · green) and type
-assets/           Put your headshot here as headshot.jpg
+index.html          Parent page: the desk scene, then About, Links, Read Me, Press, Contact
+persona.html        One template for every persona page (persona.html?p=academic)
+js/personas.js      ← edit this: every card's text, icon, and visibility
+js/desk/scene.js    The 3D desk: Rolodex, lamp, window, props, camera, controls
+js/desk/textures.js Everything painted procedurally: walnut, plaster, sky, card faces
+css/styles.css      Palette (brown · ivory · green) and type
+vendor/             three.js and the web fonts, self-hosted (no CDN needed)
+assets/             Put your headshot here as headshot.jpg
 ```
+
+## The desk
+The homepage hero is a real-time 3D scene (three.js): a green enamel rotary Rolodex on a walnut
+desk at dusk, lit by a banker's lamp and a sunset window, with depth of field, bloom and film
+grain. Card faces are drawn from `js/personas.js`, so editing a persona there updates its card.
+Visitors can drag the cards, scroll over them, click a knob, or use the buttons under the
+Rolodex. On phones the heavier effects are turned down automatically; without WebGL, the
+buttons still work.
 
 ## Preview locally
 ```
@@ -18,7 +28,8 @@ python3 -m http.server
 then open http://localhost:8000
 
 ## Adding your headshot
-Save a portrait (roughly 4:5) as `assets/headshot.jpg`. Until then a monogram placeholder shows.
+Save a portrait (roughly 4:5) as `assets/headshot.jpg`. It appears in the picture frame on the
+desk. Until then a monogram placeholder shows.
 
 ## Placeholders
 Copy wrapped in `[[double brackets]]` in `js/personas.js` (and `<span class="todo">` in

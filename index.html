@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Emily Maranto Hill</title>
   <meta name="description" content="Emily Maranto Hill — marketer, academic, writer, and content creator.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -31,48 +29,35 @@
   </header>
 
   <main id="main">
-    <!-- Above the fold -->
-    <section class="hero">
-      <div class="hero__intro">
-        <figure class="portrait">
-          <div class="portrait__frame">
-            <img src="assets/headshot.jpg" alt="Portrait of Emily Maranto Hill"
-                 onerror="this.remove()">
-            <span class="portrait__fallback" aria-hidden="true">EMH</span>
-          </div>
-          <figcaption>Est. Louisiana</figcaption>
-        </figure>
+    <!-- Above the fold: the desk -->
+    <section class="desk" id="rolodex" tabindex="-1" aria-label="What are you looking for?">
+      <canvas id="desk-canvas" aria-hidden="true"></canvas>
+      <div class="desk__atmosphere" aria-hidden="true"></div>
 
-        <div class="hero__copy">
-          <p class="kicker">The card file of</p>
-          <h1>Emily <em>Maranto</em> Hill</h1>
-          <p class="hero__lede">Marketer, scholar, author, and creator — one person, several cards. Pull the one you came for.</p>
-          <div class="hero__actions">
-            <a class="btn btn--solid" href="#rolodex">What are you looking for?</a>
-            <a class="btn" href="#about">About me</a>
-          </div>
+      <div class="desk__intro">
+        <p class="kicker">The card file of</p>
+        <h1>Emily <em>Maranto</em> Hill</h1>
+        <p class="desk__lede">Marketer, scholar, author, and creator — one person, several cards. Pull the one you came for.</p>
+        <div class="hero__actions">
+          <a class="btn btn--solid" href="#desk-index">What are you looking for?</a>
+          <a class="btn btn--ghost" href="#about">About me</a>
         </div>
       </div>
 
-      <div class="hero__rolodex" id="rolodex" tabindex="-1">
-        <p class="rolodex__label"><span>What are you looking for?</span></p>
-
-        <div class="rolodex" aria-roledescription="carousel" aria-label="Emily's personas">
-          <div class="rolodex__stage" id="rolodex-stage">
-            <div class="rolodex__wheel" id="rolodex-wheel"></div>
-          </div>
-          <div class="rolodex__hardware" aria-hidden="false">
-            <button class="knob knob--left" id="rolodex-prev" aria-label="Previous card"></button>
-            <span class="rod" aria-hidden="true"></span>
-            <button class="knob knob--right" id="rolodex-next" aria-label="Next card"></button>
-            <span class="base" aria-hidden="true"></span>
-          </div>
+      <div class="desk__controls">
+        <a class="desk__current" id="desk-current" href="#">
+          <span class="desk__current-name">Emily as a Marketer</span>
+          <span class="desk__current-cta">Pull this card →</span>
+        </a>
+        <div class="desk__dial">
+          <button class="desk__arrow" id="desk-prev" type="button" aria-label="Previous card">‹</button>
+          <ol class="desk__index" id="desk-index" aria-label="Jump to a card"></ol>
+          <button class="desk__arrow" id="desk-next" type="button" aria-label="Next card">›</button>
         </div>
-
-        <ol class="rolodex__index" id="rolodex-index" aria-label="Jump to a card"></ol>
-        <p class="rolodex__hint">Scroll, drag, or turn the knobs · click the front card to open it</p>
-        <p class="sr-only" id="rolodex-status" aria-live="polite"></p>
+        <p class="desk__hint">Drag the cards, scroll over them, or turn a knob</p>
       </div>
+      <p class="sr-only" id="desk-status" aria-live="polite"></p>
+      <p class="desk__loading" aria-hidden="true">Dusting off the desk…</p>
     </section>
 
     <!-- About -->
@@ -149,6 +134,9 @@
 
   <script src="js/personas.js"></script>
   <script src="js/site.js"></script>
-  <script src="js/rolodex.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+  <script type="module" src="js/desk/scene.js"></script>
 </body>
 </html>
