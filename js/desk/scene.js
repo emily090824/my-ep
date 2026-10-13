@@ -220,7 +220,7 @@ function buildRoom(scene) {
   const desk = new THREE.Mesh(
     new THREE.PlaneGeometry(260, 150),
     new THREE.MeshPhysicalMaterial({
-      map: walnut.map, roughnessMap: walnut.roughness, bumpMap: walnut.bump, bumpScale: 0.6,
+      map: walnut.map, roughnessMap: walnut.roughness, bumpMap: walnut.bump, bumpScale: 1.5,
       roughness: 0.68, clearcoat: 0.12, clearcoatRoughness: 0.55
     })
   );
@@ -320,8 +320,8 @@ function buildRoom(scene) {
 }
 
 /* ==========================================================================
-   Lights: moonlight through the window, a Tiffany lamp, a candle, a laptop
-   (the candle and laptop lights live with their props in buildProps)
+   Lights: moonlight through the window, a Tiffany lamp, a laptop
+   (the laptop light and a soft fill live with the props in buildProps)
    ========================================================================== */
 const TIFFANY = new THREE.Vector3(-7, 0, -38);
 
@@ -683,23 +683,49 @@ function buildProps(scene) {
   const tif = new THREE.Group();
   tif.position.copy(TIFFANY);
   scene.add(tif);
-  const footProf = [[0, 0], [6.2, 0], [6.4, 0.5], [5.6, 1.2], [3.2, 2.2], [1.6, 3.4], [1.1, 4.6], [0, 4.8]].map(([x, y]) => new THREE.Vector2(x, y));
-  add(new THREE.LatheGeometry(footProf, 48), bronze, 0, 0, 0, tif);
-  add(new THREE.CylinderGeometry(0.7, 0.9, 9, 20), bronze, 0, 8.5, 0, tif);
-  add(new THREE.SphereGeometry(1.6, 24, 16), bronze, 0, 7, 0, tif).scale.set(1, 1.4, 1);
-  const shadeProf = [[12.2, 0], [11.8, 2.2], [10.6, 4.6], [8.6, 6.8], [6, 8.4], [3.2, 9.3], [2.2, 9.5]].map(([x, y]) => new THREE.Vector2(x, y));
-  const glassTex = TX.stainedGlassTexture();
-  const shade = new THREE.Mesh(new THREE.LatheGeometry(shadeProf, 72), new THREE.MeshStandardMaterial({
-    map: glassTex, emissiveMap: glassTex, emissive: "#ffffff", emissiveIntensity: 1.5,
+  // baluster base: fluted foot, swelling stem, collar
+  const baseProf = [[0, 0], [6.6, 0], [6.7, 0.35], [6.3, 0.8], [5.8, 0.9], [5.6, 1.3], [4.4, 1.7], [3.4, 2.3], [2.2, 2.8], [1.5, 3.4],
+    [1.15, 4.2], [1.5, 5.4], [1.95, 6.8], [1.7, 8.0], [1.05, 9.0], [0.95, 9.8], [1.5, 10.3], [1.6, 10.7], [0.9, 11.1], [0.55, 11.6], [0.5, 13], [0, 13]]
+    .map(([x, y]) => new THREE.Vector2(x, y));
+  const baseGeo = new THREE.LatheGeometry(baseProf, 96);
+  const bp = baseGeo.attributes.position;
+  for (let i = 0; i < bp.count; i++) {
+    const x = bp.getX(i), y = bp.getY(i), z = bp.getZ(i);
+    const a = Math.atan2(z, x);
+    // flutes on the foot and the stem's swell
+    const k = y < 2.4 ? 1 + 0.035 * Math.cos(a * 24) : (y > 4.5 && y < 8.2 ? 1 + 0.05 * Math.cos(a * 12) : 1);
+    bp.setX(i, x * k); bp.setZ(i, z * k);
+  }
+  baseGeo.computeVertexNormals();
+  const darkBronze = new THREE.MeshStandardMaterial({ color: "#3b2a1b", metalness: 1, roughness: 0.48 });
+  add(baseGeo, darkBronze, 0, 0, 0, tif);
+
+  // shade: a low dome whose rim hangs in scallops
+  const shadeProf = [[12.4, 0], [12.25, 1.4], [11.7, 3.4], [10.6, 5.5], [8.9, 7.4], [6.6, 8.9], [4, 9.9], [1.7, 10.3]].map(([x, y]) => new THREE.Vector2(x, y));
+  const shadeGeo = new THREE.LatheGeometry(shadeProf, 168);
+  const spos = shadeGeo.attributes.position;
+  for (let i = 0; i < spos.count; i++) {
+    const y = spos.getY(i);
+    if (y < 1.5) {
+      const a = Math.atan2(spos.getZ(i), spos.getX(i));
+      spos.setY(i, y - (1 - y / 1.5) * 1.3 * Math.abs(Math.sin(a * 8)));
+    }
+  }
+  shadeGeo.computeVertexNormals();
+  const glassTex = TX.tiffanyGlassTexture();
+  const shade = new THREE.Mesh(shadeGeo, new THREE.MeshStandardMaterial({
+    map: glassTex, emissiveMap: glassTex, emissive: "#ffffff", emissiveIntensity: 0.95,
     roughness: 0.35, side: THREE.DoubleSide
   }));
   shade.position.y = 13;
   shade.castShadow = true;
   tif.add(shade);
-  const rim = add(new THREE.TorusGeometry(12.2, 0.28, 10, 72), bronze, 0, 13, 0, tif);
-  rim.rotation.x = Math.PI / 2;
-  add(new THREE.CylinderGeometry(2.4, 2.4, 0.7, 24), bronze, 0, 22.7, 0, tif);
-  add(new THREE.SphereGeometry(0.9, 16, 12), bronze, 0, 23.7, 0, tif);
+  // crown: cap, a stack of beads, and a pointed finial
+  add(new THREE.CylinderGeometry(1.9, 2.2, 0.6, 24), darkBronze, 0, 23.4, 0, tif);
+  add(new THREE.SphereGeometry(0.75, 16, 12), darkBronze, 0, 24.2, 0, tif);
+  add(new THREE.CylinderGeometry(0.25, 0.45, 0.8, 12), darkBronze, 0, 25.1, 0, tif);
+  add(new THREE.SphereGeometry(0.5, 16, 12), darkBronze, 0, 25.7, 0, tif);
+  add(new THREE.ConeGeometry(0.3, 1.2, 12), darkBronze, 0, 26.7, 0, tif);
   const bulb = new THREE.Sprite(new THREE.SpriteMaterial({ map: TX.softDotTexture(), color: "#ffcf8a", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.85 }));
   bulb.position.set(0, 11.5, 0);
   bulb.scale.set(20, 8, 1);
@@ -728,25 +754,10 @@ function buildProps(scene) {
   screenLight.position.set(0, 10, 6);
   lid.add(screenLight);
 
-  /* candle in the foreground: the light the card faces are read by */
-  const candle = new THREE.Group();
-  candle.position.set(19, 0, 7);
-  candle.scale.setScalar(0.7);
-  scene.add(candle);
-  add(new THREE.CylinderGeometry(4.2, 4.4, 0.5, 40), brass, 0, 0.25, 0, candle);
-  add(new THREE.CylinderGeometry(2.8, 2.8, 8, 40), new THREE.MeshPhysicalMaterial({ color: "#d9cdb2", roughness: 0.6, sheen: 0.5, emissive: "#ff9a4a", emissiveIntensity: 0.03 }), 0, 4.5, 0, candle);
-  const melt = add(new THREE.CircleGeometry(2.4, 32), new THREE.MeshPhysicalMaterial({ color: "#f3e2bd", roughness: 0.1, clearcoat: 1, emissive: "#ffb070", emissiveIntensity: 0.25 }), 0, 8.45, 0, candle);
-  melt.rotation.x = -Math.PI / 2;
-  add(new THREE.CylinderGeometry(0.06, 0.06, 0.9, 6), new THREE.MeshBasicMaterial({ color: "#1a1410" }), 0, 8.9, 0, candle);
-  const dot = TX.softDotTexture();
-  const flameOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#ff9a3c", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-  const flameInner = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#fff2c8", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#ff8a2a", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.25 }));
-  [flameOuter, flameInner, halo].forEach((f) => candle.add(f));
-  halo.position.set(0, 10, 0); halo.scale.set(9, 9, 1);
-  const candleLight = new THREE.PointLight("#ff9d4a", 300, 0, 2);
-  candleLight.position.set(0, 11, 0);
-  candle.add(candleLight);
+  /* soft warm fill on the card faces (no visible source) */
+  const fill = new THREE.PointLight("#ff9d4a", 300, 0, 2);
+  fill.position.set(19, 7.7, 7);
+  scene.add(fill);
 
   /* portrait frame on a strut */
   const frame = new THREE.Group();
@@ -758,12 +769,59 @@ function buildProps(scene) {
   tilt.rotation.x = -0.16;
   frame.add(tilt);
   const frameMat = new THREE.MeshPhysicalMaterial({ color: "#3a2416", roughness: 0.38, clearcoat: 0.6 });
-  add(new RoundedBoxGeometry(12.6, 15.8, 1.3, 3, 0.35), frameMat, 0, 7.9, 0, tilt);
-  add(new THREE.PlaneGeometry(10.4, 13.6), new THREE.MeshStandardMaterial({ color: "#efe7d4", roughness: 0.95 }), 0, 7.9, 0.66, tilt);
-  const photo = add(new THREE.PlaneGeometry(7.8, 10.2), new THREE.MeshStandardMaterial({ map: TX.photoTexture("assets/headshot.jpg"), roughness: 0.7 }), 0, 8.2, 0.67, tilt);
+  // antique gilt: a scalloped moulding with acanthus relief, beading and corner rosettes
+  const gilt = TX.giltTextures();
+  const gold = new THREE.MeshStandardMaterial({ map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.6, color: "#e3bd78", metalness: 1, roughness: 0.36, envMap: scene.environment, envMapIntensity: 0.9 });
+  const goldPlain = new THREE.MeshStandardMaterial({ color: "#d4a955", metalness: 1, roughness: 0.3, envMap: scene.environment, envMapIntensity: 0.9 });
+  const OW = 14, OH = 17.2, IW = 10.4, IH = 13.6;
+  const outline = new THREE.Shape();
+  const lobes = (x0, y0, x1, y1, n, out) => {     // scalloped edge between two points
+    for (let i = 1; i <= n; i++) {
+      const t0 = (i - 1) / n, t1 = i / n, tm = (t0 + t1) / 2;
+      const mx = x0 + (x1 - x0) * tm + out[0], my = y0 + (y1 - y0) * tm + out[1];
+      outline.quadraticCurveTo(mx, my, x0 + (x1 - x0) * t1, y0 + (y1 - y0) * t1);
+    }
+  };
+  outline.moveTo(-OW / 2, -OH / 2);
+  lobes(-OW / 2, -OH / 2, OW / 2, -OH / 2, 7, [0, -0.45]);
+  lobes(OW / 2, -OH / 2, OW / 2, OH / 2, 9, [0.45, 0]);
+  lobes(OW / 2, OH / 2, -OW / 2, OH / 2, 7, [0, 0.45]);
+  lobes(-OW / 2, OH / 2, -OW / 2, -OH / 2, 9, [-0.45, 0]);
+  const opening = new THREE.Path();
+  opening.moveTo(-IW / 2, -IH / 2); opening.lineTo(-IW / 2, IH / 2); opening.lineTo(IW / 2, IH / 2); opening.lineTo(IW / 2, -IH / 2);
+  outline.holes.push(opening);
+  const moulding = new THREE.ExtrudeGeometry(outline, { depth: 0.6, bevelEnabled: true, bevelThickness: 0.45, bevelSize: 0.55, bevelSegments: 5, curveSegments: 8 });
+  moulding.translate(0, 0, -0.3);
+  add(moulding, gold, 0, 7.9, 0, tilt);
+  add(new THREE.BoxGeometry(OW - 0.4, OH - 0.4, 0.3), frameMat, 0, 7.9, -0.65, tilt);          // backing
+  // a row of pearls around the opening
+  const beadGeo = new THREE.SphereGeometry(0.16, 10, 8);
+  const beadPts = [];
+  for (let x = -IW / 2; x <= IW / 2 + 0.01; x += 0.42) beadPts.push([x, -IH / 2 - 0.25], [x, IH / 2 + 0.25]);
+  for (let y = -IH / 2 + 0.42; y < IH / 2; y += 0.42) beadPts.push([-IW / 2 - 0.25, y], [IW / 2 + 0.25, y]);
+  const beads = new THREE.InstancedMesh(beadGeo, goldPlain, beadPts.length);
+  const bm = new THREE.Matrix4();
+  beadPts.forEach(([x, y], i) => beads.setMatrixAt(i, bm.makeTranslation(x, 7.9 + y, 0.78)));
+  tilt.add(beads);
+  // corner rosettes
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+    const cx = sx * (OW / 2 - 0.9), cy = 7.9 + sy * (OH / 2 - 0.9);
+    const ros = add(new THREE.SphereGeometry(0.85, 20, 12), gold, cx, cy, 0.75, tilt);
+    ros.scale.set(1, 1, 0.55);
+    for (let k = 0; k < 6; k++) {
+      const a = (k / 6) * Math.PI * 2;
+      const petal = add(new THREE.SphereGeometry(0.42, 12, 8), goldPlain, cx + Math.cos(a) * 0.95, cy + Math.sin(a) * 0.95, 0.65, tilt);
+      petal.scale.set(1, 1, 0.5);
+    }
+  });
+  // crest at the top centre
+  const crest = add(new THREE.SphereGeometry(1.1, 24, 12), gold, 0, 7.9 + OH / 2 + 0.25, 0.4, tilt);
+  crest.scale.set(1.6, 0.9, 0.5);
+  add(new THREE.PlaneGeometry(IW, IH), new THREE.MeshStandardMaterial({ color: "#efe7d4", roughness: 0.95 }), 0, 7.9, 0.1, tilt);
+  const photo = add(new THREE.PlaneGeometry(7.8, 10.2), new THREE.MeshStandardMaterial({ map: TX.photoTexture("assets/headshot.jpg"), roughness: 0.7 }), 0, 8.2, 0.11, tilt);
   photo.castShadow = false;
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(10.4, 13.6), new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.04, metalness: 0, transparent: true, opacity: 0.12, envMapIntensity: 2 }));
-  glass.position.set(0, 7.9, 0.72);
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(IW, IH), new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.04, metalness: 0, transparent: true, opacity: 0.12, envMapIntensity: 2 }));
+  glass.position.set(0, 7.9, 0.2);
   tilt.add(glass);
   const strut = add(new THREE.BoxGeometry(1.8, 12, 0.3), frameMat, 0, 5.8, -4.6, frame);
   strut.rotation.x = 0.36;
@@ -842,13 +900,6 @@ function buildProps(scene) {
   return {
     update(t) {
       const m = reduceMotion ? 0.15 : 1;
-      // candle flicker
-      const fl = 1 + (Math.sin(t * 11.3) * 0.5 + Math.sin(t * 17.9) * 0.3 + Math.sin(t * 3.1) * 0.4) * 0.08 * m;
-      candleLight.intensity = 300 * fl;
-      const sway = Math.sin(t * 2.3) * 0.08 * m;
-      flameOuter.position.set(sway, 10.1, 0); flameOuter.scale.set(1.1 * fl, 2.6 * fl, 1);
-      flameInner.position.set(sway * 0.6, 9.75, 0); flameInner.scale.set(0.5, 1.1 * fl, 1);
-      halo.material.opacity = 0.22 * fl;
       for (let i = 0; i < COUNT; i++) {
         const s = seeds[i];
         dpos[i * 3] = s[0] + Math.sin(t * 0.07 * m + s[3]) * 3;
