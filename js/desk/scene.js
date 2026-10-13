@@ -51,15 +51,15 @@ async function main() {
   const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, lowPower ? 1.5 : 1.75));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.12;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#171314");
+  scene.background = new THREE.Color("#07080d");
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.22;
+  scene.environmentIntensity = 0.12;
 
   const camera = new THREE.PerspectiveCamera(30, 1, 5, 600);
 
@@ -75,7 +75,7 @@ async function main() {
   const bokeh = new BokehPass(scene, camera, { focus: 80, aperture: 0.00009, maxblur: 0.006 });
   if (!lowPower) composer.addPass(bokeh);
   // a soft halation around the window and the lamp: the lo-fi glow
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(512, 512), 0.32, 0.85, 0.82));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(512, 512), 0.3, 0.8, 0.9));
   composer.addPass(new OutputPass());
 
   /* ---------- framing ---------- */
@@ -221,7 +221,7 @@ function buildRoom(scene) {
     new THREE.PlaneGeometry(260, 150),
     new THREE.MeshPhysicalMaterial({
       map: walnut.map, roughnessMap: walnut.roughness, bumpMap: walnut.bump, bumpScale: 0.6,
-      roughness: 0.62, clearcoat: 0.35, clearcoatRoughness: 0.32
+      roughness: 0.68, clearcoat: 0.12, clearcoatRoughness: 0.55
     })
   );
   desk.rotation.x = -Math.PI / 2;
@@ -284,10 +284,15 @@ function buildRoom(scene) {
   add(new THREE.BoxGeometry(1.2, wh, 1.4), wood, cx, cy, sz);
   [0.25, 0.75].forEach((f) => add(new THREE.BoxGeometry(ww, 1.2, 1.4), wood, cx, win.y0 + wh * f, sz));
 
+  // Glass: barely there, but it catches reflections of the room.
+  const pane = new THREE.Mesh(new THREE.PlaneGeometry(ww, wh), new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.05, transparent: true, opacity: 0.07, envMapIntensity: 3 }));
+  pane.position.set(cx, cy, sz - 0.2);
+  scene.add(pane);
+
   // Sky, far beyond the glass.
   const sky = new THREE.Mesh(
     new THREE.PlaneGeometry(520, 260),
-    new THREE.MeshBasicMaterial({ map: TX.skyTexture(), color: new THREE.Color(1.35, 1.25, 1.2) })
+    new THREE.MeshBasicMaterial({ map: TX.nightSkyTexture(), color: new THREE.Color(1.15, 1.15, 1.2) })
   );
   sky.position.set(60, 52, -200);
   scene.add(sky);
@@ -315,45 +320,45 @@ function buildRoom(scene) {
 }
 
 /* ==========================================================================
-   Lights: low sun through the window, a green banker's lamp, dusk fill
+   Lights: moonlight through the window, a Tiffany lamp, a candle, a laptop
+   (the candle and laptop lights live with their props in buildProps)
    ========================================================================== */
+const TIFFANY = new THREE.Vector3(-7, 0, -38);
+
 function buildLights(scene) {
-  scene.add(new THREE.HemisphereLight("#6d6a9c", "#2a1b12", 0.4));
+  scene.add(new THREE.HemisphereLight("#33405f", "#0e0907", 0.22));
 
-  const sun = new THREE.DirectionalLight("#ffae78", 2.3);
-  sun.position.set(95, 75, -190);
-  sun.target.position.set(-4, 0, 6);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
-  Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 60, far: 360 });
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 0.04;
-  sun.shadow.radius = 3;
-  scene.add(sun, sun.target);
+  const moon = new THREE.DirectionalLight("#8fa8ff", 0.9);
+  moon.position.set(95, 75, -190);
+  moon.target.position.set(-4, 0, 6);
+  moon.castShadow = true;
+  moon.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
+  Object.assign(moon.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 60, far: 360 });
+  moon.shadow.bias = -0.0004;
+  moon.shadow.normalBias = 0.04;
+  scene.add(moon, moon.target);
 
-  // Banker's lamp (geometry lives in buildProps); this is its light.
-  const lamp = new THREE.SpotLight("#ffcf8f", 12000, 0, 0.95, 0.85, 2);
-  lamp.position.set(-31, 25, -13);
-  lamp.target.position.set(0, 0, 4);
-  lamp.castShadow = true;
-  lamp.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
-  lamp.shadow.camera.near = 3;
-  lamp.shadow.camera.far = 160;
-  lamp.shadow.bias = -0.0005;
-  lamp.shadow.normalBias = 0.03;
-  lamp.shadow.radius = 5;
-  scene.add(lamp, lamp.target);
+  // Tiffany: a warm pool on the desk from under the shade...
+  const pool = new THREE.SpotLight("#ffb860", 1100, 0, 1.0, 1, 2);
+  pool.position.set(TIFFANY.x, 12, TIFFANY.z + 1);
+  pool.target.position.set(6, 2, 2);
+  pool.castShadow = true;
+  pool.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
+  pool.shadow.camera.near = 2;
+  pool.shadow.camera.far = 160;
+  pool.shadow.bias = -0.0005;
+  pool.shadow.normalBias = 0.03;
+  scene.add(pool, pool.target);
 
-  // Spill onto the wall behind the lamp.
-  const spill = new THREE.PointLight("#ffbf7a", 900, 0, 2);
-  spill.position.set(-31, 34, -30);
-  scene.add(spill);
+  // ...and the coloured glow the glass throws onto the wall around it.
+  const glow = new THREE.PointLight("#ffa856", 2200, 0, 2);
+  glow.position.set(TIFFANY.x, 17, TIFFANY.z - 2);
+  scene.add(glow);
 
   return {
     update(t) {
-      // the faintest breathing of an old bulb
       const f = 1 + Math.sin(t * 2.1) * 0.006 + Math.sin(t * 7.3) * 0.004;
-      lamp.intensity = 12000 * f;
+      pool.intensity = 1100 * f;
     }
   };
 }
@@ -673,45 +678,75 @@ function buildProps(scene) {
     return m;
   };
 
-  /* banker's lamp */
-  const lamp = new THREE.Group();
-  lamp.position.set(-31, 0, -15);
-  scene.add(lamp);
-  add(new RoundedBoxGeometry(22, 1.8, 11, 4, 0.7), brass, 0, 0.9, 0, lamp);
-  add(new THREE.CylinderGeometry(0.55, 0.7, 22, 24), brass, 0, 12.5, 0, lamp);
-  add(new THREE.CylinderGeometry(0.4, 0.4, 16, 16), brass, 0, 23.5, 0, lamp).rotation.z = Math.PI / 2;
-  add(new THREE.SphereGeometry(1.1, 24, 16), brass, 0, 23.5, 0, lamp);
-  const shadeGlass = new THREE.MeshPhysicalMaterial({
-    color: "#1c5a37", roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.05,
-    emissive: "#0f3a22", emissiveIntensity: 0.35, side: THREE.FrontSide
-  });
-  const shade = new THREE.Group();
-  shade.position.set(0, 25.5, 1.5);
-  shade.rotation.x = 0.28;
-  lamp.add(shade);
-  const sg = new THREE.CylinderGeometry(6.2, 6.2, 27, 48, 1, true, 0, Math.PI);
-  sg.rotateZ(Math.PI / 2);
-  // flare the lower edges outward a little, like the real thing
-  const sp = sg.attributes.position;
-  for (let i = 0; i < sp.count; i++) if (sp.getY(i) < 1.5) sp.setZ(i, sp.getZ(i) * 1.12);
-  sg.computeVertexNormals();
-  add(sg, shadeGlass, 0, 0, 0, shade);
-  const inner = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color: "#fff1cf", side: THREE.BackSide }));
-  inner.scale.setScalar(0.985);
-  shade.add(inner);
-  const capGeo = new THREE.CircleGeometry(6.4, 32, 0, Math.PI);
-  [-1, 1].forEach((s) => {
-    const c = add(capGeo, new THREE.MeshPhysicalMaterial({ color: "#1c5a37", roughness: 0.15, clearcoat: 1, side: THREE.DoubleSide }), s * 13.5, 0, 0, shade);
-    c.rotation.y = Math.PI / 2;
-  });
-  // bulb glow
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: TX.softDotTexture(), color: "#ffd9a0", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.9 }));
-  glow.position.set(-31, 23.2, -13);
-  glow.scale.set(26, 9, 1);
-  scene.add(glow);
-  // pull chain
-  add(new THREE.CylinderGeometry(0.06, 0.06, 7, 6), brass, 8, 19, 3.5, lamp);
-  add(new THREE.SphereGeometry(0.35, 12, 8), brass, 8, 15.4, 3.5, lamp);
+  /* Tiffany lamp: bronze base, leaded stained-glass dome lit from within */
+  const bronze = new THREE.MeshStandardMaterial({ color: "#5e4126", metalness: 1, roughness: 0.42 });
+  const tif = new THREE.Group();
+  tif.position.copy(TIFFANY);
+  scene.add(tif);
+  const footProf = [[0, 0], [6.2, 0], [6.4, 0.5], [5.6, 1.2], [3.2, 2.2], [1.6, 3.4], [1.1, 4.6], [0, 4.8]].map(([x, y]) => new THREE.Vector2(x, y));
+  add(new THREE.LatheGeometry(footProf, 48), bronze, 0, 0, 0, tif);
+  add(new THREE.CylinderGeometry(0.7, 0.9, 9, 20), bronze, 0, 8.5, 0, tif);
+  add(new THREE.SphereGeometry(1.6, 24, 16), bronze, 0, 7, 0, tif).scale.set(1, 1.4, 1);
+  const shadeProf = [[12.2, 0], [11.8, 2.2], [10.6, 4.6], [8.6, 6.8], [6, 8.4], [3.2, 9.3], [2.2, 9.5]].map(([x, y]) => new THREE.Vector2(x, y));
+  const glassTex = TX.stainedGlassTexture();
+  const shade = new THREE.Mesh(new THREE.LatheGeometry(shadeProf, 72), new THREE.MeshStandardMaterial({
+    map: glassTex, emissiveMap: glassTex, emissive: "#ffffff", emissiveIntensity: 1.5,
+    roughness: 0.35, side: THREE.DoubleSide
+  }));
+  shade.position.y = 13;
+  shade.castShadow = true;
+  tif.add(shade);
+  const rim = add(new THREE.TorusGeometry(12.2, 0.28, 10, 72), bronze, 0, 13, 0, tif);
+  rim.rotation.x = Math.PI / 2;
+  add(new THREE.CylinderGeometry(2.4, 2.4, 0.7, 24), bronze, 0, 22.7, 0, tif);
+  add(new THREE.SphereGeometry(0.9, 16, 12), bronze, 0, 23.7, 0, tif);
+  const bulb = new THREE.Sprite(new THREE.SpriteMaterial({ map: TX.softDotTexture(), color: "#ffcf8a", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.85 }));
+  bulb.position.set(0, 11.5, 0);
+  bulb.scale.set(20, 8, 1);
+  tif.add(bulb);
+
+  /* laptop, open on a video call: the remote office */
+  const laptop = new THREE.Group();
+  laptop.position.set(30, 0, -27);
+  laptop.rotation.y = -0.62;
+  laptop.scale.setScalar(0.9);
+  scene.add(laptop);
+  const alu = new THREE.MeshStandardMaterial({ color: "#4a4b50", metalness: 0.85, roughness: 0.34 });
+  add(new RoundedBoxGeometry(30, 1.4, 20.5, 3, 0.5), alu, 0, 0.7, 0, laptop);
+  const kb = add(new THREE.PlaneGeometry(27, 18.5), new THREE.MeshStandardMaterial({ map: TX.keyboardTexture(), roughness: 0.6, metalness: 0.4 }), 0, 1.42, 0.4, laptop);
+  kb.rotation.x = -Math.PI / 2;
+  const lid = new THREE.Group();
+  lid.position.set(0, 1.4, -10.1);
+  lid.rotation.x = -0.27;
+  laptop.add(lid);
+  add(new RoundedBoxGeometry(30, 20, 0.6, 3, 0.25), alu, 0, 10, 0, lid);
+  add(new THREE.PlaneGeometry(29.2, 19.2), new THREE.MeshStandardMaterial({ color: "#09090b", roughness: 0.2 }), 0, 10, 0.31, lid);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(27.6, 17.4), new THREE.MeshBasicMaterial({ map: TX.laptopScreenTexture(), color: new THREE.Color(0.85, 0.85, 0.9) }));
+  screen.position.set(0, 10.4, 0.32);
+  lid.add(screen);
+  const screenLight = new THREE.PointLight("#a9c0ff", 260, 0, 2);
+  screenLight.position.set(0, 10, 6);
+  lid.add(screenLight);
+
+  /* candle in the foreground: the light the card faces are read by */
+  const candle = new THREE.Group();
+  candle.position.set(19, 0, 7);
+  candle.scale.setScalar(0.7);
+  scene.add(candle);
+  add(new THREE.CylinderGeometry(4.2, 4.4, 0.5, 40), brass, 0, 0.25, 0, candle);
+  add(new THREE.CylinderGeometry(2.8, 2.8, 8, 40), new THREE.MeshPhysicalMaterial({ color: "#d9cdb2", roughness: 0.6, sheen: 0.5, emissive: "#ff9a4a", emissiveIntensity: 0.03 }), 0, 4.5, 0, candle);
+  const melt = add(new THREE.CircleGeometry(2.4, 32), new THREE.MeshPhysicalMaterial({ color: "#f3e2bd", roughness: 0.1, clearcoat: 1, emissive: "#ffb070", emissiveIntensity: 0.25 }), 0, 8.45, 0, candle);
+  melt.rotation.x = -Math.PI / 2;
+  add(new THREE.CylinderGeometry(0.06, 0.06, 0.9, 6), new THREE.MeshBasicMaterial({ color: "#1a1410" }), 0, 8.9, 0, candle);
+  const dot = TX.softDotTexture();
+  const flameOuter = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#ff9a3c", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+  const flameInner = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#fff2c8", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: dot, color: "#ff8a2a", blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.25 }));
+  [flameOuter, flameInner, halo].forEach((f) => candle.add(f));
+  halo.position.set(0, 10, 0); halo.scale.set(9, 9, 1);
+  const candleLight = new THREE.PointLight("#ff9d4a", 300, 0, 2);
+  candleLight.position.set(0, 11, 0);
+  candle.add(candleLight);
 
   /* portrait frame on a strut */
   const frame = new THREE.Group();
@@ -765,7 +800,7 @@ function buildProps(scene) {
   const pages = new THREE.MeshStandardMaterial({ color: "#eadfc6", roughness: 0.95 });
   books.forEach((b) => {
     const g = new THREE.Group();
-    g.position.set(24, by, -19);
+    g.position.set(-31, by, -21);
     g.rotation.y = b.r;
     scene.add(g);
     add(new RoundedBoxGeometry(b.w, b.h, b.d, 2, 0.25), new THREE.MeshPhysicalMaterial({ color: b.c, roughness: 0.6, clearcoat: 0.2 }), 0, b.h / 2, 0, g);
@@ -807,6 +842,13 @@ function buildProps(scene) {
   return {
     update(t) {
       const m = reduceMotion ? 0.15 : 1;
+      // candle flicker
+      const fl = 1 + (Math.sin(t * 11.3) * 0.5 + Math.sin(t * 17.9) * 0.3 + Math.sin(t * 3.1) * 0.4) * 0.08 * m;
+      candleLight.intensity = 300 * fl;
+      const sway = Math.sin(t * 2.3) * 0.08 * m;
+      flameOuter.position.set(sway, 10.1, 0); flameOuter.scale.set(1.1 * fl, 2.6 * fl, 1);
+      flameInner.position.set(sway * 0.6, 9.75, 0); flameInner.scale.set(0.5, 1.1 * fl, 1);
+      halo.material.opacity = 0.22 * fl;
       for (let i = 0; i < COUNT; i++) {
         const s = seeds[i];
         dpos[i * 3] = s[0] + Math.sin(t * 0.07 * m + s[3]) * 3;

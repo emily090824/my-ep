@@ -428,3 +428,212 @@ export function leatherTexture(hex) {
   grain(ctx, 512, 512, 26, 0.12);
   return toTexture(c);
 }
+
+/* ---------------- Window at night: city skyline ---------------- */
+export function nightSkyTexture() {
+  const W = 2048, H = 1024;
+  const [c, ctx] = canvas(W, H);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0.0, "#04060d");
+  g.addColorStop(0.45, "#0b1328");
+  g.addColorStop(0.72, "#1a2343");
+  g.addColorStop(0.86, "#3b2f4a");   // city glow on the haze
+  g.addColorStop(1.0, "#4a3540");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // stars, thinning toward the light-polluted horizon
+  for (let i = 0; i < 700; i++) {
+    const y = Math.pow(rand(), 1.8) * H * 0.7;
+    ctx.fillStyle = `rgba(230, 235, 255, ${(0.25 + rand() * 0.75) * (1 - y / (H * 0.7))})`;
+    const s = rand() < 0.04 ? 2.4 : 1.2;
+    ctx.fillRect(rand() * W, y, s, s);
+  }
+  // crescent moon with a halo
+  const mx = W * 0.74, my = H * 0.2;
+  let halo = ctx.createRadialGradient(mx, my, 0, mx, my, 220);
+  halo.addColorStop(0, "rgba(220, 228, 255, 0.35)");
+  halo.addColorStop(1, "rgba(220, 228, 255, 0)");
+  ctx.fillStyle = halo; ctx.fillRect(mx - 220, my - 220, 440, 440);
+  ctx.fillStyle = "#f3f0e4";
+  ctx.beginPath(); ctx.arc(mx, my, 34, 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.beginPath(); ctx.arc(mx + 15, my - 8, 31, 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = "source-over";
+
+  // skyline in three depths; nearer is darker, taller, and more lit
+  const layers = [
+    { base: H * 0.84, col: "#1d1d33", min: 40, max: 200, lit: 0.22, win: [5, 7] },
+    { base: H * 0.9, col: "#141426", min: 80, max: 330, lit: 0.3, win: [6, 9] },
+    { base: H * 0.97, col: "#0b0b16", min: 120, max: 420, lit: 0.36, win: [7, 10] }
+  ];
+  const warm = () => `rgba(255, ${190 + rand() * 50}, ${110 + rand() * 70}, ${0.55 + rand() * 0.45})`;
+  const cool = () => `rgba(${170 + rand() * 40}, ${200 + rand() * 30}, 255, ${0.45 + rand() * 0.4})`;
+  layers.forEach((L, li) => {
+    let x = -30;
+    while (x < W) {
+      const bw = 50 + rand() * 170, bh = L.min + rand() * (L.max - L.min);
+      const top = L.base - bh;
+      ctx.fillStyle = L.col;
+      ctx.fillRect(x, top, bw, H);
+      // crowns: stepped tops, spires, water towers
+      const r = rand();
+      if (r < 0.15) { ctx.fillRect(x + bw * 0.2, top - 30, bw * 0.6, 30); ctx.fillRect(x + bw * 0.4, top - 70, bw * 0.2, 40); }
+      else if (r < 0.25) { ctx.fillRect(x + bw / 2 - 2, top - 90, 4, 90); }
+      else if (r < 0.32 && li === 2) {
+        ctx.fillRect(x + 20, top - 34, 34, 24);
+        ctx.beginPath(); ctx.moveTo(x + 16, top - 34); ctx.lineTo(x + 37, top - 54); ctx.lineTo(x + 58, top - 34); ctx.fill();
+        ctx.fillRect(x + 24, top - 10, 3, 10); ctx.fillRect(x + 47, top - 10, 3, 10);
+      }
+      if (r < 0.25 && rand() < 0.7) {           // aircraft warning light
+        ctx.fillStyle = "rgba(255, 60, 50, 0.95)";
+        ctx.fillRect(x + bw / 2 - 2, top - (r < 0.15 ? 72 : 92), 4, 4);
+      }
+      const [ww, wh] = L.win;
+      for (let wy = top + 10; wy < H; wy += wh + 7) {
+        for (let wx = x + 8; wx < x + bw - ww - 4; wx += ww + 6) {
+          if (rand() < L.lit) {
+            ctx.fillStyle = rand() < 0.78 ? warm() : cool();
+            ctx.fillRect(wx, wy, ww, wh);
+          }
+        }
+      }
+      x += bw + rand() * 14;
+    }
+  });
+  // street-level glow
+  const sg = ctx.createLinearGradient(0, H * 0.9, 0, H);
+  sg.addColorStop(0, "rgba(255, 170, 90, 0)");
+  sg.addColorStop(1, "rgba(255, 170, 90, 0.25)");
+  ctx.fillStyle = sg; ctx.fillRect(0, H * 0.9, W, H * 0.1);
+  return toTexture(c);
+}
+
+/* ---------------- Tiffany shade: leaded stained glass ----------------
+   Painted in lathe UV space: u runs around the shade, v from rim (0) to crown (1). */
+export function stainedGlassTexture() {
+  const W = 2048, H = 512;
+  const [c, ctx] = canvas(W, H);
+  const pal = {
+    amber: ["#d98d2b", "#e8a640", "#c47a22"], honey: ["#f0c46a", "#e9b456", "#f5d48a"],
+    green: ["#4f7d34", "#5f8f3c", "#3f6a2c"], deep: ["#24452a", "#2c5532", "#1d3a24"],
+    red: ["#a8321f", "#c0442a"], blue: ["#2f4f86", "#3c63a0"], cream: ["#efdcaa", "#f4e6bf"]
+  };
+  const pick = (k) => pal[k][Math.floor(rand() * pal[k].length)];
+  // rows from rim (bottom of canvas) to crown (top)
+  const rows = [
+    { h: 34, kinds: ["deep", "green"], seg: [60, 90] },          // rim
+    { h: 60, kinds: ["red", "amber", "red", "blue"], seg: [50, 70] },  // jewel band
+    { h: 70, kinds: ["green", "deep"], seg: [70, 110] },
+    { h: 80, kinds: ["honey", "amber", "cream"], seg: [80, 130] },
+    { h: 90, kinds: ["green", "honey", "green"], seg: [90, 150] },
+    { h: 90, kinds: ["amber", "honey"], seg: [110, 170] },
+    { h: 88, kinds: ["deep", "green"], seg: [140, 220] }        // crown
+  ];
+  let y = H;
+  rows.forEach((row) => {
+    const y0 = y - row.h;
+    let x = 0;
+    while (x < W) {
+      const w = row.seg[0] + rand() * (row.seg[1] - row.seg[0]);
+      const col = pick(row.kinds[Math.floor(rand() * row.kinds.length)]);
+      ctx.fillStyle = col;
+      // panes are slightly trapezoidal so the lead lines don't read as a grid
+      const skew = (rand() - 0.5) * 18;
+      ctx.beginPath();
+      ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w + skew, y0); ctx.lineTo(x + skew, y0); ctx.closePath();
+      ctx.fill();
+      // mottled, streaky glass
+      for (let k = 0; k < 5; k++) {
+        const gx = x + rand() * w, gy = y0 + rand() * row.h, gr = 8 + rand() * 30;
+        const gg = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+        gg.addColorStop(0, rand() < 0.5 ? "rgba(255,240,200,0.35)" : "rgba(40,20,0,0.25)");
+        gg.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = gg; ctx.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
+      }
+      // lead came
+      ctx.strokeStyle = "#17110b"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x + w + skew, y0); ctx.stroke();
+      x += w;
+    }
+    ctx.strokeStyle = "#17110b"; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(W, y0); ctx.stroke();
+    y = y0;
+  });
+  return toTexture(c);
+}
+
+/* ---------------- Laptop screen: an evening video call ---------------- */
+export function laptopScreenTexture() {
+  const W = 1280, H = 820;
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = "#16171c"; ctx.fillRect(0, 0, W, H);
+  // top bar
+  ctx.fillStyle = "#202229"; ctx.fillRect(0, 0, W, 54);
+  ctx.fillStyle = "#e9e4d8"; ctx.font = "400 24px 'Courier Prime'";
+  ctx.fillText("Weekly sync  ·  remote", 28, 35);
+  ctx.textAlign = "right"; ctx.fillStyle = "#9fb497"; ctx.fillText("● 42:17", W - 28, 35);
+  ctx.textAlign = "left";
+
+  const tiles = [
+    { bg: ["#3b4a63", "#22293a"], skin: "#c99a7b", hair: "#2b1d16", shirt: "#9b4a2f", name: "Priya" },
+    { bg: ["#4d3b33", "#2a201b"], skin: "#8a5a40", hair: "#120c09", shirt: "#3f5e48", name: "Marcus" },
+    { bg: ["#2f4a40", "#1b2a24"], skin: "#e2b89c", hair: "#c48a4a", shirt: "#e6dcc6", name: "Hannah" },
+    { bg: ["#5a4a3a", "#2f261d"], skin: "#e8bfa3", hair: "#5a3420", shirt: "#c9c9c9", name: "Emily (you)" }
+  ];
+  const pad = 18, tw = (W - pad * 3) / 2, th = (H - 54 - 110 - pad * 3) / 2;
+  tiles.forEach((t, i) => {
+    const x = pad + (i % 2) * (tw + pad), y = 54 + pad + Math.floor(i / 2) * (th + pad);
+    const g = ctx.createLinearGradient(x, y, x, y + th);
+    g.addColorStop(0, t.bg[0]); g.addColorStop(1, t.bg[1]);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(x, y, tw, th, 14); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, tw, th, 14); ctx.clip();
+    // a soft lamp glow in each person's room
+    const lg = ctx.createRadialGradient(x + tw * 0.8, y + th * 0.25, 0, x + tw * 0.8, y + th * 0.25, tw * 0.5);
+    lg.addColorStop(0, "rgba(255, 210, 150, 0.25)"); lg.addColorStop(1, "rgba(255,210,150,0)");
+    ctx.fillStyle = lg; ctx.fillRect(x, y, tw, th);
+    const cx = x + tw / 2, cy = y + th * 0.52;
+    ctx.fillStyle = t.shirt;
+    ctx.beginPath(); ctx.ellipse(cx, y + th + 30, tw * 0.3, th * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = t.hair;
+    ctx.beginPath(); ctx.ellipse(cx, cy - 8, th * 0.2, th * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+    if (i === 3) { ctx.fillRect(cx - th * 0.2, cy - 8, th * 0.4, th * 0.42); }   // shoulder-length hair
+    ctx.fillStyle = t.skin;
+    ctx.beginPath(); ctx.ellipse(cx, cy + 4, th * 0.15, th * 0.19, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.beginPath(); ctx.roundRect(x + 12, y + th - 44, ctx.measureText(t.name).width + 30, 32, 8); ctx.fill();
+    ctx.fillStyle = "#f2ede2"; ctx.font = "400 22px 'Courier Prime'";
+    ctx.fillText(t.name, x + 26, y + th - 21);
+    if (i === 0) { ctx.strokeStyle = "#9fb497"; ctx.lineWidth = 4; ctx.beginPath(); ctx.roundRect(x + 2, y + 2, tw - 4, th - 4, 12); ctx.stroke(); }
+  });
+  // control bar
+  const by = H - 80;
+  [["#2c2e36", -150], ["#2c2e36", -50], ["#2c2e36", 50], ["#b5402a", 150]].forEach(([col, dx]) => {
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(W / 2 + dx, by, 30, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.strokeStyle = "#e9e4d8"; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.roundRect(W / 2 - 160, by - 14, 20, 26, 10); ctx.stroke();           // mic
+  ctx.beginPath(); ctx.roundRect(W / 2 - 64, by - 11, 22, 22, 4); ctx.stroke();               // camera
+  ctx.beginPath(); ctx.moveTo(W / 2 - 42, by); ctx.lineTo(W / 2 - 34, by - 7); ctx.lineTo(W / 2 - 34, by + 7); ctx.closePath(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(W / 2 + 36, by - 12, 28, 22, 3); ctx.stroke();               // share
+  ctx.beginPath(); ctx.moveTo(W / 2 + 136, by); ctx.lineTo(W / 2 + 164, by); ctx.stroke();  // leave
+  return toTexture(c);
+}
+
+export function keyboardTexture() {
+  const W = 1024, H = 700;
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = "#3c3d42"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#1b1c20";
+  const kw = 60, gap = 8, x0 = 60;
+  for (let r = 0; r < 6; r++) {
+    for (let k = 0; k < 13; k++) {
+      ctx.beginPath(); ctx.roundRect(x0 + k * (kw + gap), 40 + r * (kw * (r === 0 ? 0.5 : 1) + gap) - (r > 0 ? kw * 0.5 : 0), kw, r === 0 ? kw * 0.5 : kw, 6); ctx.fill();
+    }
+  }
+  ctx.fillStyle = "#2f3035";
+  ctx.beginPath(); ctx.roundRect(W / 2 - 200, 470, 400, 200, 14); ctx.fill();               // trackpad
+  return toTexture(c);
+}

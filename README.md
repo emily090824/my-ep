@@ -15,8 +15,10 @@ assets/             Put your headshot here as headshot.jpg
 
 ## The desk
 The homepage hero is a real-time 3D scene (three.js): a green enamel rotary Rolodex on a walnut
-desk at dusk, lit by a banker's lamp and a sunset window, with depth of field, bloom and film
-grain. Card faces are drawn from `js/personas.js`, so editing a persona there updates its card.
+desk at night. A stained-glass Tiffany lamp glows against the window, the city skyline is lit up
+outside, an open laptop is mid video call (the remote office), and a candle lights the card
+faces. Your headshot sits in the frame. Depth of field, bloom and film grain finish the look.
+Card faces are drawn from `js/personas.js`, so editing a persona there updates its card.
 Visitors can drag the cards, scroll over them, click a knob, or use the buttons under the
 Rolodex. On phones the heavier effects are turned down automatically; without WebGL, the
 buttons still work.
