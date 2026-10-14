@@ -501,48 +501,80 @@ body:not(.has-desk) main { padding-top: 66px; }
 /* the gallery floats right; the bio wraps beside it, then runs full width below */
 .about .gallery { float: right; width: min(54%, 600px); margin: 0 0 24px clamp(28px, 4vw, 56px); }
 .gallery { position: relative; container-type: inline-size; aspect-ratio: 1 / 0.86; margin-top: 8px; }
-/* brass rod with round finials and wall brackets */
+/* brass rod: ball finials on collars, resting in round wall brackets */
 .gallery .rod {
-  position: absolute; left: 1%; right: 1%; top: 3.4cqw; height: 1.3cqw; border-radius: 1cqw;
-  background: linear-gradient(#e6c98a, #b08a45 45%, #7a5a26);
-  box-shadow: 0 0.6cqw 1cqw rgba(47, 34, 25, 0.25);
+  position: absolute; left: 3%; right: 3%; top: 3.6cqw; height: 1.1cqw; border-radius: 1cqw; z-index: 2;
+  background: linear-gradient(#f4dfa6 0%, #c9a35a 30%, #9a7535 62%, #6e5122 100%);
+  box-shadow: 0.5cqw 1.2cqw 1.2cqw rgba(47, 34, 25, 0.28);
 }
 .gallery .rod::before, .gallery .rod::after {
-  content: ""; position: absolute; top: -0.7cqw; width: 2.7cqw; height: 2.7cqw; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f3dca0, #b08a45 55%, #6a4c1e);
-}
-.gallery .rod::before { left: -1.4cqw; }
-.gallery .rod::after { right: -1.4cqw; }
-.gallery .rod i {
-  position: absolute; top: -1.2cqw; width: 3.6cqw; height: 3.6cqw; border-radius: 50%;
-  background: radial-gradient(circle, #9c7a3c 0 22%, #c9a560 24%, #8a6a30 70%); z-index: -1;
-}
-.gallery .rod i:first-child { left: 7%; }
-.gallery .rod i:last-child { right: 7%; }
-/* thin brass wires down to each frame */
-.wire {
-  position: absolute; left: var(--x); top: 4.2cqw; width: 0.22cqw; height: var(--h); margin-left: -0.11cqw;
-  background: linear-gradient(90deg, #8a6a30, #e3c788, #8a6a30);
-}
-/* matching light-wood frames with deep cream mats */
-.hang {
-  position: absolute; left: var(--x); top: var(--y); width: var(--w); aspect-ratio: var(--r); margin: 0;
-  box-sizing: border-box; padding: calc(var(--w) * 0.07);
+  content: ""; position: absolute; top: -1cqw; width: 3.6cqw; height: 3.1cqw;
   background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 0.4cqw, rgba(60,35,15,0.08) 0.4cqw 0.5cqw),
-    linear-gradient(135deg, #c79a6a, #a4774a 40%, #c49668 60%, #8f633a);
+    radial-gradient(circle at 62% 50%, #fbe9b6 0 8%, #d2ad62 30%, #9a7535 60%, #5e4418 74%, transparent 76%),
+    linear-gradient(#e8cd8c, #9a7535) center / 0.7cqw 1.6cqw no-repeat;
+}
+.gallery .rod::before { left: -3cqw; background-position: 0 0, 92% 50%; }
+.gallery .rod::after { right: -3cqw; transform: scaleX(-1); background-position: 0 0, 92% 50%; }
+/* wall brackets: a round rosette plate with screws, and the arm the rod sits in */
+.gallery .rod i {
+  position: absolute; top: -1.9cqw; width: 4.8cqw; height: 4.8cqw; border-radius: 50%; z-index: -1;
+  background:
+    radial-gradient(circle at 50% 18%, #5e4418 0 5%, transparent 6%),
+    radial-gradient(circle at 50% 82%, #5e4418 0 5%, transparent 6%),
+    radial-gradient(circle at 50% 50%, #e5c886 0 24%, #a58040 26%, #d6b46e 40%, #9a7535 60%, #c9a35a 72%, #7a5a28 100%);
+  box-shadow: 0.4cqw 0.9cqw 1cqw rgba(47, 34, 25, 0.3);
+}
+.gallery .rod i::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 1.6cqw; height: 1.6cqw; margin: -0.8cqw 0 0 -0.8cqw; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fbe9b6, #b08a45 60%, #6e5122);
+}
+.gallery .rod i:first-child { left: 9%; }
+.gallery .rod i:last-child { right: 9%; }
+/* brass wires: a hook over the rod, a small hanger at the frame */
+.wire {
+  position: absolute; left: var(--x); top: 4.4cqw; width: 0.2cqw; height: var(--h); margin-left: -0.1cqw; z-index: 1;
+  background: linear-gradient(90deg, #7a5a28, #ecd496 50%, #7a5a28);
+}
+.wire::before {
+  content: ""; position: absolute; left: 50%; top: -1.25cqw; width: 1.3cqw; height: 1.3cqw; margin-left: -0.65cqw;
+  border: 0.22cqw solid #b8914c; border-bottom-color: transparent; border-radius: 50%; box-sizing: border-box; z-index: 3;
+}
+.wire::after {
+  content: ""; position: absolute; left: 50%; bottom: -0.6cqw; width: 1.2cqw; height: 0.9cqw; margin-left: -0.6cqw;
+  background: linear-gradient(#e7cb8a, #8a6a30); border-radius: 0.2cqw 0.2cqw 0.4cqw 0.4cqw;
+}
+/* frames: a stepped wood moulding, lit from the upper left, with a soft shadow on the wall */
+.hang {
+  position: absolute; left: var(--x); top: var(--y); width: var(--w); aspect-ratio: var(--r); margin: 0; z-index: 1;
+  box-sizing: border-box; padding: calc(var(--w) * 0.085);
+  background:
+    linear-gradient(135deg, rgba(255, 238, 205, 0.32), rgba(255, 238, 205, 0) 38%, rgba(0, 0, 0, 0) 60%, rgba(40, 22, 8, 0.28)),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 0.35cqw, rgba(60, 35, 15, 0.1) 0.35cqw 0.45cqw, rgba(0,0,0,0) 0.45cqw 0.9cqw),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0) 0 0.5cqw, rgba(60, 35, 15, 0.07) 0.5cqw 0.6cqw),
+    linear-gradient(#b8895a, #a37446);
   box-shadow:
-    inset 0 0 0 0.25cqw rgba(255, 230, 190, 0.25),
-    inset 0 0 0 0.9cqw rgba(0, 0, 0, 0.08),
-    0.8cqw 1.4cqw 1.6cqw rgba(47, 34, 25, 0.3);
+    inset 0 0 0 0.18cqw #6a4424,
+    inset 0 0 0 0.45cqw #d3a676,
+    inset 0 0 0 0.7cqw #a57648,
+    inset 0 0 0 0.95cqw #c2915f,
+    inset 0 0 0 1.1cqw #7e5430,
+    1.1cqw 1.8cqw 2cqw -0.4cqw rgba(47, 34, 25, 0.35),
+    0.3cqw 0.5cqw 0.6cqw rgba(47, 34, 25, 0.25);
   transition: transform 0.35s;
 }
-.hang:hover { transform: translateY(-0.6cqw); }
+.hang:hover { transform: translateY(-0.5cqw); }
+/* the inner lip steps down to a cream mat with a white bevel around the print */
 .hang__mat {
-  width: 100%; height: 100%; box-sizing: border-box; padding: 9%;
-  background: #f4eedf; box-shadow: inset 0 0.4cqw 0.7cqw rgba(0, 0, 0, 0.18);
+  width: 100%; height: 100%; box-sizing: border-box; padding: 11%;
+  background: #f3ecdb;
+  box-shadow:
+    0 0 0 0.3cqw #6e4726, 0 0 0 0.5cqw #d9b07c,
+    inset 0.4cqw 0.5cqw 0.8cqw rgba(60, 40, 20, 0.28);
 }
-.hang img { display: block; width: 100%; height: 100%; object-fit: cover; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
+.hang img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  box-shadow: 0 0 0 0.3cqw #fffdf7, 0 0 0 0.38cqw rgba(120, 100, 70, 0.35), inset 0 0 0 1px rgba(0,0,0,0.1);
+}
 
 @media (max-width: 900px) {
   .about .gallery { float: none; width: 100%; max-width: 560px; margin: 0 auto 28px; }
@@ -550,7 +582,7 @@ body:not(.has-desk) main { padding-top: 66px; }
 
 /* ---------- The Links You're Looking For: on wallpaper ---------- */
 .links {
-  background: #f3efe2 url(../assets/wallpaper.png) 0 0 / 300px;
+  background: linear-gradient(rgba(243, 239, 226, 0.38), rgba(243, 239, 226, 0.38)), #f3efe2 url(../assets/wallpaper.png) 0 0 / 300px;
   padding: clamp(56px, 8vw, 100px) var(--gutter);
   border-top: 1px solid var(--brown-300); border-bottom: 1px solid var(--brown-300);
 }
@@ -562,10 +594,13 @@ body:not(.has-desk) main { padding-top: 66px; }
   box-shadow: 0 0 0 5px #f8f4ea, 0 0 0 6px var(--brown-300), 0 14px 28px -14px rgba(47,34,25,0.4);
 }
 .links__plate h2 { margin: 0; font: 400 clamp(1.6rem, 3.4vw, 2.4rem)/1.1 var(--display); color: var(--brown-900); }
-.linkcards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.linkcards { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(14px, 2vw, 22px); }
+.linkcards li { flex: 0 1 calc((100% - 3 * clamp(14px, 2vw, 22px)) / 4); min-width: 0; display: flex; }
+.linkcards .linkcard { width: 100%; }
 .linkcard {
-  display: grid; justify-items: center; text-align: center; gap: 6px; height: 100%; box-sizing: border-box;
-  padding: 24px 18px 22px; text-decoration: none; color: var(--brown-900);
+  display: grid; justify-items: center; align-content: start; grid-template-rows: auto auto auto; text-align: center; gap: 6px;
+  height: 100%; min-height: 190px; box-sizing: border-box;
+  padding: 24px 16px 22px; text-decoration: none; color: var(--brown-900);
   background: #f8f4ea; border: 1px solid rgba(122, 91, 68, 0.35); border-radius: 6px;
   box-shadow: 0 1px 1px rgba(0,0,0,0.08), 0 12px 24px -14px rgba(47,34,25,0.45);
   transition: transform 0.25s, box-shadow 0.25s;
@@ -578,6 +613,6 @@ body:not(.has-desk) main { padding-top: 66px; }
 }
 .linkcard__icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .linkcard__name { font: 400 1.3rem var(--display); }
-.linkcard__sub { font: 400 0.76rem/1.35 var(--type); color: var(--brown-500); overflow-wrap: anywhere; }
-@media (max-width: 760px) { .linkcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 420px) { .linkcards { grid-template-columns: 1fr; } }
+.linkcard__sub { font: 400 0.74rem/1.4 var(--type); color: var(--brown-500); overflow-wrap: anywhere; max-width: 22ch; }
+@media (max-width: 900px) { .linkcards li { flex-basis: calc((100% - 2 * clamp(14px, 2vw, 22px)) / 3); } }
+@media (max-width: 640px) { .linkcards li { flex-basis: calc((100% - clamp(14px, 2vw, 22px)) / 2); } }
