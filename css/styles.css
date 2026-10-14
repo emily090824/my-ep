@@ -75,7 +75,7 @@ a:hover { color: var(--rust); }
 }
 .monogram span:nth-child(2) { color: var(--green-600); font-style: italic; }
 
-/* main menu: each item dissolves letter by letter into its plain-English name */
+/* main menu: on hover each label fades into its plain-English name */
 .site-nav ol { list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px; margin: 0; padding: 0; counter-reset: nav; }
 .site-nav > ol > li { counter-increment: nav; position: relative; display: flex; align-items: baseline; }
 .site-nav > ol > li::before { content: counter(nav) "."; margin-right: 0.4em; font: 400 0.78rem var(--type); color: var(--green-600); }
@@ -85,23 +85,17 @@ a:hover { color: var(--rust); }
   color: var(--brown-700); text-decoration: none; text-align: left; white-space: nowrap;
 }
 .swap__a, .swap__b { grid-area: 1 / 1; }
-.swap .ch { display: inline-block; transition: opacity 0.32s ease, filter 0.32s ease, transform 0.32s ease; transition-delay: calc(var(--i) * 14ms); }
-.swap__b { color: var(--green-800); }
-.swap__b .ch { opacity: 0; filter: blur(5px); transform: translateY(5px); }
+.swap__a, .swap__b { transition: opacity 0.22s ease; }
+.swap__b { color: var(--green-800); opacity: 0; }
 .nav-contact .swap__b { color: var(--green-600); font-weight: 700; }
+.navlink { font: 400 0.78rem/1.2 var(--type); letter-spacing: 0.01em; color: var(--brown-700); text-decoration: none; white-space: nowrap; }
+.navlink:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* hover: the label simply fades out and its plain name fades in, in place */
 @media (hover: hover) and (min-width: 1301px) {
-  .swap-measured .swap { width: var(--wa); transition: width 0.4s cubic-bezier(.3, .7, .3, 1); }
-  .swap-measured .swap:hover, .swap-measured .swap:focus-visible,
-  .swap-measured .has-drop:hover .swap, .swap-measured .has-drop.is-open .swap { width: var(--wb); }
-  .swap__a, .swap__b { white-space: nowrap; }
-  .swap:hover .swap__a .ch, .swap:focus-visible .swap__a .ch, .has-drop.is-open .swap__a .ch, .has-drop:hover .swap__a .ch {
-    opacity: 0; filter: blur(5px); transform: translateY(-5px);
-  }
-  .swap:hover .swap__b .ch, .swap:focus-visible .swap__b .ch, .has-drop.is-open .swap__b .ch, .has-drop:hover .swap__b .ch {
-    opacity: 1; filter: none; transform: none;
-  }
+  .swap:hover .swap__a, .swap:focus-visible .swap__a, .has-drop:hover .swap__a, .has-drop.is-open .swap__a { opacity: 0; }
+  .swap:hover .swap__b, .swap:focus-visible .swap__b, .has-drop:hover .swap__b, .has-drop.is-open .swap__b { opacity: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .swap .ch { transition-duration: 0.01s; transition-delay: 0s; } }
+@media (prefers-reduced-motion: reduce) { .swap__a, .swap__b { transition: none; } }
 
 /* "The Links You're Looking For" dropdown */
 .drop-toggle::after { content: " ▾"; font-size: 0.7em; grid-area: 1 / 2; align-self: center; margin-left: 4px; color: var(--green-600); }
@@ -146,7 +140,8 @@ a:hover { color: var(--rust); }
   .swap { display: grid; gap: 2px; padding: 12px 0; flex: 1; font-size: 1rem; white-space: normal; }
   .swap__a, .swap__b { grid-area: auto; }
   .swap__b { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .swap__b .ch { opacity: 1; filter: none; transform: none; }
+  .swap__b { opacity: 1; }
+  .navlink { display: block; flex: 1; padding: 14px 0; font-size: 1rem; }
   .drop-toggle::after { grid-area: 1 / 2; }
   .drop { position: static; flex-basis: 100%; padding: 0 0 10px; display: none; opacity: 1; visibility: visible; transform: none; }
   .has-drop.is-open .drop { display: block; }
@@ -183,7 +178,7 @@ body:not(.has-desk) main { padding-top: 66px; }
 }
 .masthead.is-over-desk .monogram { color: var(--ivory); border-color: rgba(244, 238, 223, 0.7); }
 .masthead.is-over-desk .monogram span:nth-child(2) { color: var(--green-300); }
-.masthead.is-over-desk .swap { color: rgba(244, 238, 223, 0.88); }
+.masthead.is-over-desk .swap, .masthead.is-over-desk .navlink { color: rgba(244, 238, 223, 0.88); }
 .masthead.is-over-desk .swap__b { color: #fff; }
 .masthead.is-over-desk .nav-contact .swap__b { color: var(--green-300); }
 .masthead.is-over-desk .site-nav > ol > li::before, .masthead.is-over-desk .drop-toggle::after { color: var(--green-300); }
@@ -412,3 +407,6 @@ body:not(.has-desk) main { padding-top: 66px; }
   100% { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .is-bumped .bump-c { animation: none; } }
+
+.reading__cite { margin: 6px 0 0; font-size: 0.95rem; color: var(--brown-500); }
+.reading__cite a { color: var(--green-800); }

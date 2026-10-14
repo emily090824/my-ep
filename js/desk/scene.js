@@ -935,20 +935,26 @@ function buildProps(scene) {
   const strut = add(new THREE.BoxGeometry(1.8, 12, 0.3), frameMat, 0, 5.8, -4.6, frame);
   strut.rotation.x = 0.36;
 
-  /* mug */
-  const mugProf = [[0, 0], [3.5, 0], [3.85, 0.35], [4.0, 1.2], [4.05, 9.4], [3.8, 9.6], [3.6, 9.3], [3.5, 1.1], [0, 0.95]].map(([x, y]) => new THREE.Vector2(x, y));
-  const ceramic = new THREE.MeshPhysicalMaterial({ color: "#efe6d2", roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.1 });
+  /* mug: a round-bellied enamel mug, hand-painted pink check, copper rim, cream inside */
+  const mugProf = [[0, 0], [3.0, 0], [3.3, 0.25], [3.4, 0.7], [3.9, 1.4], [4.45, 2.6], [4.75, 3.8], [4.7, 5.0],
+    [4.35, 6.2], [3.98, 7.3], [3.86, 8.2], [3.94, 9.0], [4.05, 9.4]].map(([x, y]) => new THREE.Vector2(x, y));
+  const checks = TX.pinkCheckTexture();
+  const enamel = new THREE.MeshPhysicalMaterial({ map: checks, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const cream = new THREE.MeshPhysicalMaterial({ color: "#f4ecda", roughness: 0.15, clearcoat: 1, side: THREE.BackSide });
+  const copper = new THREE.MeshStandardMaterial({ color: "#c98a5c", metalness: 1, roughness: 0.28 });
   const mug = new THREE.Group();
   mug.position.set(25, 0, 13);
   mug.rotation.y = -0.6;
   scene.add(mug);
-  add(new THREE.LatheGeometry(mugProf, 64), ceramic, 0, 0, 0, mug);
-  const handle = add(new THREE.TorusGeometry(2.5, 0.55, 16, 40, Math.PI * 1.15), ceramic, 4.0, 5, 0, mug);
+  add(new THREE.LatheGeometry(mugProf, 72), enamel, 0, 0, 0, mug);
+  const innerProf = [[0, 1.0], [3.4, 1.2], [4.35, 3.8], [4.15, 6.2], [3.72, 8.2], [3.9, 9.38]].map(([x, y]) => new THREE.Vector2(x, y));
+  add(new THREE.LatheGeometry(innerProf, 72), cream, 0, 0, 0, mug);
+  const rim = add(new THREE.TorusGeometry(3.98, 0.13, 10, 72), copper, 0, 9.4, 0, mug);
+  rim.rotation.x = Math.PI / 2;
+  const handle = add(new THREE.TorusGeometry(2.5, 0.5, 16, 40, Math.PI * 1.15), enamel, 4.4, 5.2, 0, mug);
   handle.rotation.z = -Math.PI / 2 - 0.25;
-  const coffee = add(new THREE.CircleGeometry(3.55, 40), new THREE.MeshPhysicalMaterial({ color: "#26140a", roughness: 0.08, clearcoat: 1 }), 0, 8.3, 0, mug);
+  const coffee = add(new THREE.CircleGeometry(3.72, 48), new THREE.MeshPhysicalMaterial({ color: "#26140a", roughness: 0.08, clearcoat: 1 }), 0, 8.1, 0, mug);
   coffee.rotation.x = -Math.PI / 2;
-  // green band around the mug
-  add(new THREE.CylinderGeometry(4.07, 4.07, 0.7, 64, 1, true), new THREE.MeshPhysicalMaterial({ color: "#2e4a37", roughness: 0.3, clearcoat: 0.8 }), 0, 7.6, 0, mug);
 
   const smoke = TX.smokeTexture();
   const puffs = Array.from({ length: 10 }, (_, i) => {

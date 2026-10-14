@@ -120,7 +120,7 @@
 
 .socials { list-style: none; margin: 0; padding: 0; }
 .socials li { border-bottom: 1px dotted #d9cdb4; }
-.socials a {
+.socials a, .socials__soon {
   display: grid; grid-template-columns: 26px auto 1fr; align-items: center; gap: 14px;
   padding: 11px 0; text-decoration: none; color: #2a1d14;
 }
@@ -154,3 +154,4 @@
   .sheet-paper { padding: 26px 20px; }
   .facts__row { grid-template-columns: 1fr; gap: 2px; }
 }
+.socials__soon { opacity: 0.6; }

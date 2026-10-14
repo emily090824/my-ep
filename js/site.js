@@ -15,40 +15,6 @@
       }
     });
   }
-  // Menu labels dissolve letter by letter: split each label into letters for the CSS
-  // transition, keeping the whole words for screen readers.
-  document.querySelectorAll(".swap__a, .swap__b").forEach(function (el) {
-    var text = el.textContent;
-    el.textContent = "";
-    var sr = document.createElement("span");
-    sr.className = "sr-only";
-    sr.textContent = text;
-    var vis = document.createElement("span");
-    vis.setAttribute("aria-hidden", "true");
-    Array.prototype.forEach.call(text, function (ch, i) {
-      var s = document.createElement("span");
-      s.className = "ch";
-      s.style.setProperty("--i", i);
-      s.textContent = ch === " " ? "\u00a0" : ch;
-      vis.appendChild(s);
-    });
-    el.appendChild(sr);
-    el.appendChild(vis);
-  });
-
-  // Each menu item is as wide as the label showing, and eases wider or narrower as the
-  // other label takes over, so a long hover label doesn't leave a gap in the menu.
-  function measure() {
-    document.querySelectorAll(".swap").forEach(function (sw) {
-      var a = sw.querySelector(".swap__a [aria-hidden]"), b = sw.querySelector(".swap__b [aria-hidden]");
-      if (!a || !b) return;
-      sw.style.setProperty("--wa", Math.ceil(a.getBoundingClientRect().width) + "px");
-      sw.style.setProperty("--wb", Math.ceil(b.getBoundingClientRect().width) + "px");
-    });
-    document.documentElement.classList.add("swap-measured");
-  }
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure); else measure();
-
   // Dropdown: click/tap toggles; Escape or a click elsewhere closes it.
   document.querySelectorAll(".has-drop").forEach(function (item) {
     var btn = item.querySelector(".drop-toggle");

@@ -49,7 +49,7 @@ window.PERSONAS = [
     visibility: "public",
     tagline: "Brand stories built on how audiences actually behave.",
     summary:
-      "Strategy, voice, and campaigns grounded in audience research — the same questions I study as a scholar, put to work for brands. [[Add a two-sentence summary of your marketing career.]]",
+      "Strategy, voice, and campaigns grounded in audience research — the same questions I study as a scholar, put to work for brands.",
     sections: [
       {
         heading: "What I do",
@@ -58,14 +58,6 @@ window.PERSONAS = [
           "Audience research and social listening",
           "Campaign storytelling across platforms",
           "Community and fandom-driven growth"
-        ]
-      },
-      {
-        heading: "Selected work",
-        items: [
-          "[[Case study — client, challenge, result]]",
-          "[[Case study — client, challenge, result]]",
-          "[[Case study — client, challenge, result]]"
         ]
       }
     ]
@@ -101,7 +93,8 @@ window.PERSONAS = [
       {
         heading: "Publications & research",
         items: [
-          "Hill, E. M. (2025). <em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy.</em> MA thesis, Old Dominion University. <a href=\"https://doi.org/10.25777/67hyyr98\">DOI: 10.25777/67hyyr98</a>",
+          "Hill, E. M. (2025). <a href=\"https://digitalcommons.odu.edu/communication_etds/35\"><em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy.</em></a> MA thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href=\"https://doi.org/10.25777/67hy-yr98\">DOI: 10.25777/67hy-yr98</a>",
+          "Socha, T. J., Hill, E., et al. (2026). <a href=\"https://doi.org/10.1007/978-3-032-20388-5_21\">Towards positive food communication systems.</a> In T. J. Socha (Ed.), <em>The Palgrave Handbook of Positive Communication for Livable Futures</em>. Palgrave Macmillan.",
           "Socha, T., & Hill, E. <em>Designing Positive Family Communication.</em> Norfolk, VA: Old Dominion University, in press.",
           "Socha, T. J., Hill, E., et al. Predictors of food-support awareness: An exploratory applied positive communication study. Southern States Communication Association, Norfolk, VA."
         ]
@@ -130,15 +123,18 @@ window.PERSONAS = [
     letter: "W",
     visibility: "public",
     tagline: "Books, essays, and the romance of a good sentence.",
-    summary: "[[A short author bio — what you write, for whom, and what's next.]]",
+    summary: "Writing about readers, fandom, and the stories communities gather around.",
     sections: [
       {
-        heading: "Books",
-        items: ["[[Title — year, publisher, one-line pitch]]"]
+        heading: "Published",
+        items: [
+          "<a href=\"https://digitalcommons.odu.edu/communication_etds/35\"><em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</em></a> (2025)",
+          "<a href=\"https://doi.org/10.1007/978-3-032-20388-5_21\">Towards positive food communication systems</a>, with T. J. Socha et al., in <em>The Palgrave Handbook of Positive Communication for Livable Futures</em> (2026)"
+        ]
       },
       {
-        heading: "Essays & features",
-        items: ["[[Piece — outlet, year]]", "[[Piece — outlet, year]]"]
+        heading: "In progress",
+        items: ["<em>Designing Positive Family Communication</em>, with Thomas Socha (in press)"]
       }
     ]
   },
@@ -149,17 +145,8 @@ window.PERSONAS = [
     letter: "C",
     visibility: "public",
     tagline: "Making the kind of content I also study.",
-    summary: "[[Where you post, what you make, and who's watching.]]",
-    sections: [
-      {
-        heading: "Channels",
-        items: ["[[Platform — @handle — audience]]", "[[Platform — @handle — audience]]"]
-      },
-      {
-        heading: "Featured",
-        items: ["[[Series or post — link]]", "[[Brand collaboration]]"]
-      }
-    ]
+    summary: "Books, fandom, and the platforms that shape both — made by someone who studies them, too.",
+    sections: []
   }
 ];
 

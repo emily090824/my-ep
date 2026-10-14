@@ -404,8 +404,6 @@ export function photoTexture(url) {
   ctx.font = "italic 300 120px Fraunces";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText("EMH", 300, 360);
-  ctx.font = "400 26px 'Courier Prime'";
-  ctx.fillText("your photo here", 300, 470);
   const tex = toTexture(c);
 
   const img = new Image();
@@ -1082,4 +1080,48 @@ export function cityNearTexture() {
     ctx.fillStyle = rg; ctx.fillRect(lx - 14, -12, 28, 28);
   }
   return toTexture(c);
+}
+
+/* ---------------- Hand-painted pink check enamel (for the mug) ----------------
+   Lathe UV: u runs around, v up the side. */
+export function pinkCheckTexture() {
+  const W = 1024, H = 512, COLS = 12, ROWS = 6;
+  const rnd = mulberry32(131);
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = "#f6f0e2"; ctx.fillRect(0, 0, W, H);
+  const cw = W / COLS, rh = H / ROWS;
+  const j = (v) => v + (rnd() - 0.5) * 7;          // a painter's wobble at each corner
+  for (let r = 0; r < ROWS; r++) {
+    for (let k = 0; k < COLS; k++) {
+      if ((r + k) % 2) continue;
+      const x0 = k * cw, y0 = r * rh;
+      ctx.beginPath();
+      ctx.moveTo(j(x0), j(y0)); ctx.lineTo(j(x0 + cw), j(y0)); ctx.lineTo(j(x0 + cw), j(y0 + rh)); ctx.lineTo(j(x0), j(y0 + rh));
+      ctx.closePath();
+      ctx.fillStyle = `rgba(${240 + rnd() * 10}, ${176 + rnd() * 14}, ${184 + rnd() * 12}, 0.85)`;
+      ctx.fill();
+      // brush strokes, slightly darker, running across the square
+      for (let s = 0; s < 9; s++) {
+        ctx.strokeStyle = `rgba(214, 140, 168, ${0.12 + rnd() * 0.2})`;
+        ctx.lineWidth = 3 + rnd() * 7;
+        const y = y0 + rnd() * rh;
+        ctx.beginPath(); ctx.moveTo(x0 + 4, y); ctx.lineTo(x0 + cw - 4, y + (rnd() - 0.5) * 6); ctx.stroke();
+      }
+      // the deeper pink line where the brush lifted at the square's edges
+      ctx.strokeStyle = "rgba(200, 120, 152, 0.55)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(j(x0), j(y0)); ctx.lineTo(j(x0), j(y0 + rh)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(j(x0 + cw), j(y0)); ctx.lineTo(j(x0 + cw), j(y0 + rh)); ctx.stroke();
+    }
+  }
+  // the odd pale green-gold flick in the cream squares, as on the real thing
+  for (let i = 0; i < 10; i++) {
+    ctx.strokeStyle = `rgba(200, 200, 140, ${0.25 + rnd() * 0.25})`;
+    ctx.lineWidth = 2;
+    const x = rnd() * W, y = rnd() * H;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 10 + rnd() * 20, y + (rnd() - 0.5) * 4); ctx.stroke();
+  }
+  const t = toTexture(c);
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
 }
