@@ -49,8 +49,8 @@
         <h1>Emily <em>Maranto</em> Hill</h1>
         <p class="desk__lede">Marketer, scholar, author, and creator — one person, several cards. Pull the one you came for.</p>
         <div class="hero__actions">
-          <a class="btn btn--solid" href="assets/Emily_Maranto_Hill_Resume.pdf" target="_blank" rel="noopener">Résumé</a>
-          <a class="btn btn--ghost" href="contact.html">Contact</a>
+          <a class="btn btn--solid" href="contact.html">Contact</a>
+          <a class="btn btn--ghost" href="assets/Emily_Maranto_Hill_Resume.pdf" target="_blank" rel="noopener">Résumé</a>
         </div>
       </div>
 
@@ -79,7 +79,47 @@
       <div class="about">
         <!-- a gallery wall: wood frames hung on wires from a brass rod -->
         <div class="gallery" aria-label="Photos">
-          <span class="rod" aria-hidden="true"><i></i><i></i></span>
+          <svg class="rod" viewBox="0 0 1000 84" aria-hidden="true">
+            <defs>
+              <linearGradient id="rodG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#4f3a14"/><stop offset=".18" stop-color="#9c7a36"/><stop offset=".36" stop-color="#dcc07a"/>
+                <stop offset=".46" stop-color="#f6e6b0"/><stop offset=".58" stop-color="#bf9a50"/><stop offset=".82" stop-color="#7a5c22"/><stop offset="1" stop-color="#3f2e0e"/>
+              </linearGradient>
+              <radialGradient id="ballG" cx=".38" cy=".32" r=".7">
+                <stop offset="0" stop-color="#fbeec2"/><stop offset=".25" stop-color="#d9bb72"/><stop offset=".6" stop-color="#9a7834"/><stop offset="1" stop-color="#4a3510"/>
+              </radialGradient>
+              <radialGradient id="plateG" cx=".42" cy=".38" r=".65">
+                <stop offset="0" stop-color="#e8d08e"/><stop offset=".55" stop-color="#a8843e"/><stop offset="1" stop-color="#5e4518"/>
+              </radialGradient>
+              <filter id="rodShadow" x="-5%" y="-40%" width="110%" height="200%"><feDropShadow dx="4" dy="9" stdDeviation="5" flood-color="#2f2219" flood-opacity=".3"/></filter>
+              <g id="bracket">
+                <circle r="26" fill="url(#plateG)" stroke="#4a3510" stroke-width="1.2"/>
+                <circle r="20" fill="none" stroke="#f1dc9c" stroke-width="1.4" opacity=".7"/>
+                <circle r="17" fill="none" stroke="#5e4518" stroke-width="1.2"/>
+                <circle cy="-21.5" r="2.4" fill="#3f2e0e"/><path d="M-1.6 -21.5h3.2" stroke="#a8843e" stroke-width=".8"/>
+                <circle cy="21.5" r="2.4" fill="#3f2e0e"/><path d="M-1.6 21.5h3.2" stroke="#a8843e" stroke-width=".8"/>
+                <rect x="-8" y="-14" width="16" height="28" rx="3" fill="url(#rodG)" stroke="#3f2e0e" stroke-width="1"/>
+              </g>
+              <g id="finial">
+                <rect x="-2" y="-9.5" width="8" height="19" rx="2" fill="url(#rodG)" stroke="#3f2e0e" stroke-width=".8"/>
+                <rect x="-9" y="-7" width="8" height="14" rx="2" fill="url(#rodG)" stroke="#3f2e0e" stroke-width=".8"/>
+                <rect x="-13" y="-4" width="5" height="8" fill="url(#rodG)"/>
+                <circle cx="-26" r="14" fill="url(#ballG)" stroke="#3f2e0e" stroke-width=".9"/>
+                <ellipse cx="-30" cy="-5" rx="4" ry="2.4" fill="#fff6d6" opacity=".55"/>
+                <circle cx="-41.5" r="3" fill="url(#ballG)" stroke="#3f2e0e" stroke-width=".6"/>
+              </g>
+            </defs>
+            <g filter="url(#rodShadow)">
+              <use href="#bracket" x="95" y="42"/>
+              <use href="#bracket" x="905" y="42"/>
+              <rect x="56" y="36" width="888" height="12" rx="6" fill="url(#rodG)" stroke="#3f2e0e" stroke-width=".9"/>
+              <path d="M60 40.6H940" stroke="#fff3c6" stroke-width="1.1" opacity=".75"/>
+              <rect x="87" y="33" width="16" height="18" rx="3" fill="url(#rodG)" stroke="#3f2e0e" stroke-width="1"/>
+              <rect x="897" y="33" width="16" height="18" rx="3" fill="url(#rodG)" stroke="#3f2e0e" stroke-width="1"/>
+              <use href="#finial" x="56" y="42"/>
+              <use href="#finial" transform="translate(944 42) scale(-1 1)"/>
+            </g>
+          </svg>
           <span class="wire" style="--x:50%; --h:2.8cqw;"></span>
           <span class="wire" style="--x:20%; --h:5.8cqw;"></span>
           <span class="wire" style="--x:80%; --h:5.8cqw;"></span>
@@ -112,50 +152,50 @@
       </div>
     </section>
 
-    <!-- Links: on Arts & Crafts wallpaper -->
+    <!-- Links: books on the desk; every spine is a link -->
     <section id="links" class="links">
       <div class="links__inner">
         <header class="links__plate">
           <span class="sheet__no">No. 03</span>
           <h2>The Links You're Looking For</h2>
         </header>
-        <ul class="linkcards">
-        <li><a class="linkcard" href="assets/Emily_Maranto_Hill_Resume.pdf" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z"/><circle cx="12" cy="8.5" r="2.2"/><path d="M8.5 14c.8-1.8 6.2-1.8 7 0"/><path d="M9 17.5h6"/></svg></span>
-          <span class="linkcard__name">Résumé</span>
-          <span class="linkcard__sub">Marketing &amp; leadership</span>
-        </a></li>
-        <li><a class="linkcard" href="https://www.linkedin.com/in/emilymarantohill/" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10.5V17"/><circle cx="8" cy="7.4" r="0.6"/><path d="M12 17v-6.5M12 13.2c0-2.2 5-3 5 0V17"/></svg></span>
-          <span class="linkcard__name">LinkedIn</span>
-          <span class="linkcard__sub">The professional record</span>
-        </a></li>
-        <li><a class="linkcard" href="assets/Emily_Hill_CV.pdf" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h7M9 14h7M9 17h4"/></svg></span>
-          <span class="linkcard__name">Academic CV</span>
-          <span class="linkcard__sub">Teaching &amp; research</span>
-        </a></li>
-        <li><a class="linkcard" href="https://digitalcommons.odu.edu/communication_etds/35" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/></svg></span>
-          <span class="linkcard__name">Thesis</span>
-          <span class="linkcard__sub">Reading the Romance Reader</span>
-        </a></li>
-        <li><a class="linkcard" href="https://www.tiktok.com/@emily_elizabeth_hill" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.6 4.2 5 4.3"/></svg></span>
-          <span class="linkcard__name">TikTok</span>
-          <span class="linkcard__sub">@emily_elizabeth_hill</span>
-        </a></li>
-        <li><a class="linkcard" href="https://emilymhill.portfolial.com/" target="_blank" rel="noopener">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/><path d="M3 10h18"/></svg></span>
-          <span class="linkcard__name">Previous ePortfolio</span>
-          <span class="linkcard__sub">The archive</span>
-        </a></li>
-        <li><a class="linkcard" href="mailto:eemaranto@gmail.com">
-          <span class="linkcard__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
-          <span class="linkcard__name">Email</span>
-          <span class="linkcard__sub">eemaranto@gmail.com</span>
-        </a></li>
-        </ul>
+        <div class="shelf">
+          <div class="shelf__upright">
+          <a class="book book--up" href="https://www.tiktok.com/@emily_elizabeth_hill" target="_blank" rel="noopener" style="--c:#c49a3a; --ink:#3a2a10; --h:17rem; --lean:-0deg;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.6 4.2 5 4.3"/></svg></span><span class="book__name">TikTok</span><span class="book__sub">@emily_elizabeth_hill</span>
+          </a>
+          <a class="book book--up" href="https://emilymhill.portfolial.com/" target="_blank" rel="noopener" style="--c:#b56a6e; --ink:#f6e7c8; --h:19rem; --lean:0deg;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"/><path d="M3 10h18"/></svg></span><span class="book__name">Previous ePortfolio</span><span class="book__sub">the archive</span>
+          </a>
+          <a class="book book--up" href="mailto:eemaranto@gmail.com" style="--c:#e6d8b8; --ink:#4a3426; --h:16rem; --lean:-7deg;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span><span class="book__name">Email</span><span class="book__sub">eemaranto@gmail.com</span>
+          </a>
+          </div>
+          <div class="shelf__stack">
+            <svg class="glasses" viewBox="0 0 200 70" aria-hidden="true">
+              <defs><linearGradient id="tort" x1="0" x2="1"><stop offset="0" stop-color="#5a2e14"/><stop offset=".3" stop-color="#9a5a2a"/><stop offset=".55" stop-color="#4a240e"/><stop offset=".8" stop-color="#a8682e"/><stop offset="1" stop-color="#5a2e14"/></linearGradient></defs>
+              <path d="M18 34 C 40 22, 70 16, 96 18" fill="none" stroke="#6a3a18" stroke-width="3.2" opacity=".7"/>
+              <path d="M104 18 C 130 16, 160 22, 186 34" fill="none" stroke="#6a3a18" stroke-width="3.2" opacity=".7"/>
+              <rect x="22" y="24" width="68" height="42" rx="14" fill="rgba(235,245,255,0.18)" stroke="url(#tort)" stroke-width="5"/>
+              <rect x="110" y="24" width="68" height="42" rx="14" fill="rgba(235,245,255,0.18)" stroke="url(#tort)" stroke-width="5"/>
+              <path d="M90 36 Q100 28 110 36" fill="none" stroke="url(#tort)" stroke-width="4.5"/>
+              <path d="M34 32 L48 50 M122 32 L136 50" stroke="#fff" stroke-width="2" opacity=".45" stroke-linecap="round"/>
+            </svg>
+          <a class="book book--flat" href="assets/Emily_Maranto_Hill_Resume.pdf" target="_blank" rel="noopener" style="--c:#2f4a37; --len:420px; --off:26px;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z"/><circle cx="12" cy="8.5" r="2.2"/><path d="M8.5 14c.8-1.8 6.2-1.8 7 0"/><path d="M9 17.5h6"/></svg></span><span class="book__name">Résumé</span><span class="book__sub">marketing &amp; leadership</span>
+          </a>
+          <a class="book book--flat" href="https://www.linkedin.com/in/emilymarantohill/" target="_blank" rel="noopener" style="--c:#24375a; --len:450px; --off:0px;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10.5V17"/><circle cx="8" cy="7.4" r="0.6"/><path d="M12 17v-6.5M12 13.2c0-2.2 5-3 5 0V17"/></svg></span><span class="book__name">LinkedIn</span><span class="book__sub">the professional record</span>
+          </a>
+          <a class="book book--flat" href="assets/Emily_Hill_CV.pdf" target="_blank" rel="noopener" style="--c:#7a2a22; --len:450px; --off:40px;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h7M9 14h7M9 17h4"/></svg></span><span class="book__name">Academic CV</span><span class="book__sub">teaching &amp; research</span>
+          </a>
+          <a class="book book--flat" href="https://digitalcommons.odu.edu/communication_etds/35" target="_blank" rel="noopener" style="--c:#4d5862; --len:460px; --off:10px;">
+            <span class="book__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/></svg></span><span class="book__name">Thesis</span><span class="book__sub">reading the romance reader</span>
+          </a>
+          </div>
+          <div class="shelf__mug" aria-hidden="true"><span class="mug__body"></span><span class="mug__handle"></span><span class="mug__rim"></span></div>
+        </div>
       </div>
     </section>
 
