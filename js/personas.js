@@ -110,7 +110,7 @@ window.PERSONAS = [
       {
         heading: "Education",
         items: [
-          "M.A., Old Dominion University, 2025 — Summa Cum Laude",
+          "M.A. in Lifespan and Digital Communication, Old Dominion University, 2025 — Summa Cum Laude",
           "B.M.C., Louisiana State University, 2021 — Summa Cum Laude; Distinguished Communicator Award"
         ]
       }
@@ -134,7 +134,10 @@ window.PERSONAS = [
       },
       {
         heading: "In progress",
-        items: ["<em>Designing Positive Family Communication</em>, with Thomas Socha (in press)"]
+        items: [
+          "<em>The Blood of a Begonia</em>, a novel (currently querying)",
+          "<em>Designing Positive Family Communication</em>, with Thomas Socha (in press)"
+        ]
       }
     ]
   },
