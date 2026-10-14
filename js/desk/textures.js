@@ -653,57 +653,85 @@ export function keyboardTexture() {
 }
 
 /* ---------------- Gold-leaf moulding ----------------
-   UV: u runs along a side (one tile = 4 cm), v across the profile, inner edge (0) to outer (1).
-   band: [v0, v1] of the ornamented outer border. Returns colour + bump maps. */
-export function giltMouldingTextures(band) {
-  const W = 1024, H = 256;
+   UV: u runs along a side (one tile = 4 cm), v across the profile from the sight edge (0) out.
+   regions: { bead, cove, band } as [v0, v1]. Shading is baked across the profile so the
+   rounded cove reads as rounded even in dim light. Returns colour + bump maps. */
+export function giltMouldingTextures(regions) {
+  const W = 1024, H = 512;
   const rnd = mulberry32(61);
   const [cc, c] = canvas(W, H);
   const [bc, b] = canvas(W, H);
   const vy = (v) => (1 - v) * H;
+  const span = (r) => [vy(r[1]), vy(r[0]) - vy(r[1])];      // [top px, height px]
 
-  // gold leaf: warm base with long burnished streaks along the moulding
-  c.fillStyle = "#c99a3e"; c.fillRect(0, 0, W, H);
-  for (let i = 0; i < 260; i++) {
-    const y = rnd() * H, x = rnd() * W, len = 80 + rnd() * 500;
-    c.strokeStyle = rnd() < 0.6 ? `rgba(255, 226, 150, ${0.1 + rnd() * 0.25})` : `rgba(120, 80, 25, ${0.08 + rnd() * 0.15})`;
-    c.lineWidth = 1 + rnd() * 4;
-    c.beginPath(); c.moveTo(x, y); c.lineTo(x + len, y + (rnd() - 0.5) * 3); c.stroke();
-    c.beginPath(); c.moveTo(x - W, y); c.lineTo(x - W + len, y); c.stroke();     // wrap
-  }
-  // patina pooled in the hollows either side of the cove
-  [[0, 0.1], [band[0] - 0.05, band[0] + 0.02]].forEach(([v0, v1]) => {
-    const g = c.createLinearGradient(0, vy(v1), 0, vy(v0));
-    g.addColorStop(0, "rgba(60, 35, 10, 0)"); g.addColorStop(0.5, "rgba(60, 35, 10, 0.55)"); g.addColorStop(1, "rgba(60, 35, 10, 0)");
-    c.fillStyle = g; c.fillRect(0, vy(v1), W, vy(v0) - vy(v1));
-  });
+  // warm pale gold leaf over red-brown bole
+  c.fillStyle = "#c3984f"; c.fillRect(0, 0, W, H);
   b.fillStyle = "#808080"; b.fillRect(0, 0, W, H);
 
-  // the outer border: a running rocaille of little leaves and nubs, darkened between
-  const y0 = vy(band[1]), y1 = vy(band[0]), bh = y1 - y0;
-  c.fillStyle = "#3a230c"; c.fillRect(0, y0, W, bh);
-  b.fillStyle = "#3a3a3a"; b.fillRect(0, y0, W, bh);
+  // cove: dark at both flanks, a broad burnished highlight along the crown
+  const [cy, ch] = span(regions.cove);
+  const g = c.createLinearGradient(0, cy + ch, 0, cy);
+  g.addColorStop(0, "#7a5222"); g.addColorStop(0.18, "#b88a43"); g.addColorStop(0.42, "#ecd08f");
+  g.addColorStop(0.55, "#f6e2aa"); g.addColorStop(0.72, "#c99c55"); g.addColorStop(1, "#6e4a1e");
+  c.fillStyle = g; c.fillRect(0, cy, W, ch);
+  // long burnishing streaks and the odd worn spot where the red bole shows through
+  for (let i = 0; i < 320; i++) {
+    const y = cy + rnd() * ch, x = rnd() * W, len = 60 + rnd() * 420;
+    c.strokeStyle = rnd() < 0.65 ? `rgba(255, 238, 190, ${0.06 + rnd() * 0.16})` : `rgba(110, 70, 25, ${0.06 + rnd() * 0.12})`;
+    c.lineWidth = 1 + rnd() * 3;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + len, y); c.stroke();
+    c.beginPath(); c.moveTo(x - W, y); c.lineTo(x - W + len, y); c.stroke();
+  }
+  for (let i = 0; i < 40; i++) {
+    c.fillStyle = `rgba(120, 50, 25, ${0.25 + rnd() * 0.3})`;
+    c.fillRect(rnd() * W, cy + rnd() * ch, 2 + rnd() * 10, 1 + rnd() * 2);
+  }
+
+  // bead: a bright line with a dark groove either side
+  const [by, bh] = span(regions.bead);
+  const bg = c.createLinearGradient(0, by + bh, 0, by);
+  bg.addColorStop(0, "#4a3010"); bg.addColorStop(0.3, "#d7b46a"); bg.addColorStop(0.5, "#f8e6b2");
+  bg.addColorStop(0.75, "#b88a43"); bg.addColorStop(1, "#4a3010");
+  c.fillStyle = bg; c.fillRect(0, by, W, bh);
+  // tiny pearls along the bead
+  for (let x = 0; x < W; x += 16) {
+    b.fillStyle = "#c8c8c8"; b.beginPath(); b.ellipse(x + 8, by + bh / 2, 6, bh * 0.35, 0, 0, Math.PI * 2); b.fill();
+  }
+
+  // ornamented border: running rocaille of leaves, nubs and scrolls in gold on a dark ground
+  const [ny, nh] = span(regions.band);
+  c.fillStyle = "#3b240c"; c.fillRect(0, ny, W, nh);
+  b.fillStyle = "#2e2e2e"; b.fillRect(0, ny, W, nh);
   for (let k = -1; k <= 1; k++) {
     let x = k * W;
     while (x < (k + 1) * W) {
-      const w = 14 + rnd() * 26, h = bh * (0.35 + rnd() * 0.45), cy = y0 + bh / 2 + (rnd() - 0.5) * bh * 0.3;
-      const rot = (rnd() - 0.5) * 1.2;
-      [[c, "#e6bd62"], [b, "#f0f0f0"]].forEach(([ctx, col]) => {
-        ctx.fillStyle = col;
-        ctx.beginPath(); ctx.ellipse(x + w / 2, cy, w / 2, h / 2, rot, 0, Math.PI * 2); ctx.fill();
-      });
-      // highlight on top of each nub
-      c.fillStyle = "rgba(255, 236, 170, 0.6)";
-      c.beginPath(); c.ellipse(x + w / 2 - 2, cy - h / 6, w / 5, h / 6, rot, 0, Math.PI * 2); c.fill();
-      x += w * (0.7 + rnd() * 0.5);
+      const kind = rnd();
+      const w = 12 + rnd() * 22, hh = nh * (0.4 + rnd() * 0.45), cyy = ny + nh / 2 + (rnd() - 0.5) * nh * 0.25;
+      const rot = (rnd() - 0.5) * 1.4;
+      if (kind < 0.7) {
+        const gg = c.createRadialGradient(x + w / 2 - w * 0.15, cyy - hh * 0.2, 1, x + w / 2, cyy, w * 0.6);
+        gg.addColorStop(0, "#fbe8b4"); gg.addColorStop(0.6, "#d4ac60"); gg.addColorStop(1, "#8a6026");
+        c.fillStyle = gg;
+        c.beginPath(); c.ellipse(x + w / 2, cyy, w / 2, hh / 2, rot, 0, Math.PI * 2); c.fill();
+        b.fillStyle = "#f2f2f2";
+        b.beginPath(); b.ellipse(x + w / 2, cyy, w / 2, hh / 2, rot, 0, Math.PI * 2); b.fill();
+      } else {
+        // a little C-scroll
+        c.strokeStyle = "#dcb76c"; b.strokeStyle = "#e6e6e6";
+        [c, b].forEach((ctx) => {
+          ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x + w / 2, cyy, Math.min(w, hh) * 0.35, 0.3, Math.PI * 1.7); ctx.stroke();
+        });
+      }
+      x += w * (0.75 + rnd() * 0.45);
     }
   }
-  // distressing: dark flecks where the leaf has worn through
-  for (let i = 0; i < 700; i++) {
-    const inBand = rnd() < 0.5;
-    const y = inBand ? y0 + rnd() * bh : rnd() * H;
-    c.fillStyle = `rgba(40, 20, 5, ${0.25 + rnd() * 0.5})`;
-    c.fillRect(rnd() * W, y, 1 + rnd() * 4, 1 + rnd() * 2);
+  // border edges: thin bright fillets
+  c.fillStyle = "#e6c784"; c.fillRect(0, ny - 3, W, 3); c.fillRect(0, ny + nh, W, 3);
+
+  // fine distressing everywhere
+  for (let i = 0; i < 900; i++) {
+    c.fillStyle = `rgba(45, 25, 8, ${0.15 + rnd() * 0.35})`;
+    c.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 3, 1 + rnd() * 1.5);
   }
   return {
     map: toTexture(cc, { repeat: [1, 1] }),
@@ -763,8 +791,8 @@ export function cartoucheRelief() {
   const v = (x) => `rgb(${x},${x},${x})`;
   h.lineCap = "round"; h.lineJoin = "round";
   // backing cartouche: a shallow lozenge the ornament sits on
-  h.fillStyle = v(70);
-  h.beginPath(); h.ellipse(cx, cy, 165, 70, 0, 0, Math.PI * 2); h.fill();
+  h.fillStyle = v(80);
+  h.beginPath(); h.ellipse(cx, cy, 150, 64, 0, 0, Math.PI * 2); h.fill();
   // C-scrolls, mirrored
   [-1, 1].forEach((sd) => {
     h.strokeStyle = v(200); h.lineWidth = 15;
@@ -817,7 +845,10 @@ export function cartoucheRelief() {
   for (let i = 0; i < W * H; i++) {
     const t = Math.min(1, Math.max(0, (height[i] - 0.18) / 0.6));
     const k = t * t * (3 - 2 * t);
-    img.data[i * 4] = 40 + k * 200; img.data[i * 4 + 1] = 24 + k * 160; img.data[i * 4 + 2] = 8 + k * 70;
+    // deepest crevices (rim of each form) go dark; bodies stay gold with highlights on top
+    const rim = Math.min(1, Math.max(0, (0.32 - height[i]) / 0.2));
+    const r = 150 + k * 100, gg = 106 + k * 112, bb = 46 + k * 92;
+    img.data[i * 4] = r * (1 - rim * 0.7); img.data[i * 4 + 1] = gg * (1 - rim * 0.72); img.data[i * 4 + 2] = bb * (1 - rim * 0.75);
     img.data[i * 4 + 3] = height[i] > 0.1 ? 255 : 0;
   }
   cctx.putImageData(img, 0, 0);

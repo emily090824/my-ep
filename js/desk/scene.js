@@ -326,15 +326,36 @@ function buildRoom(scene) {
   const leafMat = new THREE.MeshPhysicalMaterial({ map: TX.pothosLeafTexture(), roughness: 0.38, clearcoat: 0.5, clearcoatRoughness: 0.3, side: THREE.DoubleSide });
   const leaves = [];
   const rnd = mulberry(3);
-  const top = new THREE.Vector3(potX, sillY + 7.2, potZ);
+  const soilY = sillY + 6.4;
+  const stems = [];
 
-  // the mound: leaves facing outward and up from a dome over the pot
-  for (let i = 0; i < 120; i++) {
-    const a = rnd() * Math.PI * 2, el = Math.pow(rnd(), 0.7) * Math.PI * 0.45;
-    const r = 3.5 + rnd() * 8.5;
-    const dir = new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el) * 1.1 + 0.15, Math.sin(a) * Math.cos(el) * 0.8);
-    leaves.push({ p: top.clone().addScaledVector(dir.normalize(), r), out: dir, size: 3.8 + rnd() * 2.2, droop: 0.2 + rnd() * 0.6 });
+  // the mound: every leaf sits on its own stem rising from the soil; low ones arch out
+  // over the rim so the foliage meets the pot instead of hovering above it
+  for (let i = 0; i < 130; i++) {
+    const a = rnd() * Math.PI * 2;
+    const low = i < 45;
+    const el = low ? -0.15 + rnd() * 0.45 : 0.3 + Math.pow(rnd(), 0.8) * 0.95;
+    const r = low ? 5.2 + rnd() * 3.5 : 2.5 + rnd() * 8;
+    const ba = rnd() * Math.PI * 2, br = rnd() * 2.6;
+    const base = new THREE.Vector3(potX + Math.cos(ba) * br, soilY, potZ + Math.sin(ba) * br);
+    const dir = new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el) * 0.85).normalize();
+    const p = base.clone().addScaledVector(dir, r);
+    p.y = Math.max(p.y, soilY - 3.5);
+    stems.push([base, p]);
+    leaves.push({ p, out: dir.clone().setY(dir.y + 0.35), size: 3.6 + rnd() * 2.4, droop: low ? 0.9 + rnd() * 0.5 : 0.25 + rnd() * 0.6 });
   }
+  const stemMat = new THREE.MeshStandardMaterial({ color: "#6f8a34", roughness: 0.55 });
+  const stemInst = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.08, 0.11, 1, 5), stemMat, stems.length);
+  const sd = new THREE.Object3D();
+  stems.forEach(([a0, a1], i) => {
+    sd.position.copy(a0).add(a1).multiplyScalar(0.5);
+    sd.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), a1.clone().sub(a0).normalize());
+    sd.scale.set(1, a0.distanceTo(a1), 1);
+    sd.updateMatrix();
+    stemInst.setMatrixAt(i, sd.matrix);
+  });
+  stemInst.castShadow = true;
+  scene.add(stemInst);
   // vines: from the rim, over the sill's front edge, then hanging down the wall
   const sillFront = WALL_Z + 5;
   const vineMat = new THREE.MeshStandardMaterial({ color: "#5a6b2e", roughness: 0.6 });
@@ -351,11 +372,13 @@ function buildRoom(scene) {
     const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.11, 6), vineMat);
     tube.castShadow = true;
     scene.add(tube);
-    const n = 9 + Math.floor(rnd() * 5);
-    for (let k = 1; k <= n; k++) {
-      const t = k / (n + 1), p = curve.getPoint(t), side = k % 2 ? 1 : -1;
-      const out = new THREE.Vector3(side * 0.7, -0.2, 1).normalize();
-      leaves.push({ p: p.clone().add(new THREE.Vector3(side * 0.5, 0, 0.4)), out, size: (4.2 - t * 1.6) * (0.85 + rnd() * 0.3), droop: 1.1 + rnd() * 0.5, hang: true });
+    // leaves along the vine at uneven spacing, turning every which way around it
+    let t = 0.06 + rnd() * 0.06;
+    while (t < 0.97) {
+      const p = curve.getPoint(t), turn = rnd() * Math.PI * 2;
+      const out = new THREE.Vector3(Math.cos(turn), -0.3 + rnd() * 0.5, 0.6 + Math.abs(Math.sin(turn))).normalize();
+      leaves.push({ p: p.clone().addScaledVector(out, 0.3), out, size: (4.4 - t * 1.8) * (0.75 + rnd() * 0.45), droop: 0.8 + rnd() * 0.8, hang: true });
+      t += 0.07 + rnd() * 0.09;
     }
   }
   const inst = new THREE.InstancedMesh(leafGeo, leafMat, leaves.length);
@@ -829,19 +852,23 @@ function buildProps(scene) {
   // gold-leaf moulding: a fine ornamented outer border, a deep rounded cove, a small inner lip,
   // swept around the opening so the corners mitre; carved medallions at the centre of each side
   const IW = 10.4, IH = 13.6;
-  const prof = [[0, -0.3], [0, 0.35], [0.08, 0.45], [0.22, 0.45], [0.3, 0.38]];
-  for (let i = 1; i <= 18; i++) {
-    const t = i / 18;
-    prof.push([0.3 + 1.2 * t, 0.38 + 0.6 * Math.pow(Math.sin(Math.PI * t), 0.85) - 0.0 * t]);
+  // profile (d out from the sight edge, z up): sight edge, a half-round bead, a deep rounded
+  // cove, a groove, then the flat ornamented border and the outer edge
+  const prof = [[0, -0.3], [0, 0.3], [0.05, 0.36]];
+  for (let i = 0; i <= 8; i++) { const a = (i / 8) * Math.PI; prof.push([0.2 - 0.14 * Math.cos(a), 0.38 + 0.14 * Math.sin(a)]); }
+  prof.push([0.38, 0.36]);
+  for (let i = 1; i <= 24; i++) {
+    const t = i / 24;
+    prof.push([0.4 + 1.35 * t, 0.38 + 0.68 * Math.pow(Math.sin(Math.PI * t), 0.7)]);
   }
-  prof.push([1.56, 0.5], [1.62, 0.58], [1.78, 0.64], [1.94, 0.58], [2.0, 0.45], [2.03, 0.2], [2.03, -0.3]);
+  prof.push([1.8, 0.4], [1.86, 0.52], [1.95, 0.6], [2.1, 0.64], [2.25, 0.62], [2.34, 0.56], [2.39, 0.45], [2.42, 0.2], [2.42, -0.3]);
   // v = arc length across the profile, so the texture follows the shape
   const arc = [0];
   for (let i = 1; i < prof.length; i++) arc.push(arc[i - 1] + Math.hypot(prof[i][0] - prof[i - 1][0], prof[i][1] - prof[i - 1][1]));
   const vAt = (d) => { const i = prof.findIndex((p) => p[0] >= d); return arc[i] / arc[arc.length - 1]; };
-  const gilt = TX.giltMouldingTextures([vAt(1.58), vAt(1.98)]);
+  const gilt = TX.giltMouldingTextures({ bead: [vAt(0.06), vAt(0.37)], cove: [vAt(0.4), vAt(1.76)], band: [vAt(1.86), vAt(2.36)] });
   const gold = new THREE.MeshStandardMaterial({
-    map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.4, color: "#f4dcae", metalness: 1, roughness: 0.32,
+    map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.6, color: "#ffd890", metalness: 1, roughness: 0.34,
     envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide
   });
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
@@ -868,30 +895,30 @@ function buildProps(scene) {
   mould.setIndex(idx);
   mould.computeVertexNormals();
   add(mould, gold, 0, 7.9, 0, tilt);
-  const OW = IW + 4.06, OH = IH + 4.06;
+  const OW = IW + 4.84, OH = IH + 4.84;
   add(new THREE.BoxGeometry(OW - 0.1, OH - 0.1, 0.3), frameMat, 0, 7.9, -0.45, tilt);          // backing
 
   // medallions: carved cartouches (boss, ring, C-scrolls, acanthus) moulded onto the cove
   // at the centre of each side, with dark patina in the recesses
   const relief = TX.cartoucheRelief();
   const coveZ = (d) => {
-    d = Math.min(1.99, Math.max(0.05, d));
+    d = Math.min(2.38, Math.max(0.05, d));
     for (let i = 1; i < prof.length; i++) {
       const [d0, z0] = prof[i - 1], [d1, z1] = prof[i];
       if (d1 >= d && d1 > d0) return z0 + ((d - d0) / (d1 - d0)) * (z1 - z0);
     }
     return 0.4;
   };
-  const MW = 4.6, MH = 2.1, MC = 0.95;
+  const MW = 3.9, MH = 2.3, MC = 1.2;
   const medGeo = new THREE.PlaneGeometry(MW, MH, 184, 84);
   const mp = medGeo.attributes.position;
   for (let i = 0; i < mp.count; i++) {
     const x = mp.getX(i), y = mp.getY(i);
     const px = Math.round((x / MW + 0.5) * (relief.W - 1)), py = Math.round((0.5 - y / MH) * (relief.H - 1));
-    mp.setZ(i, coveZ(MC + y) - 0.03 + relief.height[py * relief.W + px] * 0.55);
+    mp.setZ(i, coveZ(MC + y) - 0.04 + relief.height[py * relief.W + px] * 0.42);
   }
   medGeo.computeVertexNormals();
-  const medMat = new THREE.MeshStandardMaterial({ map: relief.map, alphaTest: 0.5, metalness: 1, roughness: 0.3, envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide });
+  const medMat = new THREE.MeshStandardMaterial({ map: relief.map, color: "#ffd890", alphaTest: 0.5, metalness: 1, roughness: 0.32, envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide });
   [[0, IH / 2 + MC, 0], [0, -IH / 2 - MC, Math.PI], [-IW / 2 - MC, 0, Math.PI / 2], [IW / 2 + MC, 0, -Math.PI / 2]].forEach(([x, y, r]) => {
     const m = add(medGeo, medMat, x, 7.9 + y, 0, tilt);
     m.rotation.z = r;
