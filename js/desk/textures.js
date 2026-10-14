@@ -1125,3 +1125,103 @@ export function pinkCheckTexture() {
   t.wrapS = THREE.RepeatWrapping;
   return t;
 }
+
+/* ---------------- Book spines: cloth or leather with gold foil ----------------
+   Returns { map, rough, metal, bump } for the spine face of a book lying flat. */
+export function bookSpineTextures({ title, sub, cloth, icon, seed = 1, style = 0 }) {
+  const W = 1024, H = 160;
+  const r = mulberry32(seed);
+  const [c, ctx] = canvas(W, H);
+  const [rc, rctx] = canvas(W, H);    // roughness
+  const [mc, mctx] = canvas(W, H);    // metalness
+  const [bc, bctx] = canvas(W, H);    // bump
+  ctx.fillStyle = cloth; ctx.fillRect(0, 0, W, H);
+  // cloth weave and wear
+  for (let i = 0; i < 9000; i++) {
+    const v = r() < 0.5 ? 255 : 0;
+    ctx.fillStyle = `rgba(${v},${v},${v},${0.03 + r() * 0.04})`;
+    ctx.fillRect(r() * W, r() * H, 1 + r() * 3, 1);
+  }
+  for (let i = 0; i < 14; i++) {     // scuffs
+    const x = r() * W, y = r() * H, rr = 10 + r() * 50;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, rr);
+    g.addColorStop(0, `rgba(255,240,220,${0.04 + r() * 0.06})`); g.addColorStop(1, "rgba(255,240,220,0)");
+    ctx.fillStyle = g; ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+  }
+  // rounded spine: darker at top and bottom edges
+  const sh = ctx.createLinearGradient(0, 0, 0, H);
+  sh.addColorStop(0, "rgba(0,0,0,0.35)"); sh.addColorStop(0.18, "rgba(0,0,0,0)"); sh.addColorStop(0.5, "rgba(255,255,255,0.05)");
+  sh.addColorStop(0.82, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,0.4)");
+  ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H);
+  // the edges wear through to the board
+  ctx.fillStyle = "rgba(60,40,25,0.35)"; ctx.fillRect(0, 0, 6, H); ctx.fillRect(W - 6, 0, 6, H);
+
+  rctx.fillStyle = "#d8d8d8"; rctx.fillRect(0, 0, W, H);
+  mctx.fillStyle = "#000"; mctx.fillRect(0, 0, W, H);
+  bctx.fillStyle = "#808080"; bctx.fillRect(0, 0, W, H);
+
+  // gold foil: drawn to colour, metalness, roughness and bump at once
+  function foil(draw) {
+    const goldGrad = ctx.createLinearGradient(0, 0, 0, H);
+    goldGrad.addColorStop(0, "#b8913f"); goldGrad.addColorStop(0.45, "#f0d58c"); goldGrad.addColorStop(1, "#9a7430");
+    ctx.save(); ctx.fillStyle = goldGrad; ctx.strokeStyle = goldGrad; draw(ctx); ctx.restore();
+    mctx.save(); mctx.fillStyle = "#fff"; mctx.strokeStyle = "#fff"; draw(mctx); mctx.restore();
+    rctx.save(); rctx.fillStyle = "#555"; rctx.strokeStyle = "#555"; draw(rctx); rctx.restore();
+    bctx.save(); bctx.fillStyle = "#4a4a4a"; bctx.strokeStyle = "#4a4a4a"; draw(bctx); bctx.restore();  // foil is pressed in
+  }
+  // raised bands near each end
+  const bands = style === 1 ? [70, 96, W - 96, W - 70] : [56, 70, W - 70, W - 56];
+  foil((g) => { bands.forEach((x) => g.fillRect(x, 10, 5, H - 20)); });
+  if (style === 2) foil((g) => { g.lineWidth = 3; g.strokeRect(120, 22, W - 240, H - 44); });
+  // icon in a foil roundel
+  foil((g) => {
+    g.lineWidth = 3.5; g.beginPath(); g.arc(160, H / 2, 34, 0, Math.PI * 2); g.stroke();
+    const doc = new DOMParser().parseFromString(`<svg>${icon}</svg>`, "image/svg+xml");
+    g.save(); g.translate(160 - 26, H / 2 - 26); g.scale(52 / 24, 52 / 24); g.lineWidth = 1.9; g.lineCap = "round"; g.lineJoin = "round";
+    doc.querySelectorAll("path,circle,rect").forEach((el) => {
+      const p = new Path2D();
+      if (el.tagName === "path") p.addPath(new Path2D(el.getAttribute("d")));
+      else if (el.tagName === "circle") p.arc(+el.getAttribute("cx"), +el.getAttribute("cy"), +el.getAttribute("r"), 0, Math.PI * 2);
+      else p.roundRect(+el.getAttribute("x"), +el.getAttribute("y"), +el.getAttribute("width"), +el.getAttribute("height"), +(el.getAttribute("rx") || 0));
+      g.stroke(p);
+    });
+    g.restore();
+  });
+  // title and subtitle in foil
+  // title sized to fit; the subtitle only where it has room of its own
+  const T = title.toUpperCase(), S = sub.toUpperCase();
+  let size = 68;
+  ctx.font = `600 ${size}px Fraunces`;
+  while (ctx.measureText(T).width > 600 && size > 40) { size -= 2; ctx.font = `600 ${size}px Fraunces`; }
+  const titleEnd = 228 + ctx.measureText(T).width;
+  ctx.font = "400 24px 'Courier Prime'";
+  const showSub = titleEnd + 40 + ctx.measureText(S).width < W - 120;
+  foil((g) => {
+    g.textBaseline = "middle";
+    g.font = `600 ${size}px Fraunces`;
+    g.fillText(T, 228, H / 2 + 3);
+    if (showSub) { g.font = "400 24px 'Courier Prime'"; g.textAlign = "right"; g.fillText(S, W - 130, H / 2 + 2); }
+  });
+  // foil wears off in places
+  for (let i = 0; i < 260; i++) {
+    const x = r() * W, y = r() * H, w = 1 + r() * 4;
+    ctx.fillStyle = cloth; ctx.globalAlpha = 0.35; ctx.fillRect(x, y, w, 1.5); ctx.globalAlpha = 1;
+  }
+  return {
+    map: toTexture(c),
+    rough: toTexture(rc, { srgb: false }), metal: toTexture(mc, { srgb: false }), bump: toTexture(bc, { srgb: false })
+  };
+}
+
+export function pageEdgeTexture(seed = 3) {
+  const W = 512, H = 64, r = mulberry32(seed);
+  const [c, ctx] = canvas(W, H);
+  ctx.fillStyle = "#efe4c8"; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y += 1.6) {
+    ctx.fillStyle = `rgba(120, 95, 60, ${0.08 + r() * 0.12})`; ctx.fillRect(0, y, W, 0.6);
+  }
+  const g = ctx.createLinearGradient(0, 0, W, 0);
+  g.addColorStop(0, "rgba(150,110,60,0.25)"); g.addColorStop(0.1, "rgba(150,110,60,0)"); g.addColorStop(0.9, "rgba(150,110,60,0)"); g.addColorStop(1, "rgba(150,110,60,0.25)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  return toTexture(c);
+}

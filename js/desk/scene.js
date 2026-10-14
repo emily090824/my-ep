@@ -16,6 +16,7 @@ import * as TX from "./textures.js";
 const section = document.getElementById("rolodex");
 const canvasEl = document.getElementById("desk-canvas");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SHOT = new URLSearchParams(location.search).get("shot");   // "links": the book-stack still
 const lowPower = matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 560;
 const DEG = Math.PI / 180;
 
@@ -70,6 +71,7 @@ async function main() {
   const lights = buildLights(scene);
   const rolodex = buildRolodex(scene);
   const extras = buildProps(scene);
+  const books = SHOT === "links" ? buildBookStack(scene) : null;
 
   /* ---------- post: depth of field, then tone mapping ---------- */
   // multisampled target: post-processing would otherwise drop antialiasing
@@ -105,10 +107,15 @@ async function main() {
       view.target.y + dist * Math.sin(elev),
       view.target.z + dist * Math.cos(elev) * Math.cos(azim)
     );
+    if (books) {     // the links still: low over the desk, books and mug in front of the window
+      const portrait = view.aspect < 1;
+      view.target.copy(books.aim).add(new THREE.Vector3(portrait ? -4 : -9, portrait ? 8 : 6, 0));
+      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-8, 22, 112) : new THREE.Vector3(-22, 18, 92));
+    }
     camera.position.copy(view.base);
     camera.lookAt(view.target);
     camera.updateProjectionMatrix();
-    bokeh.uniforms.focus.value = camera.position.distanceTo(rolodex.focusPoint);
+    bokeh.uniforms.focus.value = camera.position.distanceTo(books ? books.aim : rolodex.focusPoint);
     placeControls();
   }
 
@@ -212,6 +219,15 @@ async function main() {
 
   // handle for automated screenshots: freeze the scene, or flip to a card
   window.__desk = { stop: () => renderer.setAnimationLoop(null), goTo: ui.goTo, scene };
+  if (books) {
+    // hand the screen rectangle of each spine to the screenshot script
+    window.__desk.spines = () => books.spines.map((m) => {
+      const box = new THREE.Box3().setFromObject(m), pts = [];
+      for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) pts.push(new THREE.Vector3(x, y, z).project(camera));
+      const xs = pts.map((p) => (p.x + 1) / 2), ys = pts.map((p) => (1 - p.y) / 2);
+      return { name: m.userData.name, l: Math.min(...xs), r: Math.max(...xs), t: Math.min(...ys), b: Math.max(...ys) };
+    });
+  }
 }
 
 /* ==========================================================================
@@ -1046,4 +1062,111 @@ function mulberry(a) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/* ==========================================================================
+   A stack of books, spines out, with reading glasses on top (links still only)
+   ========================================================================== */
+function buildBookStack(scene) {
+  const list = [
+    // name, sub, cloth, w (along spine), thickness, depth, offset, turn, style
+    ["Thesis", "Reading the Romance Reader", "#3e4a55", 25, 4.2, 17, 0.0, 0.03, 2],
+    ["Academic CV", "Teaching & research", "#6e2219", 23, 3.4, 16, 1.2, -0.05, 1],
+    ["LinkedIn", "The professional record", "#22334f", 24, 3.8, 16.5, -0.8, 0.04, 0],
+    ["Previous ePortfolio", "The archive", "#7e3b40", 22, 3.0, 15, 0.6, -0.03, 2],
+    ["TikTok", "", "#2e5652", 21, 2.8, 14.5, -0.4, 0.06, 1],
+    ["Email", "eemaranto@gmail.com", "#e2d3b2", 20, 2.6, 14, 0.9, -0.02, 0],
+    ["Résumé", "Marketing & leadership", "#2c4634", 22.5, 3.2, 15.5, -0.2, 0.05, 2]
+  ];
+  const ICON = {
+    "Résumé": '<path d="M6 3h12v18H6z"/><circle cx="12" cy="8.5" r="2.2"/><path d="M8.5 14c.8-1.8 6.2-1.8 7 0"/><path d="M9 17.5h6"/>',
+    "LinkedIn": '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10.5V17"/><circle cx="8" cy="7.4" r="0.6"/><path d="M12 17v-6.5M12 13.2c0-2.2 5-3 5 0V17"/>',
+    "Academic CV": '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h7M9 14h7M9 17h4"/>',
+    "Thesis": '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/>',
+    "TikTok": '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.6 4.2 5 4.3"/>',
+    "Previous ePortfolio": '<path d="M3 6h6l2 2h10v11H3z"/><path d="M3 10h18"/>',
+    "Email": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
+  };
+  const base = new THREE.Vector3(43, 0, 4);
+  const group = new THREE.Group();
+  group.position.copy(base);
+  group.rotation.y = -0.12;
+  scene.add(group);
+  const pages = new THREE.MeshStandardMaterial({ map: TX.pageEdgeTexture(), roughness: 0.92 });
+  const pagesSide = pages.clone(); pagesSide.map = TX.pageEdgeTexture(9); pagesSide.map.rotation = Math.PI / 2;
+  const spines = [];
+  let y = 0;
+  list.forEach(([name, sub, cloth, w, t, d, off, turn, style], i) => {
+    const b = new THREE.Group();
+    b.position.set(off, y + t / 2, 0);
+    b.rotation.y = turn;
+    group.add(b);
+    const tex = TX.bookSpineTextures({ title: name, sub, cloth, icon: ICON[name], seed: 20 + i, style });
+    const clothMat = new THREE.MeshStandardMaterial({ color: cloth, roughness: 0.85 });
+    const spineMat = new THREE.MeshStandardMaterial({
+      map: tex.map, roughnessMap: tex.rough, metalnessMap: tex.metal, metalness: 1, roughness: 1,
+      bumpMap: tex.bump, bumpScale: 0.6
+    });
+    const board = 0.28;
+    // covers overhang the page block slightly on three sides
+    for (const s of [-1, 1]) {
+      const cover = new THREE.Mesh(new RoundedBoxGeometry(w, board, d, 2, 0.1), clothMat);
+      cover.position.y = s * (t / 2 - board / 2);
+      cover.castShadow = cover.receiveShadow = true;
+      b.add(cover);
+    }
+    const block = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, t - board * 2 + 0.02, d - 0.7),
+      [pagesSide, pagesSide, pages, pages, pages, pages]);
+    block.position.z = -0.25;
+    block.castShadow = block.receiveShadow = true;
+    b.add(block);
+    // a rounded spine: half a cylinder, flattened, wrapped with the foil texture
+    const spineGeo = new THREE.CylinderGeometry(t / 2, t / 2, w, 32, 1, true, 0, Math.PI);
+    spineGeo.rotateZ(Math.PI / 2);
+    spineGeo.rotateX(Math.PI / 2);
+    spineGeo.scale(1, 1, 0.42);
+    const uv = spineGeo.attributes.uv;
+    for (let k = 0; k < uv.count; k++) uv.setXY(k, 1 - uv.getY(k), uv.getX(k));
+    const spine = new THREE.Mesh(spineGeo, spineMat);
+    spine.position.z = d / 2 - 0.02;
+    spine.castShadow = true;
+    spine.userData.name = name;
+    b.add(spine);
+    spines.push(spine);
+    y += t;
+  });
+
+  // tortoiseshell reading glasses resting on top
+  const tort = new THREE.MeshPhysicalMaterial({ color: "#6a3415", roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.15 });
+  const lensMat = new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.02, transmission: 0.9, thickness: 0.2, transparent: true, opacity: 0.35 });
+  const glasses = new THREE.Group();
+  glasses.position.set(-2, y, 2.5);
+  glasses.rotation.y = 0.25;
+  group.add(glasses);
+  const rim = new THREE.Shape(); rim.absarc(0, 0, 2.3, 0, Math.PI * 2);
+  for (const sx of [-2.9, 2.9]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.16, 12, 48), tort);
+    ring.scale.set(1.15, 0.8, 1); ring.position.set(sx, 1.85, 0); ring.rotation.x = -0.12; ring.castShadow = true;
+    glasses.add(ring);
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(2.2, 40), lensMat);
+    lens.scale.set(1.1, 0.88, 1); lens.position.copy(ring.position); lens.rotation.copy(ring.rotation);
+    glasses.add(lens);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 12.5), tort);
+    arm.position.set(sx * 1.88, 2.1, -6.2); arm.rotation.set(0.08, -sx * 0.02, 0); arm.castShadow = true;
+    glasses.add(arm);
+  }
+  const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.14, 10, 20, Math.PI), tort);
+  bridge.position.set(0, 2.3, 0); bridge.rotation.x = -0.12;
+  glasses.add(bridge);
+
+  // a reading light on the stack, so the foil catches
+  const key = new THREE.SpotLight("#ffc98a", 2600, 0, 0.6, 0.8, 2);
+  key.position.set(base.x - 30, 45, base.z + 30);
+  key.target.position.copy(base).setY(10);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.bias = -0.0004;
+  scene.add(key, key.target);
+
+  return { spines, aim: base.clone().setY(y * 0.55) };
 }
