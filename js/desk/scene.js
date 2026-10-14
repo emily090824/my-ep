@@ -20,17 +20,18 @@ const lowPower = matchMedia("(pointer: coarse)").matches || Math.min(innerWidth,
 const DEG = Math.PI / 180;
 
 /* ---------------- personas ---------------- */
-const intro = window.EMH.hasIntro();
-const personas = window.PERSONAS.filter((p) => p.visibility !== "hidden" || intro).map((p, i) => ({
-  ...p,
-  number: i + 1,
-  sealed: p.visibility === "unlisted" && !intro,
-  delivered: p.visibility !== "public" && intro
-}));
-personas.forEach((p) => {
-  p.href = p.sealed ? "#contact" : "persona.html?p=" + p.slug;
-  p.label = "Emily as " + p.article + " " + p.title;
-});
+// Built once any password (from the link or this session) has been tried; locked cards stay sealed.
+let personas = [];
+function loadPersonas() {
+  personas = window.PERSONAS.filter((p) => window.EMH.isVisible(p)).map((p, i) => ({
+    ...p,
+    number: i + 1,
+    sealed: !window.EMH.isOpen(p),
+    delivered: p.visibility !== "public" && !!p.unlocked,
+    href: "persona.html?p=" + p.slug,
+    label: "Emily as " + p.article + " " + p.title
+  }));
+}
 
 /* ---------------- boot ---------------- */
 main().catch((err) => {
@@ -39,6 +40,8 @@ main().catch((err) => {
 });
 
 async function main() {
+  await window.EMH.ready;
+  loadPersonas();
   // Card faces are painted with web fonts, so wait for them (but not forever).
   await Promise.race([
     Promise.all([
@@ -676,8 +679,8 @@ function rolodexUI(rolodex) {
     const li = document.createElement("li");
     const b = document.createElement("button");
     b.type = "button";
-    b.innerHTML = `<span>${p.letter}</span>${p.sealed ? "Private" : p.title}`;
-    b.setAttribute("aria-label", "Turn to: " + p.label);
+    b.innerHTML = `<span>${p.letter}</span>${p.title}${p.sealed ? `<i class="lock" title="Password protected">${window.ICONS.lock}</i>` : ""}`;
+    b.setAttribute("aria-label", "Turn to: " + p.label + (p.sealed ? " (password protected)" : ""));
     b.addEventListener("click", () => goTo(k));
     li.appendChild(b);
     list.appendChild(li);
@@ -696,8 +699,8 @@ function rolodexUI(rolodex) {
     const p = personas[k];
     buttons.forEach((b, i) => b.setAttribute("aria-current", i === k ? "true" : "false"));
     current.href = p.href;
-    current.querySelector(".desk__current-name").textContent = p.sealed ? "By introduction only" : p.label;
-    current.querySelector(".desk__current-cta").textContent = p.sealed ? "Request an intro →" : "Pull this card →";
+    current.querySelector(".desk__current-name").textContent = p.label;
+    current.querySelector(".desk__current-cta").textContent = p.sealed ? "Password protected · enter →" : "Pull this card →";
     status.textContent = `Card ${k + 1} of ${personas.length}: ${p.label}`;
   }
 
@@ -716,7 +719,7 @@ function rolodexUI(rolodex) {
 
   // landing: one long roll that settles on the first card (or the introduced one)
   let landOn = 0;
-  if (intro) { const j = personas.findIndex((p) => p.visibility !== "public"); if (j >= 0) landOn = j; }
+  if (window.EMH.arrivedByLink()) { const j = personas.findIndex((p) => p.delivered); if (j >= 0) landOn = j; }
   setActive(landOn);
   pos = slots[landOn] - 40;
   rolodex.layout(pos);

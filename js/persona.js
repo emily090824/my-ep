@@ -1,13 +1,11 @@
-/* Renders persona.html?p=<slug> from window.PERSONAS. */
+/* Renders persona.html?p=<slug> from window.PERSONAS. Locked pages ask for a password. */
 (function () {
   var root = document.getElementById("persona");
   var switcher = document.getElementById("persona-switch");
-  var intro = window.EMH.hasIntro();
   var fill = window.EMH.fill;
 
   var slug = new URLSearchParams(location.search).get("p") || "marketer";
   var p = window.PERSONAS.find(function (x) { return x.slug === slug; });
-  var locked = !p || (p.visibility !== "public" && !intro);
 
   if (p && p.visibility !== "public") {
     var meta = document.createElement("meta");
@@ -16,16 +14,14 @@
     document.head.appendChild(meta);
   }
 
-  if (locked) {
-    document.title = "By introduction · Emily Maranto Hill";
-    root.insertAdjacentHTML("beforeend",
-      '<div class="persona__sealed">' +
-        '<div class="persona-seal" style="margin:0 auto 24px">' + window.ICONS.executive + '</div>' +
-        '<h1 class="sheet__no" style="font-size:1rem">This card is shared by introduction</h1>' +
-        '<p>If someone sent you here, ask them for the full link — or say hello and I\'ll pass it along.</p>' +
-        '<a class="btn btn--solid" href="./#contact">Don\'t be a stranger</a>' +
-      '</div>');
-  } else {
+  function clear() {
+    Array.prototype.slice.call(root.children).forEach(function (c) {
+      if (!c.classList.contains("persona__back")) c.remove();
+    });
+  }
+
+  function renderPage() {
+    clear();
     document.title = "Emily as " + p.article + " " + p.title + " · Emily Maranto Hill";
     var html =
       '<header class="persona__hero">' +
@@ -43,16 +39,57 @@
         "</ul></section>";
     });
     root.insertAdjacentHTML("beforeend", html);
+    renderSwitcher();
   }
 
-  // "Pull another card" — only cards this visitor is allowed to see.
-  var others = window.PERSONAS.filter(function (x) {
-    return x !== p && (x.visibility === "public" || intro);
-  });
-  if (others.length) {
-    switcher.innerHTML = "<h2>Pull another card</h2><ul>" + others.map(function (x) {
-      return '<li><a href="persona.html?p=' + x.slug + '"><span class="ic">' + window.ICONS[x.slug] +
-        "</span>" + x.title + "</a></li>";
-    }).join("") + "</ul>";
+  function renderPassword() {
+    clear();
+    document.title = "Emily as " + p.article + " " + p.title + " · Password protected";
+    root.insertAdjacentHTML("beforeend",
+      '<div class="persona__sealed">' +
+        '<div class="persona-seal persona-seal--locked">' + window.ICONS[p.slug] + '</div>' +
+        '<p class="kicker">File under ' + p.letter + ' · password protected</p>' +
+        '<h1 class="persona__locked-title">Emily as ' + p.article + ' <em>' + p.title + '</em></h1>' +
+        '<p>This card is shared by introduction. Enter the password you were given.</p>' +
+        '<form class="unlock" novalidate>' +
+          '<label class="sr-only" for="unlock-pass">Password</label>' +
+          '<input id="unlock-pass" class="unlock__input" type="password" autocomplete="current-password" placeholder="Password" required>' +
+          '<button class="btn btn--solid" type="submit">Open the card</button>' +
+          '<p class="unlock__msg" role="status" aria-live="polite"></p>' +
+        '</form>' +
+        '<p class="persona__ask">No password? <a href="./#contact">Ask for an introduction →</a></p>' +
+      '</div>');
+    var form = root.querySelector(".unlock"), input = form.querySelector("input"), msg = form.querySelector(".unlock__msg");
+    var btn = form.querySelector("button");
+    input.focus();
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!input.value) { msg.textContent = "Enter the password first."; return; }
+      btn.disabled = true;
+      msg.textContent = "Checking…";
+      window.EMH.unlock(input.value).then(function (ok) {
+        btn.disabled = false;
+        if (ok && p.unlocked) { renderPage(); return; }
+        msg.textContent = "That's not it. Try again, or ask for an introduction.";
+        form.classList.remove("is-wrong"); void form.offsetWidth; form.classList.add("is-wrong");
+        input.select();
+      });
+    });
+    renderSwitcher();
   }
+
+  // "Pull another card": only cards this visitor can see.
+  function renderSwitcher() {
+    var others = window.PERSONAS.filter(function (x) { return x !== p && window.EMH.isVisible(x); });
+    switcher.innerHTML = others.length ? "<h2>Pull another card</h2><ul>" + others.map(function (x) {
+      return '<li><a href="persona.html?p=' + x.slug + '"><span class="ic">' + window.ICONS[x.slug] +
+        "</span>" + x.title + (window.EMH.isOpen(x) ? "" : ' <i class="lock" title="Password protected">' + window.ICONS.lock + '</i>') + "</a></li>";
+    }).join("") + "</ul>" : "";
+  }
+
+  window.EMH.ready.then(function () {
+    if (!p) { p = window.PERSONAS[0]; }
+    if (window.EMH.isOpen(p)) renderPage();
+    else renderPassword();
+  });
 })();

@@ -37,26 +37,28 @@ desk. Until then a monogram placeholder shows.
 Copy wrapped in `[[double brackets]]` in `js/personas.js` (and `<span class="todo">` in
 `index.html`) shows with a green highlighter so you can see what still needs writing.
 
-## Showing personas only to certain people
+## Password-protected personas (the Executive card)
 Each persona in `js/personas.js` has a `visibility`:
 
-| value      | Rolodex                                     | Persona page |
-|------------|---------------------------------------------|--------------|
-| `public`   | Normal card                                 | Open         |
-| `unlisted` | Sealed "By introduction" card               | Only with the intro link |
-| `hidden`   | Not shown at all                            | Only with the intro link |
+| value    | Rolodex                          | Persona page        |
+|----------|----------------------------------|---------------------|
+| `public` | Normal card                      | Open                |
+| `locked` | Card shown with a lock           | Asks for a password |
+| `hidden` | Not shown until unlocked         | Asks for a password |
 
-The intro link is your site address plus `?intro=` and the `introKey` in `js/personas.js`:
+A locked page's content is encrypted (AES-256-GCM, key derived from the password), so it
+cannot be read from the site's source. The readable version lives in `private/<slug>.json`,
+which is git-ignored and never published. To change the content or the password:
 
-- `https://<your-site>/?intro=a-proper-introduction` — the rolodex rolls straight to the
-  executive card, stamped "Hand-delivered"
-- `https://<your-site>/persona.html?p=executive&intro=a-proper-introduction` — straight to the page
+```
+# edit private/executive.json, then
+node tools/lock.mjs <new-password>      # rewrites js/locked.js
+```
 
-Once someone opens an intro link, it's remembered for the rest of their browser session.
-
-**Note:** this is "unlisted", not password protection. Anyone reading the page source can see
-the key and the text. For genuinely confidential content, use your host's password protection
-(e.g. Netlify or Cloudflare Access) on that page.
+Visitors open the card by typing the password, or through a direct link that carries it:
+`https://<your-site>/?intro=<password>` (the Rolodex rolls straight to the card and stamps it
+"Hand-delivered"; the password is removed from the address bar). Once unlocked it stays open
+for that browser session.
 
 ## Publishing
 Any static host works. For GitHub Pages: repo Settings → Pages → deploy from this branch, root folder.

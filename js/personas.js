@@ -2,11 +2,14 @@
    Personas — the single place to edit what each rolodex card says.
 
    visibility:
-     "public"    → shown on the rolodex, open to everyone
-     "unlisted"  → card appears "sealed" (by introduction only) until the
-                   visitor arrives with the intro link, e.g.
-                   https://<your-site>/?intro=a-proper-introduction
-     "hidden"    → not on the rolodex at all; only the intro link opens it
+     "public"  → shown on the rolodex, open to everyone
+     "locked"  → shown on the rolodex with a lock; the page is password protected
+     "hidden"  → not on the rolodex until unlocked; reachable only by link + password
+
+   A locked page's content is NOT in this file. It lives in private/<slug>.json
+   (never published) and is encrypted into js/locked.js by `node tools/lock.mjs <password>`.
+   Visitors unlock it by entering the password, or by a direct link that carries it:
+     https://<your-site>/?intro=<password>
 
    Text wrapped in [[double brackets]] renders as a highlighted placeholder
    so it's easy to spot what still needs real copy.
@@ -14,8 +17,6 @@
 
 window.SITE = {
   name: "Emily Maranto Hill",
-  // Change this to anything you like, then share links that include it.
-  introKey: "a-proper-introduction",
   email: "eemaranto@gmail.com",
   links: {
     linkedin: "https://www.linkedin.com/in/emilymarantohill/",
@@ -33,6 +34,8 @@ window.ICONS = {
     '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M3 18l21-9 21 9-21 9z"/><path d="M11 22v9c0 3 6 6.5 13 6.5S37 34 37 31v-9"/><path d="M45 18v12"/><circle cx="45" cy="32" r="1.6"/></svg>',
   writer:
     '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l10 15-4 19H18l-4-19z"/><path d="M24 4v17"/><circle cx="24" cy="24" r="2.6"/><path d="M17 38h14v5H17z"/></svg>',
+  lock:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
   creator:
     '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="14" width="38" height="25" rx="3"/><circle cx="24" cy="26.5" r="7.5"/><circle cx="24" cy="26.5" r="3"/><path d="M16 14l3-5h10l3 5"/><circle cx="37" cy="19.5" r="1.4"/></svg>'
 };
@@ -72,20 +75,9 @@ window.PERSONAS = [
     article: "an",
     title: "Executive",
     letter: "E",
-    visibility: "unlisted",
-    tagline: "Leadership, by proper introduction.",
-    summary:
-      "[[Your executive role, company, and the scope you lead. This page is only reachable through your intro link.]]",
-    sections: [
-      {
-        heading: "Current role",
-        items: ["[[Title, Company — years]]", "[[Scope: team size, budget, markets]]"]
-      },
-      {
-        heading: "Board-level highlights",
-        items: ["[[Highlight]]", "[[Highlight]]", "[[Highlight]]"]
-      }
-    ]
+    visibility: "locked",
+    // public teaser only; the page itself is in js/locked.js (encrypted)
+    tagline: "Leadership, by proper introduction."
   },
   {
     slug: "academic",
@@ -175,22 +167,65 @@ window.PERSONAS = [
    Shared helpers
    -------------------------------------------------------------------------- */
 window.EMH = (function () {
-  var KEY = "emh-intro";
+  var KEY = "emh-pass";
+  var params = new URLSearchParams(location.search);
+  var viaLink = false;
 
-  function hasIntro() {
-    var params = new URLSearchParams(location.search);
-    var given = params.get("intro");
-    if (given && given === window.SITE.introKey) {
-      try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
-      return true;
-    }
-    try { return sessionStorage.getItem(KEY) === "1"; } catch (e) { return false; }
+  function bytes(b64) { return Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }); }
+
+  function decrypt(pass, box) {
+    var enc = new TextEncoder();
+    return crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"])
+      .then(function (base) {
+        return crypto.subtle.deriveKey({ name: "PBKDF2", salt: bytes(box.salt), iterations: box.iter, hash: "SHA-256" },
+          base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      })
+      .then(function (key) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: bytes(box.iv) }, key, bytes(box.data)); })
+      .then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
   }
+
+  // Try a password against every locked persona; resolves true if anything opened.
+  function unlock(pass) {
+    var locked = window.LOCKED || {};
+    if (!pass || !window.crypto || !crypto.subtle) return Promise.resolve(false);
+    var jobs = window.PERSONAS.filter(function (p) { return locked[p.slug] && !p.unlocked; }).map(function (p) {
+      return decrypt(pass, locked[p.slug]).then(function (content) {
+        Object.assign(p, content);
+        p.unlocked = true;
+        return true;
+      }, function () { return false; });
+    });
+    return Promise.all(jobs).then(function (r) {
+      var ok = r.indexOf(true) >= 0;
+      if (ok) { try { sessionStorage.setItem(KEY, pass); } catch (e) {} }
+      return ok;
+    });
+  }
+
+  // On load: a password in the link (?intro=...) or one entered earlier this session.
+  var fromLink = params.get("intro");
+  var stored = null;
+  try { stored = sessionStorage.getItem(KEY); } catch (e) {}
+  var ready = unlock(fromLink || stored).then(function (ok) {
+    if (fromLink) {
+      viaLink = ok;
+      params.delete("intro");                       // keep the password out of the address bar
+      var q = params.toString();
+      history.replaceState(null, "", location.pathname + (q ? "?" + q : "") + location.hash);
+    }
+    return ok;
+  });
+
+  function isOpen(p) { return p.visibility === "public" || !!p.unlocked; }
+  function isVisible(p) { return p.visibility !== "hidden" || !!p.unlocked; }
 
   // Wraps [[placeholder]] copy in a visible marker.
   function fill(text) {
     return String(text).replace(/\[\[(.+?)\]\]/g, '<span class="todo">$1</span>');
   }
 
-  return { hasIntro: hasIntro, fill: fill };
+  return {
+    ready: ready, unlock: unlock, isOpen: isOpen, isVisible: isVisible, fill: fill,
+    arrivedByLink: function () { return viaLink; }
+  };
 })();

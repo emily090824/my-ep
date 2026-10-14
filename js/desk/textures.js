@@ -178,16 +178,16 @@ export function personaCardTexture(p, { number, tabX, sealed, delivered, icon })
   ctx.fillText(p.title, 274, top + 318);
   ctx.fillStyle = "#4a3426";
   ctx.font = "italic 400 36px Spectral";
-  wrapText(ctx, sealed ? "Shared by direct introduction only." : p.tagline, 280, top + 384, w - 330, 46);
+  wrapText(ctx, sealed ? "Password protected. Shared by introduction." : p.tagline, 280, top + 384, w - 330, 46);
 
   ctx.fillStyle = "#7a5b44";
   ctx.font = "400 26px 'Courier Prime'";
   ctx.fillText(`FILE UNDER ${p.letter}`, 48, h - 46);
   ctx.textAlign = "right";
   ctx.fillStyle = "#2e4535";
-  ctx.fillText(sealed ? "REQUEST AN INTRO →" : "PULL CARD →", w - 48, h - 46);
+  ctx.fillText(sealed ? "ENTER PASSWORD →" : "PULL CARD →", w - 48, h - 46);
 
-  if (sealed) stamp(ctx, "BY INTRODUCTION", w - 220, top + 130, "#9b4a2f");
+  if (sealed) stamp(ctx, "PRIVATE", w - 170, top + 130, "#9b4a2f");
   if (delivered) stamp(ctx, "HAND-DELIVERED", w - 220, top + 130, "#2e4535");
 
   return toTexture(c);

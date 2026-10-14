@@ -15,6 +15,44 @@
       }
     });
   }
+  // Menu labels dissolve letter by letter: split each label into letters for the CSS
+  // transition, keeping the whole words for screen readers.
+  document.querySelectorAll(".swap__a, .swap__b").forEach(function (el) {
+    var text = el.textContent;
+    el.textContent = "";
+    var sr = document.createElement("span");
+    sr.className = "sr-only";
+    sr.textContent = text;
+    var vis = document.createElement("span");
+    vis.setAttribute("aria-hidden", "true");
+    Array.prototype.forEach.call(text, function (ch, i) {
+      var s = document.createElement("span");
+      s.className = "ch";
+      s.style.setProperty("--i", i);
+      s.textContent = ch === " " ? "\u00a0" : ch;
+      vis.appendChild(s);
+    });
+    el.appendChild(sr);
+    el.appendChild(vis);
+  });
+
+  // Dropdown: click/tap toggles; Escape or a click elsewhere closes it.
+  document.querySelectorAll(".has-drop").forEach(function (item) {
+    var btn = item.querySelector(".drop-toggle");
+    function set(open) {
+      item.classList.toggle("is-open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    }
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      set(!item.classList.contains("is-open"));
+    });
+    document.addEventListener("click", function (e) { if (!item.contains(e.target)) set(false); });
+    item.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { set(false); btn.focus(); }
+    });
+  });
+
   // Over the desk scene the masthead goes transparent with light type.
   var masthead = document.querySelector(".masthead");
   var desk = document.getElementById("rolodex");
