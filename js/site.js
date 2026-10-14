@@ -36,6 +36,19 @@
     el.appendChild(vis);
   });
 
+  // Each menu item is as wide as the label showing, and eases wider or narrower as the
+  // other label takes over, so a long hover label doesn't leave a gap in the menu.
+  function measure() {
+    document.querySelectorAll(".swap").forEach(function (sw) {
+      var a = sw.querySelector(".swap__a [aria-hidden]"), b = sw.querySelector(".swap__b [aria-hidden]");
+      if (!a || !b) return;
+      sw.style.setProperty("--wa", Math.ceil(a.getBoundingClientRect().width) + "px");
+      sw.style.setProperty("--wb", Math.ceil(b.getBoundingClientRect().width) + "px");
+    });
+    document.documentElement.classList.add("swap-measured");
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure); else measure();
+
   // Dropdown: click/tap toggles; Escape or a click elsewhere closes it.
   document.querySelectorAll(".has-drop").forEach(function (item) {
     var btn = item.querySelector(".drop-toggle");
@@ -56,6 +69,7 @@
   // Over the desk scene the masthead goes transparent with light type.
   var masthead = document.querySelector(".masthead");
   var desk = document.getElementById("rolodex");
+  if (masthead && document.body.classList.contains("on-desk")) masthead.classList.add("is-over-desk");
   if (masthead && desk && desk.classList.contains("desk")) {
     document.body.classList.add("has-desk");
     masthead.classList.add("is-over-desk");

@@ -90,6 +90,10 @@ a:hover { color: var(--rust); }
 .swap__b .ch { opacity: 0; filter: blur(5px); transform: translateY(5px); }
 .nav-contact .swap__b { color: var(--green-600); font-weight: 700; }
 @media (hover: hover) and (min-width: 1301px) {
+  .swap-measured .swap { width: var(--wa); transition: width 0.4s cubic-bezier(.3, .7, .3, 1); }
+  .swap-measured .swap:hover, .swap-measured .swap:focus-visible,
+  .swap-measured .has-drop:hover .swap, .swap-measured .has-drop.is-open .swap { width: var(--wb); }
+  .swap__a, .swap__b { white-space: nowrap; }
   .swap:hover .swap__a .ch, .swap:focus-visible .swap__a .ch, .has-drop.is-open .swap__a .ch, .has-drop:hover .swap__a .ch {
     opacity: 0; filter: blur(5px); transform: translateY(-5px);
   }

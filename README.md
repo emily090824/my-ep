@@ -5,6 +5,7 @@ A static site (plain HTML/CSS/JS, no build step) built around a rolodex of perso
 ```
 index.html          Parent page: the desk scene, then About, Links, Read Me, Press, Contact
 persona.html        One template for every persona page (persona.html?p=academic)
+contact.html        Don't Be a Stranger: the desk from above, personnel file + contact cards
 js/personas.js      ← edit this: every card's text, icon, and visibility
 js/desk/scene.js    The 3D desk: Rolodex, lamp, window, props, camera, controls
 js/desk/textures.js Everything painted procedurally: walnut, plaster, sky, card faces
@@ -32,6 +33,11 @@ then open http://localhost:8000
 ## Adding your headshot
 Save a portrait (roughly 4:5) as `assets/headshot.jpg`. It appears in the picture frame on the
 desk. Until then a monogram placeholder shows.
+
+## Contact page
+`contact.html` is plain HTML: edit the email, location, working style and social links there.
+TikTok and YouTube links are placeholders marked `data-todo`; replace `href="#"` with your URLs.
+The desk background is `assets/walnut.jpg`, rendered from the same painter as the 3D desk.
 
 ## Placeholders
 Copy wrapped in `[[double brackets]]` in `js/personas.js` (and `<span class="todo">` in

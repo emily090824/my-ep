@@ -57,7 +57,7 @@
           '<button class="btn btn--solid" type="submit">Open the card</button>' +
           '<p class="unlock__msg" role="status" aria-live="polite"></p>' +
         '</form>' +
-        '<p class="persona__ask">No password? <a href="./#contact">Ask for an introduction →</a></p>' +
+        '<p class="persona__ask">No password? <a href="contact.html">Ask for an introduction →</a></p>' +
       '</div>');
     var form = root.querySelector(".unlock"), input = form.querySelector("input"), msg = form.querySelector(".unlock__msg");
     var btn = form.querySelector("button");
