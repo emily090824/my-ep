@@ -400,3 +400,15 @@ body:not(.has-desk) main { padding-top: 66px; }
 @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 @media (prefers-reduced-motion: reduce) { .unlock.is-wrong { animation: none; } }
 .persona__ask { margin-top: 22px; font-size: 0.95rem; color: var(--brown-500); }
+
+/* ---------- heading bump ---------- */
+.bump-w { display: inline-block; white-space: nowrap; }
+.bump-c { display: inline-block; }
+.is-bumped .bump-c { animation: bump 0.55s cubic-bezier(.3, .6, .3, 1) both; animation-delay: var(--d); }
+@keyframes bump {
+  0% { transform: none; }
+  35% { transform: translateY(-0.16em); }
+  70% { transform: translateY(0.03em); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .is-bumped .bump-c { animation: none; } }
