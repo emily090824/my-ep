@@ -452,85 +452,6 @@ export function leatherTexture(hex) {
   return toTexture(c);
 }
 
-/* ---------------- Window at night: city skyline ---------------- */
-export function nightSkyTexture() {
-  const W = 2048, H = 1024;
-  const [c, ctx] = canvas(W, H);
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0.0, "#04060d");
-  g.addColorStop(0.45, "#0b1328");
-  g.addColorStop(0.72, "#1a2343");
-  g.addColorStop(0.86, "#3b2f4a");   // city glow on the haze
-  g.addColorStop(1.0, "#4a3540");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-  // stars, thinning toward the light-polluted horizon
-  for (let i = 0; i < 700; i++) {
-    const y = Math.pow(rand(), 1.8) * H * 0.7;
-    ctx.fillStyle = `rgba(230, 235, 255, ${(0.25 + rand() * 0.75) * (1 - y / (H * 0.7))})`;
-    const s = rand() < 0.04 ? 2.4 : 1.2;
-    ctx.fillRect(rand() * W, y, s, s);
-  }
-  // crescent moon with a halo
-  const mx = W * 0.74, my = H * 0.2;
-  let halo = ctx.createRadialGradient(mx, my, 0, mx, my, 220);
-  halo.addColorStop(0, "rgba(220, 228, 255, 0.35)");
-  halo.addColorStop(1, "rgba(220, 228, 255, 0)");
-  ctx.fillStyle = halo; ctx.fillRect(mx - 220, my - 220, 440, 440);
-  ctx.fillStyle = "#f3f0e4";
-  ctx.beginPath(); ctx.arc(mx, my, 34, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = "destination-out";
-  ctx.beginPath(); ctx.arc(mx + 15, my - 8, 31, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = "source-over";
-
-  // skyline in three depths; nearer is darker, taller, and more lit
-  const layers = [
-    { base: H * 0.84, col: "#1d1d33", min: 40, max: 200, lit: 0.22, win: [5, 7] },
-    { base: H * 0.9, col: "#141426", min: 80, max: 330, lit: 0.3, win: [6, 9] },
-    { base: H * 0.97, col: "#0b0b16", min: 120, max: 420, lit: 0.36, win: [7, 10] }
-  ];
-  const warm = () => `rgba(255, ${190 + rand() * 50}, ${110 + rand() * 70}, ${0.55 + rand() * 0.45})`;
-  const cool = () => `rgba(${170 + rand() * 40}, ${200 + rand() * 30}, 255, ${0.45 + rand() * 0.4})`;
-  layers.forEach((L, li) => {
-    let x = -30;
-    while (x < W) {
-      const bw = 50 + rand() * 170, bh = L.min + rand() * (L.max - L.min);
-      const top = L.base - bh;
-      ctx.fillStyle = L.col;
-      ctx.fillRect(x, top, bw, H);
-      // crowns: stepped tops, spires, water towers
-      const r = rand();
-      if (r < 0.15) { ctx.fillRect(x + bw * 0.2, top - 30, bw * 0.6, 30); ctx.fillRect(x + bw * 0.4, top - 70, bw * 0.2, 40); }
-      else if (r < 0.25) { ctx.fillRect(x + bw / 2 - 2, top - 90, 4, 90); }
-      else if (r < 0.32 && li === 2) {
-        ctx.fillRect(x + 20, top - 34, 34, 24);
-        ctx.beginPath(); ctx.moveTo(x + 16, top - 34); ctx.lineTo(x + 37, top - 54); ctx.lineTo(x + 58, top - 34); ctx.fill();
-        ctx.fillRect(x + 24, top - 10, 3, 10); ctx.fillRect(x + 47, top - 10, 3, 10);
-      }
-      if (r < 0.25 && rand() < 0.7) {           // aircraft warning light
-        ctx.fillStyle = "rgba(255, 60, 50, 0.95)";
-        ctx.fillRect(x + bw / 2 - 2, top - (r < 0.15 ? 72 : 92), 4, 4);
-      }
-      const [ww, wh] = L.win;
-      for (let wy = top + 10; wy < H; wy += wh + 7) {
-        for (let wx = x + 8; wx < x + bw - ww - 4; wx += ww + 6) {
-          if (rand() < L.lit) {
-            ctx.fillStyle = rand() < 0.78 ? warm() : cool();
-            ctx.fillRect(wx, wy, ww, wh);
-          }
-        }
-      }
-      x += bw + rand() * 14;
-    }
-  });
-  // street-level glow
-  const sg = ctx.createLinearGradient(0, H * 0.9, 0, H);
-  sg.addColorStop(0, "rgba(255, 170, 90, 0)");
-  sg.addColorStop(1, "rgba(255, 170, 90, 0.25)");
-  ctx.fillStyle = sg; ctx.fillRect(0, H * 0.9, W, H * 0.1);
-  return toTexture(c);
-}
-
 /* ---------------- Tiffany shade: cream glass, irises and a butterfly ----------------
    Painted in lathe UV space: u runs around the shade, v from rim (0) to crown (1).
    Canvas y = (1 - v) * H. The pattern repeats REP times around the shade. */
@@ -648,15 +569,16 @@ export function laptopScreenTexture() {
   const [c, ctx] = canvas(W, H);
   ctx.fillStyle = "#f4f1ea"; ctx.fillRect(0, 0, W, H);
   // sidebar
-  ctx.fillStyle = "#24302a"; ctx.fillRect(0, 0, 220, H);
-  ctx.fillStyle = "#e9e4d8"; ctx.font = "700 24px 'Courier Prime'";
+  ctx.fillStyle = "#e8e2d3"; ctx.fillRect(0, 0, 220, H);
+  ctx.fillStyle = "#d6cfbd"; ctx.fillRect(219, 0, 2, H);
+  ctx.fillStyle = "#2a1d14"; ctx.font = "700 24px 'Courier Prime'";
   ctx.fillText("Projects", 26, 52);
   ctx.font = "400 19px 'Courier Prime'";
   ["Brand refresh", "Fall campaign", "Newsletter", "Book launch", "Course design"].forEach((t, i) => {
-    if (i === 0) { ctx.fillStyle = "rgba(159,180,151,0.25)"; ctx.fillRect(12, 84 + i * 44, 196, 36); }
+    if (i === 0) { ctx.fillStyle = "rgba(63,94,72,0.14)"; ctx.fillRect(12, 84 + i * 44, 196, 36); }
     ctx.fillStyle = ["#9fb497", "#e8a640", "#a99ae0", "#d886ae", "#7fa3c8"][i];
     ctx.beginPath(); ctx.arc(32, 102 + i * 44, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = i === 0 ? "#ffffff" : "#c9c4b6";
+    ctx.fillStyle = i === 0 ? "#2a1d14" : "#6f6253";
     ctx.fillText(t, 48, 109 + i * 44);
   });
   // header
@@ -789,32 +711,344 @@ export function giltMouldingTextures(band) {
   };
 }
 
-/* ---------------- Pothos leaf: glossy, veined, a little marbled ---------------- */
+/* ---------------- Golden pothos leaf ----------------
+   Bright green, glossy, with butter-yellow variegation streaking out from the midrib. */
 export function pothosLeafTexture() {
-  const S = 256;
+  const S = 512;
   const rnd = mulberry32(77);
   const [c, ctx] = canvas(S, S);
-  const g = ctx.createLinearGradient(0, S, 0, 0);
-  g.addColorStop(0, "#2f5a26"); g.addColorStop(0.6, "#3f7431"); g.addColorStop(1, "#4d863a");
+  const g = ctx.createLinearGradient(0, S, S * 0.3, 0);
+  g.addColorStop(0, "#3d7f22"); g.addColorStop(0.55, "#4f9a2c"); g.addColorStop(1, "#63ad38");
   ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-  // golden marbling, as on a golden pothos
-  for (let i = 0; i < 14; i++) {
-    ctx.strokeStyle = `rgba(200, 210, 110, ${0.12 + rnd() * 0.2})`;
-    ctx.lineWidth = 2 + rnd() * 6;
-    const x = S / 2 + (rnd() - 0.5) * S * 0.7;
-    ctx.beginPath(); ctx.moveTo(S / 2, S * 0.95);
-    ctx.quadraticCurveTo(x, S * 0.5, x + (rnd() - 0.5) * 40, S * (0.1 + rnd() * 0.3)); ctx.stroke();
+  // variegation: soft yellow-cream streaks fanning from the midrib, following the veins
+  for (let i = 0; i < 60; i++) {
+    const side = rnd() < 0.5 ? -1 : 1;
+    const y0 = S * (0.15 + rnd() * 0.8);
+    const reach = S * (0.15 + rnd() * 0.33);
+    ctx.strokeStyle = `rgba(${225 + rnd() * 25}, ${228 + rnd() * 20}, ${120 + rnd() * 50}, ${0.25 + rnd() * 0.45})`;
+    ctx.lineWidth = 3 + rnd() * 16;
+    ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(S / 2 + side * 4, y0);
+    ctx.quadraticCurveTo(S / 2 + side * reach * 0.6, y0 - reach * 0.25, S / 2 + side * reach, y0 - reach * 0.55 - rnd() * 30);
+    ctx.stroke();
   }
-  // midrib and paired veins
-  ctx.strokeStyle = "rgba(190, 215, 140, 0.75)"; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(S / 2, S); ctx.lineTo(S / 2, S * 0.04); ctx.stroke();
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 6; i++) {
-    const y = S * (0.88 - i * 0.14);
+  // a few broad lime patches
+  for (let i = 0; i < 10; i++) {
+    const x = S * (0.2 + rnd() * 0.6), y = S * (0.1 + rnd() * 0.8), r = 30 + rnd() * 70;
+    const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, "rgba(200, 225, 90, 0.4)"); rg.addColorStop(1, "rgba(200, 225, 90, 0)");
+    ctx.fillStyle = rg; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // pale midrib and fine paired veins
+  ctx.strokeStyle = "rgba(225, 235, 160, 0.85)"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(S / 2, S); ctx.quadraticCurveTo(S / 2 + 6, S * 0.5, S / 2, S * 0.03); ctx.stroke();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(210, 230, 150, 0.55)";
+  for (let i = 0; i < 7; i++) {
+    const y = S * (0.9 - i * 0.12);
     [-1, 1].forEach((sd) => {
       ctx.beginPath(); ctx.moveTo(S / 2, y);
-      ctx.quadraticCurveTo(S / 2 + sd * S * 0.22, y - S * 0.06, S / 2 + sd * S * 0.38, y - S * 0.16); ctx.stroke();
+      ctx.quadraticCurveTo(S / 2 + sd * S * 0.2, y - S * 0.05, S / 2 + sd * S * 0.4, y - S * 0.17); ctx.stroke();
     });
+  }
+  return toTexture(c);
+}
+
+/* ---------------- Frame medallion: a carved cartouche ----------------
+   Returns { height: Float32Array (W*H, 0..1), W, H, map } — height drives real relief. */
+export function cartoucheRelief() {
+  const W = 440, H = 200;
+  const [hc, h] = canvas(W, H);
+  h.fillStyle = "#000"; h.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2;
+  const v = (x) => `rgb(${x},${x},${x})`;
+  h.lineCap = "round"; h.lineJoin = "round";
+  // backing cartouche: a shallow lozenge the ornament sits on
+  h.fillStyle = v(70);
+  h.beginPath(); h.ellipse(cx, cy, 165, 70, 0, 0, Math.PI * 2); h.fill();
+  // C-scrolls, mirrored
+  [-1, 1].forEach((sd) => {
+    h.strokeStyle = v(200); h.lineWidth = 15;
+    h.beginPath();
+    for (let a = 0; a <= Math.PI * 2.3; a += 0.06) {
+      const r = 40 - a * 9;
+      const x = cx + sd * (82 + Math.cos(a) * r), y = cy - 6 + Math.sin(a) * r * 0.9;
+      a === 0 ? h.moveTo(x, y) : h.lineTo(x, y);
+    }
+    h.stroke();
+    h.lineWidth = 12;
+    h.beginPath();
+    for (let a = 0; a <= Math.PI * 2; a += 0.06) {
+      const r = 26 - a * 7;
+      const x = cx + sd * (150 - Math.cos(a) * r), y = cy + 14 - Math.sin(a) * r * 0.9;
+      a === 0 ? h.moveTo(x, y) : h.lineTo(x, y);
+    }
+    h.stroke();
+    // acanthus leaves fanning outward
+    for (let k = 0; k < 3; k++) {
+      h.fillStyle = v(150 + k * 20);
+      h.beginPath();
+      h.ellipse(cx + sd * (190 + k * 6), cy - 30 + k * 28, 28, 10, sd * (0.6 - k * 0.5), 0, Math.PI * 2);
+      h.fill();
+    }
+    // small leaves above and below the boss
+    h.fillStyle = v(170);
+    h.beginPath(); h.ellipse(cx + sd * 26, cy - 62, 26, 10, sd * 0.5, 0, Math.PI * 2); h.fill();
+    h.beginPath(); h.ellipse(cx + sd * 26, cy + 62, 26, 10, -sd * 0.5, 0, Math.PI * 2); h.fill();
+  });
+  // ring and domed boss
+  h.strokeStyle = v(215); h.lineWidth = 12;
+  h.beginPath(); h.ellipse(cx, cy, 52, 46, 0, 0, Math.PI * 2); h.stroke();
+  const bg = h.createRadialGradient(cx - 8, cy - 8, 2, cx, cy, 36);
+  bg.addColorStop(0, v(255)); bg.addColorStop(1, v(150));
+  h.fillStyle = bg;
+  h.beginPath(); h.ellipse(cx, cy, 34, 30, 0, 0, Math.PI * 2); h.fill();
+
+  // soften into a carved relief
+  const [sc, sctx] = canvas(W, H);
+  sctx.filter = "blur(3px)";
+  sctx.drawImage(hc, 0, 0);
+  const d = sctx.getImageData(0, 0, W, H).data;
+  const height = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) height[i] = d[i * 4] / 255;
+
+  // colour: burnished gold on the high points, black-brown patina pooled in the recesses
+  const [cc, cctx] = canvas(W, H);
+  const img = cctx.createImageData(W, H);
+  for (let i = 0; i < W * H; i++) {
+    const t = Math.min(1, Math.max(0, (height[i] - 0.18) / 0.6));
+    const k = t * t * (3 - 2 * t);
+    img.data[i * 4] = 40 + k * 200; img.data[i * 4 + 1] = 24 + k * 160; img.data[i * 4 + 2] = 8 + k * 70;
+    img.data[i * 4 + 3] = height[i] > 0.1 ? 255 : 0;
+  }
+  cctx.putImageData(img, 0, 0);
+  const map = toTexture(cc);
+  return { height, W, H, map };
+}
+
+/* ---------------- City at night, in three depths (seen through the window) ----------------
+   Each layer is painted in world centimetres on a plane: spec = { w, h, cx, cy, s } where s is
+   pixels per cm. Painting with y up keeps the layout readable. */
+function worldCanvas(spec) {
+  const [c, ctx] = canvas(Math.round(spec.w * spec.s), Math.round(spec.h * spec.s));
+  ctx.setTransform(spec.s, 0, 0, -spec.s, -(spec.cx - spec.w / 2) * spec.s, (spec.cy + spec.h / 2) * spec.s);
+  return [c, ctx];
+}
+function windowGrid(ctx, rnd, x, y0, w, h, o) {
+  // o: { cw, ch, ww, wh, lit, warm, office }
+  for (let y = y0 + o.ch * 0.6; y < y0 + h - o.ch * 0.4; y += o.ch) {
+    const floorLit = o.office && rnd() < 0.18;
+    for (let xx = x + o.cw * 0.35; xx < x + w - o.ww; xx += o.cw) {
+      const on = floorLit || rnd() < o.lit;
+      if (on) {
+        const warm = rnd() < o.warm;
+        const a = 0.55 + rnd() * 0.45;
+        ctx.fillStyle = warm ? `rgba(255, ${200 + rnd() * 40}, ${120 + rnd() * 60}, ${a})` : `rgba(${200 + rnd() * 30}, ${215 + rnd() * 25}, 255, ${a})`;
+      } else {
+        ctx.fillStyle = `rgba(20, 22, 34, ${0.5 + rnd() * 0.4})`;
+      }
+      ctx.fillRect(xx, y, o.ww, o.wh);
+    }
+  }
+}
+
+export const CITY = {
+  // dy lowers each painted layer so the skyline sits at eye level, where the window is seen from the desk
+  far: { w: 560, h: 520, cx: 150, cy: 170, z: -400, s: 2.6, dy: -100 },
+  mid: { w: 320, h: 220, cx: 90, cy: 70, z: -220, s: 5, dy: -55 },
+  near: { w: 240, h: 160, cx: 55, cy: 60, z: -120, s: 7, dy: -14 }
+};
+
+export function cityFarTexture() {
+  const L = CITY.far, rnd = mulberry32(101);
+  const [c, ctx] = worldCanvas(L);
+  const x0 = L.cx - L.w / 2, x1 = L.cx + L.w / 2, y0 = L.cy - L.h / 2, y1 = L.cy + L.h / 2;
+  // sky: deep blue overhead, warming to an amber city glow at the horizon
+  const g = ctx.createLinearGradient(0, y1, 0, y0);
+  g.addColorStop(0, "#050813"); g.addColorStop(0.35, "#0c1328"); g.addColorStop(0.55, "#1b2340");
+  g.addColorStop(0.66, "#3b3350"); g.addColorStop(0.72, "#6b4b48"); g.addColorStop(1, "#1a1418");
+  ctx.fillStyle = g; ctx.fillRect(x0, y0, L.w, L.h);
+  for (let i = 0; i < 260; i++) {
+    const y = 180 + rnd() * (y1 - 180);
+    ctx.fillStyle = `rgba(230,235,255,${0.2 + rnd() * 0.6})`;
+    ctx.fillRect(x0 + rnd() * L.w, y, 0.4, 0.4);
+  }
+  // moon
+  ctx.fillStyle = "rgba(220,228,255,0.12)"; ctx.beginPath(); ctx.arc(300, 255, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#f1eee2"; ctx.beginPath(); ctx.arc(300, 255, 4.5, 0, Math.PI * 2); ctx.fill();
+
+  // river with reflections
+  ctx.fillStyle = "#0f1220"; ctx.fillRect(x0, 58, L.w, 18);
+  for (let i = 0; i < 220; i++) {
+    ctx.fillStyle = `rgba(255, ${190 + rnd() * 50}, ${120 + rnd() * 60}, ${0.15 + rnd() * 0.35})`;
+    ctx.fillRect(x0 + rnd() * L.w, 58 + rnd() * 17, 1 + rnd() * 5, 0.25);
+  }
+  // suspension bridge on the left
+  const deck = 76;
+  ctx.fillStyle = "#15182a"; ctx.fillRect(-120, deck - 1.5, 220, 2.2);
+  [[-40, 36], [50, 36]].forEach(([tx, th]) => {
+    ctx.fillStyle = "#1a1d31";
+    ctx.fillRect(tx - 2.5, deck, 1.6, th); ctx.fillRect(tx + 0.9, deck, 1.6, th);
+    ctx.fillRect(tx - 2.5, deck + th - 3, 5, 1.2); ctx.fillRect(tx - 2.5, deck + th * 0.5, 5, 1);
+  });
+  ctx.strokeStyle = "rgba(160, 170, 210, 0.45)"; ctx.lineWidth = 0.35;
+  ctx.beginPath(); ctx.moveTo(-120, deck + 18); ctx.quadraticCurveTo(-85, deck + 2, -40, deck + 36);
+  ctx.quadraticCurveTo(5, deck + 2, 50, deck + 36); ctx.quadraticCurveTo(75, deck + 12, 100, deck + 2); ctx.stroke();
+  for (let x = -110; x < 100; x += 3) {                // deck lights
+    ctx.fillStyle = "rgba(255, 220, 150, 0.9)"; ctx.fillRect(x, deck + 0.4, 0.6, 0.6);
+  }
+  for (let x = -120; x < 100; x += 4) {                // suspenders
+    const t = ((x + 120) % 90) / 90;
+    ctx.fillStyle = "rgba(150,160,200,0.25)"; ctx.fillRect(x, deck, 0.15, 2 + 30 * Math.pow(Math.abs(t - 0.5) * 2, 2));
+  }
+
+  // the skyline across the river, softened by haze
+  const base = 78;
+  let x = 60;
+  while (x < 400) {
+    const w = 5 + rnd() * 13, hgt = 10 + Math.pow(rnd(), 1.6) * 55;
+    ctx.fillStyle = rnd() < 0.5 ? "#191d33" : "#20223a";
+    ctx.fillRect(x, base, w, hgt);
+    windowGrid(ctx, rnd, x, base, w, hgt, { cw: 1.1, ch: 1.5, ww: 0.5, wh: 0.7, lit: 0.22, warm: 0.7, office: true });
+    if (rnd() < 0.2) { ctx.fillStyle = "#191d33"; ctx.fillRect(x + w * 0.3, base + hgt, w * 0.4, 4); }
+    x += w + rnd() * 1.5;
+  }
+  // landmark towers: a tapered glass tower with a spire, and a stepped deco tower with a lit crown
+  const st = 235, sb = base, sh = 112;
+  ctx.fillStyle = "#1d2440";
+  ctx.beginPath(); ctx.moveTo(st - 8, sb); ctx.lineTo(st + 8, sb); ctx.lineTo(st + 4.5, sb + sh); ctx.lineTo(st - 4.5, sb + sh); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "rgba(120, 150, 220, 0.18)";
+  ctx.beginPath(); ctx.moveTo(st - 8, sb); ctx.lineTo(st, sb); ctx.lineTo(st, sb + sh); ctx.lineTo(st - 4.5, sb + sh); ctx.closePath(); ctx.fill();
+  for (let y = sb + 2; y < sb + sh - 2; y += 1.6) {
+    const k = (y - sb) / sh, hw = 8 - 3.5 * k;
+    for (let xx = st - hw + 0.6; xx < st + hw - 0.8; xx += 1.2) {
+      if (rnd() < 0.3) { ctx.fillStyle = `rgba(200,220,255,${0.4 + rnd() * 0.4})`; ctx.fillRect(xx, y, 0.6, 0.7); }
+    }
+  }
+  ctx.fillStyle = "#2a3150"; ctx.fillRect(st - 0.5, sb + sh, 1, 30);
+  ctx.fillStyle = "rgba(255,60,50,1)"; ctx.fillRect(st - 0.6, sb + sh + 30, 1.2, 1.2);
+  const dt = 160, dh = 82;
+  ctx.fillStyle = "#1b1f36";
+  ctx.fillRect(dt - 9, base, 18, dh); ctx.fillRect(dt - 6, base + dh, 12, 8); ctx.fillRect(dt - 3.5, base + dh + 8, 7, 6);
+  ctx.beginPath(); ctx.moveTo(dt - 3.5, base + dh + 14); ctx.lineTo(dt, base + dh + 26); ctx.lineTo(dt + 3.5, base + dh + 14); ctx.fill();
+  ctx.fillStyle = "rgba(255, 215, 150, 0.85)";
+  for (let k = 0; k < 4; k++) ctx.fillRect(dt - 3 + k * 0.1, base + dh + 9 + k * 3, 6 - k * 1.4, 0.6);
+  windowGrid(ctx, rnd, dt - 9, base, 18, dh, { cw: 1.2, ch: 1.6, ww: 0.55, wh: 0.75, lit: 0.3, warm: 0.8 });
+  windowGrid(ctx, rnd, st - 30, base, 14, 70, { cw: 1.2, ch: 1.6, ww: 0.55, wh: 0.75, lit: 0.3, warm: 0.6, office: true });
+
+  // atmospheric haze over the far city
+  const hz = ctx.createLinearGradient(0, base, 0, base + 120);
+  hz.addColorStop(0, "rgba(80, 65, 85, 0.45)"); hz.addColorStop(1, "rgba(40, 45, 80, 0)");
+  ctx.fillStyle = hz; ctx.fillRect(60, base, 360, 140);
+  return toTexture(c);
+}
+
+export function cityMidTexture() {
+  const L = CITY.mid, rnd = mulberry32(202);
+  const [c, ctx] = worldCanvas(L);
+  const base = -10;
+  let x = -20;
+  while (x < 200) {
+    const w = 12 + rnd() * 20, hgt = 40 + rnd() * 75;
+    const shade = 16 + Math.floor(rnd() * 12);
+    ctx.fillStyle = `rgb(${shade}, ${shade + 2}, ${shade + 12})`;
+    ctx.fillRect(x, base, w, hgt);
+    // moonlit edge and a setback or two
+    ctx.fillStyle = "rgba(120, 140, 200, 0.10)"; ctx.fillRect(x, base, w * 0.12, hgt);
+    if (rnd() < 0.4) { ctx.fillStyle = `rgb(${shade}, ${shade + 2}, ${shade + 12})`; ctx.fillRect(x + w * 0.2, base + hgt, w * 0.6, 6 + rnd() * 8); }
+    windowGrid(ctx, rnd, x, base, w, hgt, { cw: 2, ch: 2.6, ww: 1.1, wh: 1.4, lit: 0.18 + rnd() * 0.25, warm: 0.75, office: rnd() < 0.5 });
+    // rooftop water tower or antenna
+    const r = rnd();
+    if (r < 0.3) {
+      const tx = x + w * (0.25 + rnd() * 0.4), ty = base + hgt;
+      ctx.fillStyle = "#0c0d14";
+      ctx.fillRect(tx, ty, 0.4, 3); ctx.fillRect(tx + 4, ty, 0.4, 3);
+      ctx.fillRect(tx - 0.4, ty + 3, 5.2, 4.5);
+      ctx.beginPath(); ctx.moveTo(tx - 0.6, ty + 7.5); ctx.lineTo(tx + 2.2, ty + 9.5); ctx.lineTo(tx + 5, ty + 7.5); ctx.fill();
+    } else if (r < 0.45) {
+      ctx.fillStyle = "#0c0d14"; ctx.fillRect(x + w / 2, base + hgt, 0.4, 12);
+      ctx.fillStyle = "rgba(255,60,50,1)"; ctx.fillRect(x + w / 2 - 0.4, base + hgt + 12, 1, 1);
+    }
+    x += w + rnd() * 4;
+  }
+  const hz = ctx.createLinearGradient(0, base, 0, base + 70);
+  hz.addColorStop(0, "rgba(120, 80, 60, 0.35)"); hz.addColorStop(1, "rgba(60, 50, 80, 0)");
+  ctx.fillStyle = hz; ctx.fillRect(-80, base, 360, 80);
+  return toTexture(c);
+}
+
+export function cityNearTexture() {
+  const L = CITY.near, rnd = mulberry32(303);
+  const [c, ctx] = worldCanvas(L);
+  // brick apartment building on the left, fire escape down the middle
+  const bx = 2, bw = 46, by = -20, bh = 52;
+  ctx.fillStyle = "#3a1f17"; ctx.fillRect(bx, by, bw, bh);
+  for (let y = by; y < by + bh; y += 0.6) { ctx.fillStyle = `rgba(0,0,0,${0.08 + rnd() * 0.08})`; ctx.fillRect(bx, y, bw, 0.12); }
+  ctx.fillStyle = "#4a2b20"; ctx.fillRect(bx - 1, by + bh, bw + 2, 2.5);     // cornice
+  ctx.fillStyle = "#2a1610"; ctx.fillRect(bx - 1, by + bh - 1, bw + 2, 1);
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 6; col++) {
+      const wx = bx + 3 + col * 7.2, wy = by + 6 + row * 10;
+      const lit = rnd() < 0.45;
+      ctx.fillStyle = "#24140f"; ctx.fillRect(wx - 0.5, wy - 0.5, 4.4, 6.6);     // sill + lintel
+      if (lit) {
+        const tint = [[255, 214, 150], [255, 196, 130], [250, 228, 190], [255, 180, 120]][Math.floor(rnd() * 4)];
+        const gr = ctx.createLinearGradient(0, wy, 0, wy + 5.6);
+        gr.addColorStop(0, `rgba(${tint},0.95)`); gr.addColorStop(1, `rgba(${tint.map((v) => v * 0.7)},0.95)`);
+        ctx.fillStyle = gr; ctx.fillRect(wx, wy, 3.4, 5.6);
+        if (rnd() < 0.5) { ctx.fillStyle = "rgba(90, 40, 30, 0.45)"; ctx.fillRect(wx, wy, 1.2, 5.6); }   // curtain
+      } else {
+        ctx.fillStyle = "#151520"; ctx.fillRect(wx, wy, 3.4, 5.6);
+      }
+      ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(wx + 1.6, wy, 0.2, 5.6);
+    }
+  }
+  ctx.strokeStyle = "#0d0d10"; ctx.lineWidth = 0.35;
+  for (let row = 1; row < 5; row++) {
+    const y = by + 5 + row * 10;
+    ctx.strokeRect(bx + 16.5, y, 14, 0.3);
+    ctx.beginPath(); ctx.moveTo(bx + 17, y); ctx.lineTo(bx + 29, y + 10); ctx.stroke();
+    ctx.fillStyle = "#0d0d10";
+    for (let k = 0; k < 8; k++) ctx.fillRect(bx + 16.5 + k * 2, y, 0.15, 2);   // railing
+  }
+
+  // lower buildings with shopfront glow to the right
+  let x = 52;
+  while (x < 180) {
+    const w = 14 + rnd() * 18, hgt = 22 + rnd() * 22;
+    ctx.fillStyle = rnd() < 0.5 ? "#1c1820" : "#231c1c";
+    ctx.fillRect(x, -20, w, hgt + 20);
+    windowGrid(ctx, rnd, x, 22, w, hgt - 22, { cw: 4.5, ch: 6, ww: 2.4, wh: 3.6, lit: 0.4, warm: 0.85 });
+    x += w + 0.8;
+  }
+
+  // elevated subway: steel girder, columns, and a train with lit windows
+  const ty = 14;
+  ctx.fillStyle = "#121318"; ctx.fillRect(-70, ty - 6, 260, 6);
+  ctx.strokeStyle = "rgba(90, 95, 110, 0.6)"; ctx.lineWidth = 0.3;
+  for (let gx = -70; gx < 190; gx += 3) {
+    ctx.beginPath(); ctx.moveTo(gx, ty - 6); ctx.lineTo(gx + 3, ty); ctx.moveTo(gx + 3, ty - 6); ctx.lineTo(gx, ty); ctx.stroke();
+  }
+  ctx.fillStyle = "#0e0f13";
+  for (let gx = -60; gx < 190; gx += 22) ctx.fillRect(gx, -20, 2, ty - 6 + 20);
+  for (let car = 0; car < 6; car++) {
+    const cx0 = 4 + car * 23.5;
+    const body = ctx.createLinearGradient(0, ty, 0, ty + 9);
+    body.addColorStop(0, "#6c717c"); body.addColorStop(0.5, "#9aa0aa"); body.addColorStop(1, "#5a5f69");
+    ctx.fillStyle = body; ctx.fillRect(cx0, ty, 22.5, 8.8);
+    ctx.fillStyle = "#3c4048"; ctx.fillRect(cx0, ty + 8.8, 22.5, 0.6);
+    for (let w = 0; w < 7; w++) {
+      ctx.fillStyle = `rgba(255, ${232 + rnd() * 20}, ${185 + rnd() * 40}, 0.95)`;
+      ctx.fillRect(cx0 + 1.2 + w * 3.05, ty + 3.6, 2.3, 3);
+    }
+    ctx.fillStyle = "#2c3037"; ctx.fillRect(cx0 + 10.4, ty + 0.8, 1.8, 6.5);    // door
+  }
+  ctx.fillStyle = "rgba(255, 240, 200, 1)"; ctx.fillRect(144, ty + 2, 0.8, 0.8);   // headlight
+
+  // streetlight glow below the tracks
+  for (let lx = -20; lx < 180; lx += 26) {
+    const rg = ctx.createRadialGradient(lx, 2, 0, lx, 2, 14);
+    rg.addColorStop(0, "rgba(255, 170, 80, 0.55)"); rg.addColorStop(1, "rgba(255, 170, 80, 0)");
+    ctx.fillStyle = rg; ctx.fillRect(lx - 14, -12, 28, 28);
   }
   return toTexture(c);
 }

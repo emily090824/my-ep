@@ -289,13 +289,17 @@ function buildRoom(scene) {
   pane.position.set(cx, cy, sz - 0.2);
   scene.add(pane);
 
-  // Sky, far beyond the glass.
-  const sky = new THREE.Mesh(
-    new THREE.PlaneGeometry(520, 260),
-    new THREE.MeshBasicMaterial({ map: TX.nightSkyTexture(), color: new THREE.Color(1.15, 1.15, 1.2) })
-  );
-  sky.position.set(60, 52, -200);
-  scene.add(sky);
+  // The city beyond the glass, in three depths so it shifts with the camera like the real thing:
+  // sky, river, bridge and far skyline; midtown towers; a brick walk-up and the elevated train.
+  [["far", TX.cityFarTexture(), false], ["mid", TX.cityMidTexture(), true], ["near", TX.cityNearTexture(), true]].forEach(([k, map, alpha]) => {
+    const L = TX.CITY[k];
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(L.w, L.h),
+      new THREE.MeshBasicMaterial({ map, transparent: alpha, depthWrite: !alpha, color: new THREE.Color(1.1, 1.1, 1.12) })
+    );
+    m.position.set(L.cx, L.cy + L.dy, L.z);
+    scene.add(m);
+  });
 
   // A golden pothos on the sill: a full mound of heart-shaped leaves, vines spilling over the edge.
   const potX = win.x0 + 13, potZ = WALL_Z - 4, sillY = win.y0;
@@ -319,17 +323,17 @@ function buildRoom(scene) {
     lp.setZ(i, 0.12 * x * x * 4 - 0.18 * y * y);   // cup across the midrib, curl back toward the tip
   }
   leafGeo.computeVertexNormals();
-  const leafMat = new THREE.MeshStandardMaterial({ map: TX.pothosLeafTexture(), roughness: 0.42, side: THREE.DoubleSide });
+  const leafMat = new THREE.MeshPhysicalMaterial({ map: TX.pothosLeafTexture(), roughness: 0.38, clearcoat: 0.5, clearcoatRoughness: 0.3, side: THREE.DoubleSide });
   const leaves = [];
   const rnd = mulberry(3);
   const top = new THREE.Vector3(potX, sillY + 7.2, potZ);
 
   // the mound: leaves facing outward and up from a dome over the pot
-  for (let i = 0; i < 190; i++) {
+  for (let i = 0; i < 120; i++) {
     const a = rnd() * Math.PI * 2, el = Math.pow(rnd(), 0.7) * Math.PI * 0.45;
     const r = 3.5 + rnd() * 8.5;
     const dir = new THREE.Vector3(Math.cos(a) * Math.cos(el), Math.sin(el) * 1.1 + 0.15, Math.sin(a) * Math.cos(el) * 0.8);
-    leaves.push({ p: top.clone().addScaledVector(dir.normalize(), r), out: dir, size: 2.8 + rnd() * 2.0, droop: 0.2 + rnd() * 0.6 });
+    leaves.push({ p: top.clone().addScaledVector(dir.normalize(), r), out: dir, size: 3.8 + rnd() * 2.2, droop: 0.2 + rnd() * 0.6 });
   }
   // vines: from the rim, over the sill's front edge, then hanging down the wall
   const sillFront = WALL_Z + 5;
@@ -351,7 +355,7 @@ function buildRoom(scene) {
     for (let k = 1; k <= n; k++) {
       const t = k / (n + 1), p = curve.getPoint(t), side = k % 2 ? 1 : -1;
       const out = new THREE.Vector3(side * 0.7, -0.2, 1).normalize();
-      leaves.push({ p: p.clone().add(new THREE.Vector3(side * 0.5, 0, 0.4)), out, size: (3 - t * 1.4) * (0.85 + rnd() * 0.3), droop: 1.1 + rnd() * 0.5, hang: true });
+      leaves.push({ p: p.clone().add(new THREE.Vector3(side * 0.5, 0, 0.4)), out, size: (4.2 - t * 1.6) * (0.85 + rnd() * 0.3), droop: 1.1 + rnd() * 0.5, hang: true });
     }
   }
   const inst = new THREE.InstancedMesh(leafGeo, leafMat, leaves.length);
@@ -367,7 +371,7 @@ function buildRoom(scene) {
     dummy.scale.setScalar(L.size);
     dummy.updateMatrix();
     inst.setMatrixAt(i, dummy.matrix);
-    inst.setColorAt(i, col.setHSL(0.28 + (rnd() - 0.5) * 0.05, 0.55, 0.32 + rnd() * 0.2).multiplyScalar(1.9));
+    inst.setColorAt(i, col.setRGB(1, 1, 1).multiplyScalar(0.8 + rnd() * 0.35));
   });
   scene.add(inst);
 }
@@ -840,7 +844,6 @@ function buildProps(scene) {
     map: gilt.map, bumpMap: gilt.bump, bumpScale: 1.4, color: "#f4dcae", metalness: 1, roughness: 0.32,
     envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide
   });
-  const goldCarved = new THREE.MeshStandardMaterial({ color: "#c99840", metalness: 1, roughness: 0.38, envMap: scene.environment, envMapIntensity: 0.9 });
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
   const pos = [], uv = [], idx = [];
   for (let sIdx = 0; sIdx < 4; sIdx++) {
@@ -868,31 +871,30 @@ function buildProps(scene) {
   const OW = IW + 4.06, OH = IH + 4.06;
   add(new THREE.BoxGeometry(OW - 0.1, OH - 0.1, 0.3), frameMat, 0, 7.9, -0.45, tilt);          // backing
 
-  // medallions: a round boss in a ring, flanked by C-scrolls and leaves
-  const bossGeo = new THREE.SphereGeometry(0.42, 20, 12);
-  const ringGeo = new THREE.TorusGeometry(0.58, 0.11, 10, 28);
-  const scrollGeo = new THREE.TorusGeometry(0.3, 0.085, 8, 20, Math.PI * 1.5);
-  const leafGeo = new THREE.SphereGeometry(0.3, 12, 8);
-  [[0, IH / 2 + 0.9, 0], [0, -IH / 2 - 0.9, Math.PI], [-IW / 2 - 0.9, 0, Math.PI / 2], [IW / 2 + 0.9, 0, -Math.PI / 2]].forEach(([x, y, r]) => {
-    const m = new THREE.Group();
-    m.position.set(x, 7.9 + y, 0.98);
+  // medallions: carved cartouches (boss, ring, C-scrolls, acanthus) moulded onto the cove
+  // at the centre of each side, with dark patina in the recesses
+  const relief = TX.cartoucheRelief();
+  const coveZ = (d) => {
+    d = Math.min(1.99, Math.max(0.05, d));
+    for (let i = 1; i < prof.length; i++) {
+      const [d0, z0] = prof[i - 1], [d1, z1] = prof[i];
+      if (d1 >= d && d1 > d0) return z0 + ((d - d0) / (d1 - d0)) * (z1 - z0);
+    }
+    return 0.4;
+  };
+  const MW = 4.6, MH = 2.1, MC = 0.95;
+  const medGeo = new THREE.PlaneGeometry(MW, MH, 184, 84);
+  const mp = medGeo.attributes.position;
+  for (let i = 0; i < mp.count; i++) {
+    const x = mp.getX(i), y = mp.getY(i);
+    const px = Math.round((x / MW + 0.5) * (relief.W - 1)), py = Math.round((0.5 - y / MH) * (relief.H - 1));
+    mp.setZ(i, coveZ(MC + y) - 0.03 + relief.height[py * relief.W + px] * 0.55);
+  }
+  medGeo.computeVertexNormals();
+  const medMat = new THREE.MeshStandardMaterial({ map: relief.map, alphaTest: 0.5, metalness: 1, roughness: 0.3, envMap: scene.environment, envMapIntensity: 0.9, side: THREE.DoubleSide });
+  [[0, IH / 2 + MC, 0], [0, -IH / 2 - MC, Math.PI], [-IW / 2 - MC, 0, Math.PI / 2], [IW / 2 + MC, 0, -Math.PI / 2]].forEach(([x, y, r]) => {
+    const m = add(medGeo, medMat, x, 7.9 + y, 0, tilt);
     m.rotation.z = r;
-    tilt.add(m);
-    const boss = add(bossGeo, gold, 0, 0, 0.05, m); boss.scale.set(1, 1, 0.6);
-    add(ringGeo, goldCarved, 0, 0, 0, m);
-    [-1, 1].forEach((sd) => {
-      const sc = add(scrollGeo, goldCarved, sd * 0.95, 0.05, -0.02, m);
-      sc.rotation.z = sd > 0 ? Math.PI * 0.75 : -Math.PI * 0.25;
-      const sc2 = add(scrollGeo, goldCarved, sd * 1.55, -0.05, -0.06, m);
-      sc2.scale.setScalar(0.7);
-      sc2.rotation.z = sd > 0 ? -Math.PI * 0.25 : Math.PI * 0.75;
-      const lf = add(leafGeo, goldCarved, sd * 2.05, 0, -0.1, m);
-      lf.scale.set(1.8, 0.6, 0.4);
-      const lf2 = add(leafGeo, goldCarved, sd * 0.45, 0.62, -0.04, m);
-      lf2.scale.set(0.9, 0.5, 0.4); lf2.rotation.z = sd * 0.6;
-      const lf3 = add(leafGeo, goldCarved, sd * 0.45, -0.62, -0.04, m);
-      lf3.scale.set(0.9, 0.5, 0.4); lf3.rotation.z = -sd * 0.6;
-    });
   });
   add(new THREE.PlaneGeometry(IW, IH), new THREE.MeshStandardMaterial({ color: "#efe7d4", roughness: 0.95 }), 0, 7.9, 0.1, tilt);
   const photo = add(new THREE.PlaneGeometry(7.8, 10.2), new THREE.MeshStandardMaterial({ map: TX.photoTexture("assets/headshot.jpg"), roughness: 0.7 }), 0, 8.2, 0.11, tilt);
