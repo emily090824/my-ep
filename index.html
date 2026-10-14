@@ -127,37 +127,79 @@
       </div>
     </section>
 
-    <!-- Press -->
-    <section id="press" class="sheet">
-      <header class="sheet__head">
-        <span class="sheet__no">No. 05</span>
-        <h2>In the Papers</h2>
-      </header>
-      <div class="reading">
-        <article class="reading__item">
-          <p class="reading__meta">Video · YouTube</p>
-          <h3><a href="https://www.youtube.com/watch?v=xG3UIpXnMAY&amp;t=620s" rel="noopener" target="_blank">Featured conversation <span class="reading__with">from 10:20</span></a></h3>
-        </article>
-        <article class="reading__item">
-          <p class="reading__meta">Video · YouTube</p>
-          <h3><a href="https://www.youtube.com/watch?v=46qTzrQzzHc&amp;t=2858s" rel="noopener" target="_blank">Featured conversation <span class="reading__with">from 47:38</span></a></h3>
-        </article>
-        <article class="reading__item">
-          <p class="reading__meta">Podcast · Apple Podcasts</p>
-          <h3><a href="https://podcasts.apple.com/us/podcast/the-art-of-doing/id1552572414?i=1000674589807" rel="noopener" target="_blank">The Art of Doing</a></h3>
-        </article>
-        <article class="reading__item">
-          <p class="reading__meta">LSU · May 2021</p>
-          <h3><a href="https://www.lsu.edu/cxc/news/prior/2021/dc-may2021.php" rel="noopener" target="_blank">LSU Distinguished Communicators</a></h3>
-        </article>
-        <article class="reading__item">
-          <p class="reading__meta">Livingston Parish News</p>
-          <h3><a href="https://www.livingstonparishnews.com/stories/an-incredible-story-the-tale-of-a-russian-courthouse-many-sacrifices-and-a-13-year-live,32214" rel="noopener" target="_blank">“An incredible story”: the tale of a Russian courthouse and many sacrifices</a></h3>
-        </article>
-        <article class="reading__item">
-          <p class="reading__meta">Louisiana First News</p>
-          <h3><a href="https://www.louisianafirstnews.com/news/livingston-parish-recognizes-students-of-the-year/" rel="noopener" target="_blank">Livingston Parish recognizes Students of the Year</a></h3>
-        </article>
+    <!-- Press: "In the Papers" -->
+    <section id="press" class="press">
+      <div class="press__inner">
+        <header class="sheet__head press__head">
+          <span class="sheet__no">No. 05</span>
+          <h2>In the Papers</h2>
+        </header>
+
+        <div class="press__videos">
+          <article class="reel">
+            <div class="reel__frame" data-video="xG3UIpXnMAY" data-start="620">
+              <button class="reel__play" type="button" aria-label="Play video feature, starting at 10:20">
+                <img src="https://i.ytimg.com/vi/xG3UIpXnMAY/hqdefault.jpg" alt="" loading="lazy">
+                <span class="reel__btn" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="reel__text">
+              <p class="press__meta">Video · YouTube · from 10:20</p>
+              <h3>Video feature</h3>
+              <p class="press__summary">Emily's conversation, cued to where her segment begins.</p>
+            </div>
+          </article>
+          <article class="reel">
+            <div class="reel__frame" data-video="46qTzrQzzHc" data-start="2858">
+              <button class="reel__play" type="button" aria-label="Play video feature, starting at 47:38">
+                <img src="https://i.ytimg.com/vi/46qTzrQzzHc/hqdefault.jpg" alt="" loading="lazy">
+                <span class="reel__btn" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="reel__text">
+              <p class="press__meta">Video · YouTube · from 47:38</p>
+              <h3>Video feature</h3>
+              <p class="press__summary">Emily's conversation, cued to where her segment begins.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="press__row">
+          <article class="podcard">
+            <p class="press__meta">Podcast · Apple Podcasts</p>
+            <h3>The Art of Doing</h3>
+            <iframe class="podcard__player" title="The Art of Doing — podcast episode" loading="lazy"
+              allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+              src="https://embed.podcasts.apple.com/us/podcast/the-art-of-doing/id1552572414?i=1000674589807"></iframe>
+          </article>
+
+          <div class="clippings">
+            <a class="clip" href="https://www.lsu.edu/cxc/news/prior/2021/dc-may2021.php" target="_blank" rel="noopener">
+              <span class="clip__mast">LSU · Communication across the Curriculum</span>
+              <span class="clip__date">May 2021</span>
+              <span class="clip__head">Distinguished Communicators</span>
+              <span class="clip__dek">LSU's Communication across the Curriculum program recognizes graduating seniors for excellence in written, spoken, visual, and technological communication. Emily graduated as a Distinguished Communicator.</span>
+              <span class="clip__cols" aria-hidden="true"></span>
+              <span class="clip__more">Read the announcement →</span>
+            </a>
+            <a class="clip" href="https://www.livingstonparishnews.com/stories/an-incredible-story-the-tale-of-a-russian-courthouse-many-sacrifices-and-a-13-year-live,32214" target="_blank" rel="noopener">
+              <span class="clip__mast">The Livingston Parish News</span>
+              <span class="clip__date">Feature</span>
+              <span class="clip__head">“An incredible story”: the tale of a Russian courthouse, many sacrifices, and a 13-year…</span>
+              <span class="clip__cols" aria-hidden="true"></span>
+              <span class="clip__more">Read the story →</span>
+            </a>
+            <a class="clip" href="https://www.louisianafirstnews.com/news/livingston-parish-recognizes-students-of-the-year/" target="_blank" rel="noopener">
+              <span class="clip__mast">Louisiana First News</span>
+              <span class="clip__date">News</span>
+              <span class="clip__head">Livingston Parish recognizes Students of the Year</span>
+              <span class="clip__dek">Livingston Parish honors its Students of the Year.</span>
+              <span class="clip__cols" aria-hidden="true"></span>
+              <span class="clip__more">Read the story →</span>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
 

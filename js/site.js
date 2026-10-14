@@ -98,6 +98,20 @@
   var mainEl = document.getElementById("main");
   if (mainEl && "MutationObserver" in window) new MutationObserver(scan).observe(mainEl, { childList: true, subtree: true });
 
+  // Press videos: show YouTube's thumbnail first, swap in the player (cued to the
+  // timestamp) on click, so the page doesn't load two players up front.
+  document.querySelectorAll(".reel__frame").forEach(function (frame) {
+    var btn = frame.querySelector(".reel__play");
+    btn.addEventListener("click", function () {
+      var f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + frame.dataset.video + "?start=" + frame.dataset.start + "&autoplay=1&rel=0";
+      f.title = btn.getAttribute("aria-label").replace(/^Play /, "");
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      f.allowFullscreen = true;
+      frame.replaceChild(f, btn);
+    });
+  });
+
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 })();
