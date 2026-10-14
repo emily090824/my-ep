@@ -109,8 +109,8 @@ async function main() {
     );
     if (books) {     // the links still: low over the desk, books and mug in front of the window
       const portrait = view.aspect < 1;
-      view.target.copy(books.aim).add(new THREE.Vector3(portrait ? -4 : -9, portrait ? 8 : 6, 0));
-      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-8, 22, 112) : new THREE.Vector3(-22, 18, 92));
+      view.target.copy(books.aim).add(new THREE.Vector3(portrait ? 0 : 1, portrait ? 1.5 : -1.2, 0));
+      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-4, 13, 66) : new THREE.Vector3(-12, 10, 58));
     }
     camera.position.copy(view.base);
     camera.lookAt(view.target);
@@ -1070,13 +1070,14 @@ function mulberry(a) {
 function buildBookStack(scene) {
   const list = [
     // name, sub, cloth, w (along spine), thickness, depth, offset, turn, style
-    ["Thesis", "Reading the Romance Reader", "#3e4a55", 25, 4.2, 17, 0.0, 0.03, 2],
-    ["Academic CV", "Teaching & research", "#6e2219", 23, 3.4, 16, 1.2, -0.05, 1],
-    ["LinkedIn", "The professional record", "#22334f", 24, 3.8, 16.5, -0.8, 0.04, 0],
-    ["Previous ePortfolio", "The archive", "#7e3b40", 22, 3.0, 15, 0.6, -0.03, 2],
-    ["TikTok", "", "#2e5652", 21, 2.8, 14.5, -0.4, 0.06, 1],
-    ["Email", "eemaranto@gmail.com", "#e2d3b2", 20, 2.6, 14, 0.9, -0.02, 0],
-    ["Résumé", "Marketing & leadership", "#2c4634", 22.5, 3.2, 15.5, -0.2, 0.05, 2]
+    // name, author line, cover, w (along spine), thickness, depth, offset, turn, design
+    ["Thesis", "", "#f2e6cf", 25, 4.2, 17, 0.0, 0.03, { bg: "#f2e6cf", ink: "#2a3a5c", accent: "#e46f4f", type: 2 }],
+    ["Academic CV", "", "#2f4a8a", 23, 3.4, 16, 1.2, -0.05, { bg: "#2f4a8a", ink: "#fbf3e2", accent: "#f2c14e", type: 1 }],
+    ["LinkedIn", "", "#e9a6a8", 24, 3.8, 16.5, -0.8, 0.04, { bg: "#e9a6a8", ink: "#3a1f22", accent: "#7a2f3a", type: 0 }],
+    ["Previous ePortfolio", "", "#8fae8b", 22, 3.0, 15, 0.6, -0.03, { bg: "#8fae8b", ink: "#1f3524", accent: "#f6efe0", type: 3 }],
+    ["TikTok", "", "#f2c14e", 21, 2.8, 14.5, -0.4, 0.06, { bg: "#f2c14e", ink: "#2b2014", accent: "#d9573f", type: 0 }],
+    ["Email", "", "#fbf6ea", 20, 2.6, 14, 0.9, -0.02, { bg: "#fbf6ea", ink: "#c2493a", accent: "#2f6b5e", type: 1 }],
+    ["Résumé", "", "#c2493a", 22.5, 3.2, 15.5, -0.2, 0.05, { bg: "#c2493a", ink: "#fbf3e2", accent: "#f2c14e", type: 3 }]
   ];
   const ICON = {
     "Résumé": '<path d="M6 3h12v18H6z"/><circle cx="12" cy="8.5" r="2.2"/><path d="M8.5 14c.8-1.8 6.2-1.8 7 0"/><path d="M9 17.5h6"/>',
@@ -1101,12 +1102,9 @@ function buildBookStack(scene) {
     b.position.set(off, y + t / 2, 0);
     b.rotation.y = turn;
     group.add(b);
-    const tex = TX.bookSpineTextures({ title: name, sub, cloth, icon: ICON[name], seed: 20 + i, style });
-    const clothMat = new THREE.MeshStandardMaterial({ color: cloth, roughness: 0.85 });
-    const spineMat = new THREE.MeshStandardMaterial({
-      map: tex.map, roughnessMap: tex.rough, metalnessMap: tex.metal, metalness: 1, roughness: 1,
-      bumpMap: tex.bump, bumpScale: 0.6
-    });
+    const tex = TX.modernSpineTextures({ title: name, sub, icon: ICON[name], design: style, seed: 20 + i });
+    const clothMat = new THREE.MeshStandardMaterial({ color: cloth, roughness: 0.6 });
+    const spineMat = new THREE.MeshStandardMaterial({ map: tex.map, roughnessMap: tex.rough, roughness: 1 });
     const board = 0.28;
     // covers overhang the page block slightly on three sides
     for (const s of [-1, 1]) {
@@ -1146,17 +1144,17 @@ function buildBookStack(scene) {
   const rim = new THREE.Shape(); rim.absarc(0, 0, 2.3, 0, Math.PI * 2);
   for (const sx of [-2.9, 2.9]) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.16, 12, 48), tort);
-    ring.scale.set(1.15, 0.8, 1); ring.position.set(sx, 1.85, 0); ring.rotation.x = -0.12; ring.castShadow = true;
+    ring.scale.set(1.18, 0.72, 1); ring.position.set(sx, 1.2, 0); ring.rotation.x = -0.55; ring.castShadow = true;
     glasses.add(ring);
     const lens = new THREE.Mesh(new THREE.CircleGeometry(2.2, 40), lensMat);
-    lens.scale.set(1.1, 0.88, 1); lens.position.copy(ring.position); lens.rotation.copy(ring.rotation);
+    lens.scale.set(1.18, 0.72, 1); lens.position.copy(ring.position); lens.rotation.copy(ring.rotation);
     glasses.add(lens);
     const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 12.5), tort);
-    arm.position.set(sx * 1.88, 2.1, -6.2); arm.rotation.set(0.08, -sx * 0.02, 0); arm.castShadow = true;
+    arm.position.set(sx * 1.95, 0.35, -6.0); arm.rotation.set(0, -sx * 0.02, 0); arm.castShadow = true;
     glasses.add(arm);
   }
   const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.14, 10, 20, Math.PI), tort);
-  bridge.position.set(0, 2.3, 0); bridge.rotation.x = -0.12;
+  bridge.position.set(0, 1.6, 0); bridge.rotation.x = -0.55;
   glasses.add(bridge);
 
   // a reading light on the stack, so the foil catches

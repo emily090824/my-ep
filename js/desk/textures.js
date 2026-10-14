@@ -1225,3 +1225,90 @@ export function pageEdgeTexture(seed = 3) {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   return toTexture(c);
 }
+
+/* ---------------- Modern literary-fiction spines ----------------
+   Flat printed colour, contemporary type, an author line and a small publisher mark.
+   design: { bg, ink, accent, type: 0..3 } */
+export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
+  const W = 1024, H = 160;
+  const r = mulberry32(seed);
+  const [c, ctx] = canvas(W, H);
+  const [rc, rctx] = canvas(W, H);
+  const { bg, ink, accent, type } = design;
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // fine paper/cloth tooth, very light
+  for (let i = 0; i < 5000; i++) {
+    const v = r() < 0.5 ? 255 : 0;
+    ctx.fillStyle = `rgba(${v},${v},${v},0.025)`;
+    ctx.fillRect(r() * W, r() * H, 1 + r() * 2, 1);
+  }
+  // gentle roundness of the spine
+  const sh = ctx.createLinearGradient(0, 0, 0, H);
+  sh.addColorStop(0, "rgba(0,0,0,0.18)"); sh.addColorStop(0.2, "rgba(0,0,0,0)");
+  sh.addColorStop(0.5, "rgba(255,255,255,0.06)"); sh.addColorStop(0.8, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,0.2)");
+
+  ctx.textBaseline = "middle";
+  const mid = H / 2 + 2;
+  // design-specific accents
+  if (type === 0) {            // a bold colour block at the head
+    ctx.fillStyle = accent; ctx.fillRect(0, 0, 150, H);
+  } else if (type === 1) {     // two thin rules framing the title
+    ctx.fillStyle = accent; ctx.fillRect(196, 26, 4, H - 52); ctx.fillRect(W - 318, 26, 4, H - 52);
+  } else if (type === 2) {     // a scatter of small dots, like a printed pattern
+    ctx.fillStyle = accent;
+    for (let x = 18; x < 140; x += 22) for (let y = 18; y < H; y += 22) { ctx.beginPath(); ctx.arc(x + (y % 44 ? 11 : 0), y, 4, 0, Math.PI * 2); ctx.fill(); }
+  } else {                     // a wavy band
+    ctx.strokeStyle = accent; ctx.lineWidth = 10;
+    ctx.beginPath();
+    for (let x = 0; x <= 150; x += 4) ctx.lineTo(x, mid + Math.sin(x / 14) * 22);
+    ctx.stroke();
+  }
+  // icon
+  const iconCol = type === 0 ? bg : accent;
+  const doc = new DOMParser().parseFromString(`<svg>${icon}</svg>`, "image/svg+xml");
+  ctx.save(); ctx.translate(75 - 28, mid - 28); ctx.scale(56 / 24, 56 / 24);
+  ctx.strokeStyle = type === 0 ? bg : ink; ctx.lineWidth = 1.8; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  doc.querySelectorAll("path,circle,rect").forEach((el) => {
+    const p = new Path2D();
+    if (el.tagName === "path") p.addPath(new Path2D(el.getAttribute("d")));
+    else if (el.tagName === "circle") p.arc(+el.getAttribute("cx"), +el.getAttribute("cy"), +el.getAttribute("r"), 0, Math.PI * 2);
+    else p.roundRect(+el.getAttribute("x"), +el.getAttribute("y"), +el.getAttribute("width"), +el.getAttribute("height"), +(el.getAttribute("rx") || 0));
+    ctx.stroke(p);
+  });
+  ctx.restore();
+
+  // title: each book set differently, like real covers from different publishers
+  const fonts = [
+    (s) => `italic 400 ${s}px Fraunces`,
+    (s) => `700 ${s}px 'Courier Prime'`,
+    (s) => `300 ${s}px Fraunces`,
+    (s) => `500 ${s}px Caveat`
+  ];
+  const caps = type === 1 || type === 2;
+  const T = caps ? title.toUpperCase() : title;
+  let size = type === 3 ? 92 : 70;
+  ctx.font = fonts[type](size);
+  while (ctx.measureText(T).width > 560 && size > 40) { size -= 2; ctx.font = fonts[type](size); }
+  ctx.fillStyle = ink;
+  if (type === 2) ctx.letterSpacing = "6px";
+  ctx.fillText(T, 230, mid + (type === 3 ? 4 : 0));
+  ctx.letterSpacing = "0px";
+  const titleEnd = 230 + ctx.measureText(T).width;
+
+  // author line, then a small publisher mark at the foot
+  ctx.font = "400 26px 'Courier Prime'";
+  ctx.fillStyle = ink; ctx.textAlign = "right";
+  const S = sub ? sub.toUpperCase() : "E. M. HILL";
+  if (titleEnd + 40 + ctx.measureText(S).width < W - 120) ctx.fillText(S, W - 120, mid);
+  ctx.textAlign = "left";
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(W - 64, mid, 20, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = type === 0 ? ink : bg;
+  ctx.font = "italic 400 24px Fraunces"; ctx.textAlign = "center";
+  ctx.fillText("e", W - 64, mid - 2);
+  ctx.textAlign = "left";
+
+  ctx.fillStyle = sh; ctx.fillRect(0, 0, W, H);
+  rctx.fillStyle = "#b8b8b8"; rctx.fillRect(0, 0, W, H);   // satin print
+  return { map: toTexture(c), rough: toTexture(rc, { srgb: false }) };
+}
