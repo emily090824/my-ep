@@ -1253,10 +1253,12 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
   if (type === 0) {            // a bold colour block at the head
     ctx.fillStyle = accent; ctx.fillRect(0, 0, 150, H);
   } else if (type === 1) {     // two thin rules framing the title
-    ctx.fillStyle = accent; ctx.fillRect(196, 26, 4, H - 52); ctx.fillRect(W - 318, 26, 4, H - 52);
+    ctx.fillStyle = accent; ctx.fillRect(196, 26, 4, H - 52); ctx.fillRect(W - 150, 26, 4, H - 52);
   } else if (type === 2) {     // a scatter of small dots, like a printed pattern
     ctx.fillStyle = accent;
     for (let x = 18; x < 140; x += 22) for (let y = 18; y < H; y += 22) { ctx.beginPath(); ctx.arc(x + (y % 44 ? 11 : 0), y, 4, 0, Math.PI * 2); ctx.fill(); }
+  } else if (type === 4) {    // clean: fine rules near head and foot
+    ctx.fillStyle = accent; ctx.fillRect(150, 30, 3, H - 60); ctx.fillRect(W - 150, 30, 3, H - 60);
   } else {                     // a wavy band
     ctx.strokeStyle = accent; ctx.lineWidth = 10;
     ctx.beginPath();
@@ -1264,8 +1266,7 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
     ctx.stroke();
   }
   // icon
-  const iconCol = type === 0 ? bg : accent;
-  const doc = new DOMParser().parseFromString(`<svg>${icon}</svg>`, "image/svg+xml");
+    const doc = new DOMParser().parseFromString(`<svg>${icon}</svg>`, "image/svg+xml");
   ctx.save(); ctx.translate(75 - 28, mid - 28); ctx.scale(56 / 24, 56 / 24);
   ctx.strokeStyle = type === 0 ? bg : ink; ctx.lineWidth = 1.8; ctx.lineCap = "round"; ctx.lineJoin = "round";
   doc.querySelectorAll("path,circle,rect").forEach((el) => {
@@ -1282,11 +1283,12 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
     (s) => `italic 400 ${s}px Fraunces`,
     (s) => `700 ${s}px 'Courier Prime'`,
     (s) => `300 ${s}px Fraunces`,
-    (s) => `500 ${s}px Caveat`
+    (s) => `500 ${s}px Caveat`,
+    (s) => `400 ${s}px Fraunces`
   ];
   const caps = type === 1 || type === 2;
   const T = caps ? title.toUpperCase() : title;
-  let size = type === 3 ? 92 : 70;
+  let size = type === 3 ? 80 : 70;
   ctx.font = fonts[type](size);
   while (ctx.measureText(T).width > 560 && size > 40) { size -= 2; ctx.font = fonts[type](size); }
   ctx.fillStyle = ink;
@@ -1296,10 +1298,12 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
   const titleEnd = 230 + ctx.measureText(T).width;
 
   // author line, then a small publisher mark at the foot
-  ctx.font = "400 26px 'Courier Prime'";
+  ctx.font = "500 26px Spectral";
+  ctx.letterSpacing = "5px";
   ctx.fillStyle = ink; ctx.textAlign = "right";
-  const S = sub ? sub.toUpperCase() : "E. M. HILL";
-  if (titleEnd + 40 + ctx.measureText(S).width < W - 120) ctx.fillText(S, W - 120, mid);
+  const S = sub ? sub.toUpperCase() : "EMILY M. HILL";
+  if (titleEnd + 40 + ctx.measureText(S).width < W - 170) ctx.fillText(S, W - 170, mid);
+  ctx.letterSpacing = "0px";
   ctx.textAlign = "left";
   ctx.fillStyle = accent;
   ctx.beginPath(); ctx.arc(W - 64, mid, 20, 0, Math.PI * 2); ctx.fill();

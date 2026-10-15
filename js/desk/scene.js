@@ -109,8 +109,9 @@ async function main() {
     );
     if (books) {     // the links still: low over the desk, books and mug in front of the window
       const portrait = view.aspect < 1;
-      view.target.copy(books.aim).add(new THREE.Vector3(portrait ? 0 : 1, portrait ? 1.5 : -1.2, 0));
-      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-4, 13, 66) : new THREE.Vector3(-12, 10, 58));
+      // landscape: books right of centre, the mug with room on the left, headroom for the title plate
+      view.target.copy(books.aim).add(portrait ? new THREE.Vector3(1, 3.5, 0) : new THREE.Vector3(-11, 4, 0));
+      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-3, 16, 92) : new THREE.Vector3(-22, 15, 80));
     }
     camera.position.copy(view.base);
     camera.lookAt(view.target);
@@ -835,6 +836,7 @@ function buildProps(scene) {
   laptop.position.set(30, 0, -27);
   laptop.rotation.y = -0.62;
   laptop.scale.setScalar(0.9);
+  laptop.visible = SHOT !== "links";   // kept out of the book still, where the sill crosses it
   scene.add(laptop);
   const alu = new THREE.MeshStandardMaterial({ color: "#4a4b50", metalness: 0.85, roughness: 0.34 });
   add(new RoundedBoxGeometry(30, 1.4, 20.5, 3, 0.5), alu, 0, 0.7, 0, laptop);
@@ -1074,10 +1076,10 @@ function buildBookStack(scene) {
     ["Thesis", "", "#f2e6cf", 25, 4.2, 17, 0.0, 0.03, { bg: "#f2e6cf", ink: "#2a3a5c", accent: "#e46f4f", type: 2 }],
     ["Academic CV", "", "#2f4a8a", 23, 3.4, 16, 1.2, -0.05, { bg: "#2f4a8a", ink: "#fbf3e2", accent: "#f2c14e", type: 1 }],
     ["LinkedIn", "", "#e9a6a8", 24, 3.8, 16.5, -0.8, 0.04, { bg: "#e9a6a8", ink: "#3a1f22", accent: "#7a2f3a", type: 0 }],
-    ["Previous ePortfolio", "", "#8fae8b", 22, 3.0, 15, 0.6, -0.03, { bg: "#8fae8b", ink: "#1f3524", accent: "#f6efe0", type: 3 }],
+    ["Instagram", "", "#8fae8b", 22, 3.0, 15, 0.6, -0.03, { bg: "#8fae8b", ink: "#1f3524", accent: "#f6efe0", type: 3 }],
     ["TikTok", "", "#f2c14e", 21, 2.8, 14.5, -0.4, 0.06, { bg: "#f2c14e", ink: "#2b2014", accent: "#d9573f", type: 0 }],
     ["Email", "", "#fbf6ea", 20, 2.6, 14, 0.9, -0.02, { bg: "#fbf6ea", ink: "#c2493a", accent: "#2f6b5e", type: 1 }],
-    ["Résumé", "", "#c2493a", 22.5, 3.2, 15.5, -0.2, 0.05, { bg: "#c2493a", ink: "#fbf3e2", accent: "#f2c14e", type: 3 }]
+    ["Résumé", "", "#c2493a", 22.5, 3.2, 15.5, -0.2, 0.05, { bg: "#c2493a", ink: "#fbf3e2", accent: "#f2c14e", type: 4 }]
   ];
   const ICON = {
     "Résumé": '<path d="M6 3h12v18H6z"/><circle cx="12" cy="8.5" r="2.2"/><path d="M8.5 14c.8-1.8 6.2-1.8 7 0"/><path d="M9 17.5h6"/>',
@@ -1085,7 +1087,7 @@ function buildBookStack(scene) {
     "Academic CV": '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h7M9 14h7M9 17h4"/>',
     "Thesis": '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/>',
     "TikTok": '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.6 4.2 5 4.3"/>',
-    "Previous ePortfolio": '<path d="M3 6h6l2 2h10v11H3z"/><path d="M3 10h18"/>',
+    "Instagram": '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.8"/>',
     "Email": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
   };
   const base = new THREE.Vector3(43, 0, 4);
@@ -1134,28 +1136,104 @@ function buildBookStack(scene) {
     y += t;
   });
 
-  // tortoiseshell reading glasses resting on top
-  const tort = new THREE.MeshPhysicalMaterial({ color: "#6a3415", roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.15 });
-  const lensMat = new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.02, transmission: 0.9, thickness: 0.2, transparent: true, opacity: 0.35 });
+  // tortoiseshell reading glasses standing open on top, lenses toward the viewer
+  const tort = new THREE.MeshPhysicalMaterial({ color: "#8a4a20", roughness: 0.24, clearcoat: 1, clearcoatRoughness: 0.12 });
+  const lensMat = new THREE.MeshPhysicalMaterial({ color: "#ffffff", roughness: 0.02, metalness: 0, transparent: true, opacity: 0.16, envMapIntensity: 2.5 });
   const glasses = new THREE.Group();
-  glasses.position.set(-2, y, 2.5);
-  glasses.rotation.y = 0.25;
+  glasses.position.set(-1.5, y + 2.75, 4.2);
+  glasses.rotation.set(-0.1, 0.5, 0);
   group.add(glasses);
-  const rim = new THREE.Shape(); rim.absarc(0, 0, 2.3, 0, Math.PI * 2);
-  for (const sx of [-2.9, 2.9]) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.25, 0.16, 12, 48), tort);
-    ring.scale.set(1.18, 0.72, 1); ring.position.set(sx, 1.2, 0); ring.rotation.x = -0.55; ring.castShadow = true;
-    glasses.add(ring);
-    const lens = new THREE.Mesh(new THREE.CircleGeometry(2.2, 40), lensMat);
-    lens.scale.set(1.18, 0.72, 1); lens.position.copy(ring.position); lens.rotation.copy(ring.rotation);
+  // rims: rounded squares, extruded so they have real thickness
+  const rimShape = (w, h, r) => {
+    const sh = new THREE.Shape();
+    sh.moveTo(-w / 2 + r, -h / 2); sh.lineTo(w / 2 - r, -h / 2); sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+    sh.lineTo(w / 2, h / 2 - r); sh.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+    sh.lineTo(-w / 2 + r, h / 2); sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+    sh.lineTo(-w / 2, -h / 2 + r); sh.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+    return sh;
+  };
+  for (const sx of [-3.15, 3.15]) {
+    const outer = rimShape(5.6, 4.6, 1.9), inner = rimShape(4.6, 3.6, 1.5);
+    outer.holes.push(inner);
+    const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(outer, { depth: 0.45, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.1, bevelSegments: 3, curveSegments: 16 }), tort);
+    rim.position.set(sx, 0, -0.22);
+    rim.castShadow = true;
+    glasses.add(rim);
+    const lens = new THREE.Mesh(new THREE.ShapeGeometry(inner, 16), lensMat);
+    lens.position.set(sx, 0, 0.02);
     glasses.add(lens);
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 12.5), tort);
-    arm.position.set(sx * 1.95, 0.35, -6.0); arm.rotation.set(0, -sx * 0.02, 0); arm.castShadow = true;
-    glasses.add(arm);
+    // temple arms: hinge at the outer corner, opened back and resting down on the book
+    const side = Math.sign(sx);
+    const hinge = new THREE.Group();
+    hinge.position.set(sx + side * 2.8, 0.9, -0.1);
+    hinge.rotation.y = side * 0.12;
+    glasses.add(hinge);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 11.5), tort);
+    arm.position.set(0, -0.9, -5.6);
+    arm.rotation.x = 0.17;
+    arm.castShadow = true;
+    hinge.add(arm);
+    const tip = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 2.2), tort);
+    tip.position.set(0, -2.2, -11.4);
+    tip.rotation.x = 0.7;
+    hinge.add(tip);
   }
-  const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.14, 10, 20, Math.PI), tort);
-  bridge.position.set(0, 1.6, 0); bridge.rotation.x = -0.55;
+  // keyhole bridge
+  const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.2, 10, 24, Math.PI), tort);
+  bridge.position.set(0, 1.0, 0.05);
   glasses.add(bridge);
+
+  // a ceramic Persian cat figurine beside the stack: glossy white glaze, grey patches
+  const glaze = new THREE.MeshPhysicalMaterial({ color: "#f4f1ea", roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const grey = new THREE.MeshPhysicalMaterial({ color: "#5d6470", roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1 });
+  const pink = new THREE.MeshPhysicalMaterial({ color: "#e9a39a", roughness: 0.3, clearcoat: 1 });
+  const eyeMat = new THREE.MeshPhysicalMaterial({ color: "#cfd8c4", roughness: 0.1, clearcoat: 1 });
+  const pupil = new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 0.3 });
+  const cat = new THREE.Group();
+  cat.position.set(18, 0, 3.5);
+  cat.rotation.y = -0.55;
+  cat.scale.setScalar(1.08);
+  group.add(cat);
+  const blob = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1, parent = cat) => {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz);
+    m.castShadow = m.receiveShadow = true; parent.add(m); return m;
+  };
+  const sph = new THREE.SphereGeometry(1, 40, 28);
+  // seated Persian: a pear-shaped body, haunch, chest ruff, a round flat-faced head sunk into the ruff
+  const furry = (geo, amp, freq) => {           // fur ridges glazed into the ceramic
+    const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 + amp * Math.sin(Math.atan2(z, x) * freq + y * 5);
+      p.setX(i, x * k); p.setZ(i, z * k);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  };
+  blob(furry(new THREE.SphereGeometry(1, 48, 32), 0.04, 14), glaze, 0, 5.2, -0.6, 4.4, 5.6, 3.9);    // body
+  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.04, 12), glaze, 2.2, 2.6, -0.8, 2.6, 2.6, 3.2);  // haunch
+  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.05, 16), glaze, 0, 7.2, 1.8, 3.3, 3.8, 2.4);    // ruff
+  blob(sph, glaze, -0.9, 1.4, 3.0, 1.1, 1.4, 1.3);                                                     // front legs
+  blob(sph, glaze, 0.9, 1.4, 3.0, 1.1, 1.4, 1.3);
+  blob(sph, grey, -0.9, 0.55, 3.8, 0.75, 0.5, 0.75);                                                   // grey paws
+  blob(sph, grey, 0.9, 0.55, 3.8, 0.75, 0.5, 0.75);
+  const head = new THREE.Group(); head.position.set(0, 10.6, 1.4); head.rotation.set(0.05, 0.3, 0); cat.add(head);
+  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.03, 10), glaze, 0, 0, 0, 3.0, 2.7, 2.6, head);
+  blob(sph, glaze, -1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);       // cheek fluff
+  blob(sph, glaze, 1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);
+  // painted grey patches: thin caps pressed onto the face, around the eyes and up to the ears
+  blob(sph, grey, -1.35, 0.55, 1.85, 1.25, 1.0, 0.55, head);
+  blob(sph, grey, 1.45, 0.6, 1.8, 1.3, 1.05, 0.55, head);
+  for (const sx of [-1, 1]) {
+    const ear = blob(new THREE.ConeGeometry(0.95, 1.6, 24), grey, sx * 1.75, 2.35, 0.2, 1, 1, 0.55, head);
+    ear.rotation.z = -sx * 0.45;
+    blob(sph, eyeMat, sx * 1.12, 0.42, 2.38, 0.42, 0.3, 0.22, head);
+    blob(sph, pupil, sx * 1.12, 0.4, 2.55, 0.18, 0.24, 0.1, head);
+  }
+  blob(sph, pink, 0, -0.32, 2.6, 0.3, 0.2, 0.18, head);       // nose
+  // a plumed tail curled round the front
+  const tail = new THREE.Mesh(furry(new THREE.TorusGeometry(4.0, 1.05, 18, 48, Math.PI * 0.85), 0.05, 10), glaze);
+  tail.rotation.set(Math.PI / 2, 0, 0.6); tail.position.set(-0.2, 0.9, 0.2); tail.scale.set(1.05, 1, 0.75);
+  tail.castShadow = true; cat.add(tail);
 
   // a reading light on the stack, so the foil catches
   const key = new THREE.SpotLight("#ffc98a", 2600, 0, 0.6, 0.8, 2);

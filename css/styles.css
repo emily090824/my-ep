@@ -554,19 +554,18 @@ body:not(.has-desk) main { padding-top: 66px; }
 }
 
 /* ---------- The Links You're Looking For: a rendered still of the desk ---------- */
-.links {
-  background: #120c08;
-  padding: clamp(48px, 7vw, 88px) var(--gutter) clamp(48px, 7vw, 88px);
-}
-.links__inner { max-width: 1240px; margin: 0 auto; }
+/* full bleed: the still runs edge to edge, the title plate floats over the window */
+.links { position: relative; background: #120c08; padding: 0; }
+.links__inner { position: relative; max-width: none; margin: 0; }
 .links__plate {
   display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
-  width: fit-content; margin: 0 auto clamp(24px, 3vw, 36px); padding: 16px 32px 14px;
+  position: absolute; z-index: 3; left: 50%; top: clamp(20px, 3.5vw, 48px); transform: translateX(-50%);
+  width: max-content; max-width: calc(100% - 32px); margin: 0; padding: 16px 32px 14px;
   background: #f8f4ea; border: 1px solid var(--brown-300);
   box-shadow: 0 0 0 5px #f8f4ea, 0 0 0 6px var(--brown-300), 0 18px 32px -14px rgba(0,0,0,0.6);
 }
-.links__plate h2 { margin: 0; font: 400 clamp(1.6rem, 3.4vw, 2.4rem)/1.1 var(--display); color: var(--brown-900); }
-.bookshot { position: relative; border-radius: 6px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0,0,0,0.8); }
+.links__plate h2 { margin: 0; font: 400 clamp(1.3rem, 3vw, 2.2rem)/1.1 var(--display); color: var(--brown-900); }
+.bookshot { position: relative; overflow: hidden; }
 .bookshot img { display: block; width: 100%; height: auto; }
 .bookshot::after {   /* lens vignette */
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -587,3 +586,4 @@ body:not(.has-desk) main { padding-top: 66px; }
   .bookshot--tall { display: block; }
   .spine span { display: none; }
 }
+.spine[data-pending] { pointer-events: none; }
