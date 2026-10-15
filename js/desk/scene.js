@@ -1232,8 +1232,8 @@ function buildBookStack(scene) {
     inner.scale.set(1, 1, 0.5);
     // eyes: glassy, set in the sockets under heavy lids, slanting out a little
     if (!CLAY) {
-      const eye = part(catEyeGeometry(), eyeGlass, sx * 1.08, 0.18, 1.6, 0.5, 0.4, 0.3, head);
-      eye.rotation.z = sx * 0.16;
+      const eye = part(catEyeGeometry(), eyeGlass, sx * 1.08, 0.2, 1.6, 0.5, 0.42, 0.3, head);
+      eye.rotation.z = -sx * 0.05;
     }
   }
 
@@ -1260,16 +1260,16 @@ function catEyeTexture() {
   const g = c.getContext("2d");
   g.fillStyle = "#1c1d1f"; g.fillRect(0, 0, 256, 256);
   const iris = g.createRadialGradient(118, 132, 8, 124, 128, 104);
-  iris.addColorStop(0, "#e9f1df"); iris.addColorStop(0.45, "#c6dcd0"); iris.addColorStop(0.8, "#8fae9f"); iris.addColorStop(1, "#4e6359");
+  iris.addColorStop(0, "#f2f6ee"); iris.addColorStop(0.5, "#dbe8e3"); iris.addColorStop(0.85, "#a9c3bf"); iris.addColorStop(1, "#6f8a88");
   g.fillStyle = iris; g.beginPath(); g.ellipse(124, 128, 100, 96, 0, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "rgba(70,95,85,0.35)"; g.lineWidth = 2;        // fine streaks in the iris
+  g.strokeStyle = "rgba(90,120,118,0.22)"; g.lineWidth = 2;        // fine streaks in the iris
   for (let i = 0; i < 60; i++) {
     const a = (i / 60) * Math.PI * 2, r0 = 34 + (i % 3) * 4;
     g.beginPath(); g.moveTo(118 + Math.cos(a) * r0, 128 + Math.sin(a) * r0); g.lineTo(122 + Math.cos(a) * 92, 128 + Math.sin(a) * 88); g.stroke();
   }
-  g.fillStyle = "#121314"; g.beginPath(); g.ellipse(112, 130, 22, 46, 0, 0, Math.PI * 2); g.fill();   // pupil, glancing aside
-  g.strokeStyle = "#151515"; g.lineWidth = 10; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
-  g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.ellipse(146, 98, 13, 10, -0.4, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#17191b"; g.beginPath(); g.ellipse(102, 112, 24, 34, 0, 0, Math.PI * 2); g.fill();   // pupil, glancing aside
+  g.strokeStyle = "#2a2c2e"; g.lineWidth = 7; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.ellipse(132, 90, 12, 9, -0.4, 0, Math.PI * 2); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
@@ -1303,16 +1303,33 @@ function catFigurineGeometry(headPos, headInv) {
   const P = (x, y, z) => new V(x, y, z);
   // carved fur: wavy locks in lanes, each lock fullest just above its tip, the tips
   // staggered so they overlap like the moulded fur on the figurine
-  const locks = (w, v, amp) => {
-    const lane = Math.floor(w), f = fract(w), s = Math.sin(Math.PI * f);
-    const t = fract(v + hash(lane) * 0.8);
-    // a rounded strand with a finer groove down it, swelling toward a soft tip
-    const ridge = Math.pow(s, 0.8) * (0.85 + 0.15 * Math.cos(Math.PI * 4 * f));
-    const swell = sstep(0, 0.16, t) * Math.pow(1 - t, 0.7);
-    return { d: amp * ridge * (0.45 + 0.55 * swell), r: ridge * (0.6 + 0.4 * swell) };
+  // fur: overlapping flame-shaped locks, like moulded fur on a ceramic. Locks are scattered
+  // on a staggered grid over (u across, v down the flow); each tapers to an S-curved tip that
+  // lies over the root of the lock below it, and carries a few fine strands.
+  const locks = (u, v, CU, CV, amp, seed) => {
+    const i0 = Math.floor(u / CU), j0 = Math.floor(v / CV);
+    let best = 0, ridge = 0;
+    for (let j = j0 - 1; j <= j0; j++) for (let i = i0 - 1; i <= i0 + 1; i++) {
+      const id = i * 57.3 + j * 113.1 + seed;
+      const rootU = (i + 0.5 * (j & 1) + 0.3 * (hash(id) - 0.5)) * CU;
+      const rootV = (j + 0.4 * hash(id + 3.1)) * CV;
+      const L = CV * (1.45 + 0.35 * hash(id + 7.7));
+      const b = (v - rootV) / L;
+      if (b < 0 || b > 1) continue;
+      const bend = (hash(id + 1.9) - 0.5) * 1.3, W = CU * (0.78 + 0.2 * hash(id + 4.4));
+      const a0 = rootU + bend * W * Math.sin(Math.PI * b) + bend * 0.3 * W * b;
+      const width = W * Math.pow(1 - b, 0.55) * Math.min(1, 0.45 + b * 5);
+      const x = (u - a0) / width;
+      if (x <= -1 || x >= 1) continue;
+      const prof = Math.sqrt(1 - x * x) * (0.5 + 0.5 * b) * sstep(0, 0.2, b);   // roots melt in, tips stand proud
+      const h = prof * (0.84 + 0.16 * Math.cos(Math.PI * 3 * x + bend * 2));
+      if (h > best) { best = h; ridge = prof; }
+    }
+    return { d: amp * best, r: 0.4 + 0.6 * Math.min(1, ridge * 1.4) };
   };
   const tail = new THREE.CatmullRomCurve3([P(-2.0, 2.0, -7.0), P(-5.0, 1.7, -4.4), P(-5.6, 1.5, -0.6), P(-4.6, 1.4, 2.8), P(-2.6, 1.3, 4.9)]);
-  const tailPts = tail.getPoints(16), tailSeg = tail.getLength() / 16;
+  const tailPts = tail.getSpacedPoints(16), tailSeg = tail.getLength() / 16;
+  const tailDs = new Float32Array(16), tailHs = new Float32Array(16);
   const legs = [-1, 1].map((sx) => [P(sx * 1.3, 7.0, 1.6), P(sx * 1.3, 1.0, 3.7)]);
   const mouth = [[P(0, -0.66, 2.05), P(0, -0.92, 2.0)], [P(0, -0.92, 2.0), P(-0.36, -1.08, 1.92)], [P(0, -0.92, 2.0), P(0.36, -1.08, 1.92)]];
   const hp = new V(), q2 = new V();
@@ -1335,10 +1352,11 @@ function catFigurineGeometry(headPos, headInv) {
     out.paws = paws;
     d = smin(d, paws, 0.5);
     // ---- tail ----
-    let dt = 9, ts = 0, ti = 0;
+    let dt = 9, near = 9;
+    const tailD = tailDs, tailH = tailHs;
     for (let i = 0; i < tailPts.length - 1; i++) {
       const u = i / (tailPts.length - 1), di = cap(p, tailPts[i], tailPts[i + 1], 1.8 - u * 0.5);
-      if (di < dt) { ts = (i + capT.h) * tailSeg; ti = i; }
+      tailD[i] = di; tailH[i] = capT.h; near = Math.min(near, di);
       dt = smin(dt, di, 0.8);
     }
     // ---- head, in its own turned frame ----
@@ -1349,16 +1367,16 @@ function catFigurineGeometry(headPos, headInv) {
     if (hp.z > 0.6 && Math.abs(hp.x) < 2.4 && hp.y > -2 && hp.y < 1.6) {
       // brows: heavy lids sloping down to the outer corners, the Persian frown
       for (const sx of [-1, 1]) {
-        q2.set(hp.x - sx * 1.05, hp.y - 0.62, hp.z - 1.76);
-        const c = Math.cos(sx * 0.32), sn = Math.sin(sx * 0.32);
+        q2.set(hp.x - sx * 1.08, hp.y - 0.72, hp.z - 1.72);
+        const c = Math.cos(-sx * 0.22), sn = Math.sin(-sx * 0.22);
         q2.set(q2.x * c + q2.y * sn, -q2.x * sn + q2.y * c, q2.z);
-        h = smin(h, ell(q2, [0, 0, 0], [0.8, 0.27, 0.4]), 0.3);
+        h = smin(h, ell(q2, [0, 0, 0], [0.66, 0.2, 0.32]), 0.3);
       }
       h = smin(h, ell(hp, [0, -0.5, 1.92], [0.42, 0.34, 0.3]), 0.3);       // nose pad
       for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.42, -0.95, 1.86], [0.48, 0.36, 0.34]), 0.3);  // whisker pads
       h = smin(h, ell(hp, [0, -1.42, 1.62], [0.5, 0.3, 0.38]), 0.3);       // chin
       // eye sockets
-      for (const sx of [-1, 1]) h = smax(h, -ell(hp, [sx * 1.08, 0.14, 1.98], [0.54, 0.34, 0.42]), 0.1);
+      for (const sx of [-1, 1]) h = smax(h, -ell(hp, [sx * 1.08, 0.18, 1.98], [0.54, 0.4, 0.42]), 0.12);
       // mouth: a fine groove from the nose, parting under the whisker pads
       let mg = 9;
       for (const [a, b] of mouth) mg = Math.min(mg, cap(hp, a, b, 0.065));
@@ -1373,22 +1391,31 @@ function catFigurineGeometry(headPos, headInv) {
       const wB = Math.exp(-Math.max(0, d - base) * 4), wT = Math.exp(-Math.max(0, dt - base) * 4), wH = Math.exp(-Math.max(0, h - base) * 4);
       let fd = 0, fr = 0;
       if (wB > 0.01) {        // body: long locks falling down and round the form
-        const th = Math.atan2(p.x, p.z + 0.6), u = th * 3.6;
-        const L = locks(u * 0.85 + 0.75 * Math.sin(p.y * 0.45 + u * 0.35) + 0.25 * Math.sin(p.y * 1.3), p.y * 0.19, 0.22);
+        const th = Math.atan2(p.x, p.z + 0.6), u = th * 3.9;
+        const L = locks(u + 0.35 * Math.sin(p.y * 0.5), -p.y, 1.2, 1.9, 0.26, 0);
         fd += wB * L.d; fr += wB * L.r;
       }
       if (wT > 0.01) {        // tail: plumes running along its length
-        const a = tailPts[ti], b = tailPts[ti + 1];
-        const ax = b.x - a.x, az = b.z - a.z, al = Math.hypot(ax, az);
-        const side = ((p.x - a.x) * -az + (p.z - a.z) * ax) / al;
-        const ang = Math.atan2(side, p.y - a.y);
-        const L = locks(ang * 1.6 + 0.9 * Math.sin(ts * 0.35 + ang), -ts * 0.13, 0.17);
+        // position along the tail and round it, blended across the segments so there are no seams
+        let ws = 0, ts = 0, side = 0, up = 0;
+        for (let i = 0; i < tailPts.length - 1; i++) {
+          const w = Math.exp(-8 * (tailD[i] - near));
+          if (w < 1e-3) continue;
+          const a = tailPts[i], b = tailPts[i + 1], ax = b.x - a.x, az = b.z - a.z, al = Math.hypot(ax, az);
+          ts += w * (i + tailH[i]) * tailSeg;
+          side += w * ((p.x - a.x) * -az + (p.z - a.z) * ax) / al;
+          up += w * (p.y - (a.y + (b.y - a.y) * tailH[i]));
+          ws += w;
+        }
+        ts /= ws;
+        const ang = Math.atan2(side / ws, up / ws);
+        const L = locks(ang * 1.8, ts, 0.95, 1.5, 0.22, 11);
         fd += wT * L.d; fr += wT * L.r;
       }
       if (wH > 0.01) {        // head: short fur fanning out from the face
-        const ang = Math.atan2(hp.y + 0.3, hp.x), r = Math.hypot(hp.x, hp.y + 0.3);
+        const ang = Math.atan2(hp.x, -(hp.y + 0.3)), r = Math.hypot(hp.x, hp.y + 0.3);
         const face = Math.max(hp.z > 0.9 ? 1 - sstep(1.5, 2.3, r) : 0, sstep(0.6, 1.8, hp.y));   // smooth face and crown
-        const L = locks(ang * 3.0 + 0.4 * Math.sin(r * 1.2), -r * 0.4, 0.17);
+        const L = locks(ang * 2.6, r, 0.8, 1.0, 0.16, 23);
         fd += wH * L.d * (1 - face); fr += wH * (L.r * (1 - face) + face);
       }
       const ws = wB + wT + wH;
@@ -1400,7 +1427,7 @@ function catFigurineGeometry(headPos, headInv) {
     return Math.max(base - fur, -p.y);                                    // flat base
   };
   // surface nets over a grid
-  const S = 0.14, min = P(-8, -0.3, -9), n = [Math.ceil(16 / S), Math.ceil(18.8 / S), Math.ceil(17.5 / S)];
+  const S = 0.11, min = P(-8, -0.3, -9), n = [Math.ceil(16 / S), Math.ceil(18.8 / S), Math.ceil(17.5 / S)];
   const nx = n[0] + 1, ny = n[1] + 1, nz = n[2] + 1;
   const F = new Float32Array(nx * ny * nz), q = new V();
   const at = (i, j, k) => i + nx * (j + ny * k);
