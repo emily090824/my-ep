@@ -252,7 +252,7 @@ function buildRoom(scene) {
 
   // Wall with a window opening.
   const WALL_Z = -46;
-  const win = { x0: -2, x1: 66, y0: 13, y1: 90 };
+  const win = { x0: -2, x1: 66, y0: 20.5, y1: 97 };   // sill sits above the laptop screen
   const wallShape = new THREE.Shape();
   wallShape.moveTo(-160, -2); wallShape.lineTo(180, -2); wallShape.lineTo(180, 160); wallShape.lineTo(-160, 160);
   const hole = new THREE.Path();
@@ -1075,10 +1075,10 @@ function buildBookStack(scene) {
   const list = [
     // name, sub, cloth, w (along spine), thickness, depth, offset, turn, style
     // name, author line, cover, w (along spine), thickness, depth, offset, turn, design
-    ["Thesis", "", "#f2e6cf", 25, 4.2, 17, 0.0, 0.03, { bg: "#f2e6cf", ink: "#2a3a5c", accent: "#e46f4f", type: 2 }],
+    ["Thesis", "", "#f2e6cf", 24, 4.2, 16.5, 0.0, 0.0, { bg: "#f2e6cf", ink: "#2a3a5c", accent: "#e46f4f", type: 2 }],
     ["Academic CV", "", "#2f4a8a", 23, 3.4, 16, 1.2, -0.05, { bg: "#2f4a8a", ink: "#fbf3e2", accent: "#f2c14e", type: 1 }],
     ["LinkedIn", "", "#e9a6a8", 24, 3.8, 16.5, -0.8, 0.04, { bg: "#e9a6a8", ink: "#3a1f22", accent: "#7a2f3a", type: 0 }],
-    ["Instagram", "", "#8fae8b", 22, 3.0, 15, 0.6, -0.03, { bg: "#8fae8b", ink: "#1f3524", accent: "#f6efe0", type: 3 }],
+    ["Instagram", "", "#dfe8d6", 22, 3.0, 15, 0.6, -0.03, { bg: "#e4ecdb", ink: "#2f4a35", accent: "#a9bf9f", type: 5 }],
     ["TikTok", "", "#f2c14e", 21, 2.8, 14.5, -0.4, 0.06, { bg: "#f2c14e", ink: "#2b2014", accent: "#d9573f", type: 0 }],
     ["Email", "", "#fbf6ea", 20, 2.6, 14, 0.9, -0.02, { bg: "#fbf6ea", ink: "#c2493a", accent: "#2f6b5e", type: 1 }],
     ["Résumé", "", "#c2493a", 22.5, 3.2, 15.5, -0.2, 0.05, { bg: "#c2493a", ink: "#fbf3e2", accent: "#f2c14e", type: 4 }]

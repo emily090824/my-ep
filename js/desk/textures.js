@@ -1257,6 +1257,18 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
   } else if (type === 2) {     // a scatter of small dots, like a printed pattern
     ctx.fillStyle = accent;
     for (let x = 18; x < 140; x += 22) for (let y = 18; y < H; y += 22) { ctx.beginPath(); ctx.arc(x + (y % 44 ? 11 : 0), y, 4, 0, Math.PI * 2); ctx.fill(); }
+  } else if (type === 5) {    // a light all-over pattern of tiny sage sprigs
+    ctx.strokeStyle = accent; ctx.fillStyle = accent; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+    for (let x = 14; x < W; x += 46) for (let y = 16; y < H; y += 42) {
+      const ox = x + ((y / 42) % 2 ? 23 : 0), a = ((x * 7 + y * 3) % 5) * 0.4 - 0.8;
+      ctx.save(); ctx.translate(ox, y); ctx.rotate(a);
+      ctx.beginPath(); ctx.moveTo(0, 8); ctx.quadraticCurveTo(1, 0, 0, -8); ctx.stroke();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(s * 4, -2 + s * 2, 4, 2, s * 0.7, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    // a clean plate behind the title so the pattern never fights the type
+    ctx.fillStyle = bg; ctx.fillRect(196, 30, W - 380, H - 60);
+    ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(196, 30, W - 380, H - 60);
   } else if (type === 4) {    // clean: fine rules near head and foot
     ctx.fillStyle = accent; ctx.fillRect(150, 30, 3, H - 60); ctx.fillRect(W - 150, 30, 3, H - 60);
   } else {                     // a wavy band
@@ -1284,16 +1296,17 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
     (s) => `700 ${s}px 'Courier Prime'`,
     (s) => `300 ${s}px Fraunces`,
     (s) => `500 ${s}px Caveat`,
-    (s) => `400 ${s}px Fraunces`
+    (s) => `400 ${s}px Fraunces`,
+    (s) => `500 ${s}px Caveat`
   ];
   const caps = type === 1 || type === 2;
   const T = caps ? title.toUpperCase() : title;
-  let size = type === 3 ? 80 : 70;
+  let size = type === 3 || type === 5 ? 80 : 70;
   ctx.font = fonts[type](size);
   while (ctx.measureText(T).width > 560 && size > 40) { size -= 2; ctx.font = fonts[type](size); }
   ctx.fillStyle = ink;
   if (type === 2) ctx.letterSpacing = "6px";
-  ctx.fillText(T, 230, mid + (type === 3 ? 4 : 0));
+  ctx.fillText(T, 230, mid + (type === 3 || type === 5 ? 4 : 0));
   ctx.letterSpacing = "0px";
   const titleEnd = 230 + ctx.measureText(T).width;
 
