@@ -47,7 +47,7 @@ async function main() {
   await Promise.race([
     Promise.all([
       "400 40px Fraunces", "300 40px Fraunces", "400 40px 'Courier Prime'", "700 40px 'Courier Prime'",
-      "italic 400 40px Spectral", "500 40px Caveat"
+      "italic 400 40px Spectral", "500 40px Caveat", "400 40px 'Pinyon Script'", "500 40px Spectral"
     ].map((f) => document.fonts.load(f))),
     new Promise((r) => setTimeout(r, 2500))
   ]);
@@ -348,13 +348,15 @@ function buildRoom(scene) {
   const leaves = [];
   const rnd = mulberry(3);
   const soilY = sillY + 6.4;
+  let prevA = 0;
   const stems = [];
 
   // the mound: every leaf sits on its own stem rising from the soil; low ones arch out
   // over the rim so the foliage meets the pot instead of hovering above it
-  for (let i = 0; i < 130; i++) {
-    const a = rnd() * Math.PI * 2;
-    const low = i < 45;
+  // the mound is grown in mirrored pairs so it stays full and balanced on both sides
+  for (let i = 0; i < 160; i++) {
+    const a = i % 2 ? Math.PI - prevA : (prevA = rnd() * Math.PI * 2);
+    const low = i < 56;
     const el = low ? -0.15 + rnd() * 0.45 : 0.3 + Math.pow(rnd(), 0.8) * 0.95;
     const r = low ? 5.2 + rnd() * 3.5 : 2.5 + rnd() * 8;
     const ba = rnd() * Math.PI * 2, br = rnd() * 2.6;
@@ -1186,59 +1188,75 @@ function buildBookStack(scene) {
   glasses.add(bridge);
 
   // a ceramic Persian cat figurine beside the stack: glossy white glaze, grey patches
-  const glaze = new THREE.MeshPhysicalMaterial({ color: "#f4f1ea", roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const glaze = new THREE.MeshPhysicalMaterial({ color: "#f4f1ea", roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.2 });
   const grey = new THREE.MeshPhysicalMaterial({ color: "#5d6470", roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1 });
   const pink = new THREE.MeshPhysicalMaterial({ color: "#e9a39a", roughness: 0.3, clearcoat: 1 });
   const eyeMat = new THREE.MeshPhysicalMaterial({ color: "#cfd8c4", roughness: 0.1, clearcoat: 1 });
   const pupil = new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 0.3 });
   const cat = new THREE.Group();
-  cat.position.set(31, 0, -24);
-  cat.rotation.y = -0.35;
-  cat.scale.setScalar(1.0);
+  cat.position.set(33, 0, -36);          // far back on the right, near the wall
+  cat.rotation.y = -0.4;
+  cat.scale.setScalar(1.25);
   group.add(cat);
-  cat.visible = false;   // held back until it can be built from the reference photo
-  const blob = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1, parent = cat) => {
+  const part = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1, parent = cat) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz);
     m.castShadow = m.receiveShadow = true; parent.add(m); return m;
   };
-  const sph = new THREE.SphereGeometry(1, 40, 28);
-  // seated Persian: a pear-shaped body, haunch, chest ruff, a round flat-faced head sunk into the ruff
-  const furry = (geo, amp, freq) => {           // fur ridges glazed into the ceramic
+  const ridged = (geo, amp, freq) => {           // long-hair ridges sculpted into the glaze
     const p = geo.attributes.position;
     for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 + amp * Math.sin(Math.atan2(z, x) * freq + y * 5);
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const k = 1 + amp * Math.sin(Math.atan2(z, x) * freq + Math.sin(y * 1.3) * 0.8);
       p.setX(i, x * k); p.setZ(i, z * k);
     }
     geo.computeVertexNormals();
     return geo;
   };
-  blob(furry(new THREE.SphereGeometry(1, 48, 32), 0.04, 14), glaze, 0, 5.2, -0.6, 4.4, 5.6, 3.9);    // body
-  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.04, 12), glaze, 2.2, 2.6, -0.8, 2.6, 2.6, 3.2);  // haunch
-  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.05, 16), glaze, 0, 7.2, 1.8, 3.3, 3.8, 2.4);    // ruff
-  blob(sph, glaze, -0.9, 1.4, 3.0, 1.1, 1.4, 1.3);                                                     // front legs
-  blob(sph, glaze, 0.9, 1.4, 3.0, 1.1, 1.4, 1.3);
-  blob(sph, grey, -0.9, 0.55, 3.8, 0.75, 0.5, 0.75);                                                   // grey paws
-  blob(sph, grey, 0.9, 0.55, 3.8, 0.75, 0.5, 0.75);
-  const head = new THREE.Group(); head.position.set(0, 10.6, 1.4); head.rotation.set(0.05, 0.3, 0); cat.add(head);
-  blob(furry(new THREE.SphereGeometry(1, 40, 28), 0.03, 10), glaze, 0, 0, 0, 3.0, 2.7, 2.6, head);
-  blob(sph, glaze, -1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);       // cheek fluff
-  blob(sph, glaze, 1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);
-  // painted grey patches: thin caps pressed onto the face, around the eyes and up to the ears
-  for (const sx of [-1, 1]) {
-    const patch = blob(sph, grey, sx * 1.55, 1.25, 0.95, 1.1, 1.35, 1.05, head);
-    patch.rotation.z = sx * 0.35;
+  const sph = new THREE.SphereGeometry(1, 48, 32);
+  // a seated cat: rounded torso leaning slightly forward, a haunch on one side,
+  // front legs straight down, and a long chest bib flowing over them
+  const fur = (amp, freq) => ridged(new THREE.SphereGeometry(1, 64, 40), amp, freq);
+  const torso = part(fur(0.035, 14), glaze, 0, 5.2, -0.4, 4.1, 5.3, 3.6);
+  torso.rotation.x = 0.12;
+  part(fur(0.04, 12), glaze, 2.3, 2.9, -0.9, 2.7, 2.9, 3.3);              // haunch
+  part(fur(0.04, 12), glaze, -2.1, 2.7, -0.9, 2.3, 2.6, 3.0);
+  for (const sx of [-1, 1]) {                                           // front legs
+    part(new THREE.CylinderGeometry(0.85, 0.95, 5, 24), glaze, sx * 1.15, 2.6, 2.7);
   }
-  for (const sx of [-1, 1]) {
-    const ear = blob(new THREE.ConeGeometry(0.95, 1.6, 24), grey, sx * 1.75, 2.35, 0.2, 1, 1, 0.55, head);
-    ear.rotation.z = -sx * 0.45;
-    blob(sph, eyeMat, sx * 1.12, 0.42, 2.38, 0.42, 0.3, 0.22, head);
-    blob(sph, pupil, sx * 1.12, 0.4, 2.55, 0.18, 0.24, 0.1, head);
+  const bib = part(fur(0.07, 18), glaze, 0, 7.0, 2.2, 2.9, 4.4, 1.7);    // chest bib
+  bib.rotation.x = 0.18;
+  // head sits low into the ruff: round, with a flat Persian face
+  const head = new THREE.Group(); head.position.set(0, 12.4, 1.2); head.rotation.set(0.04, 0.22, 0); cat.add(head);
+  // the head carries its markings as painted glaze: grey over each ear and around each eye,
+  // a white blaze down the middle, so they sit flush like the real figurine
+  const headGeo = new THREE.SphereGeometry(1, 64, 48);
+  const hp = headGeo.attributes.position, hc = [];
+  for (let i = 0; i < hp.count; i++) {
+    const x = hp.getX(i), y = hp.getY(i), z = hp.getZ(i);
+    const side = Math.abs(x) - 0.26 - Math.max(0, -y) * 0.9;      // patches narrow toward the cheeks
+    const t = Math.min(1, Math.max(0, side * 9)) * (y > -0.32 ? 1 : 0) * (z > -0.6 ? 1 : 0.6);
+    const g = 0.36, w = 0.96;
+    hc.push(w + (g - w) * t, w + (g - w + 0.02) * t, w + (g - w + 0.06) * t);
   }
-  blob(sph, pink, 0, -0.32, 2.6, 0.3, 0.2, 0.18, head);       // nose
-  // a plumed tail curled round the front
-  const tail = new THREE.Mesh(furry(new THREE.TorusGeometry(4.0, 1.05, 18, 48, Math.PI * 0.85), 0.05, 10), glaze);
-  tail.rotation.set(Math.PI / 2, 0, 0.6); tail.position.set(-0.2, 0.9, 0.2); tail.scale.set(1.05, 1, 0.75);
+  headGeo.setAttribute("color", new THREE.Float32BufferAttribute(hc, 3));
+  const headGlaze = glaze.clone(); headGlaze.vertexColors = true; headGlaze.color.set("#ffffff");
+  part(headGeo, headGlaze, 0, 0, 0, 3.1, 2.75, 2.5, head);
+  part(ridged(new THREE.SphereGeometry(1, 32, 24), 0.08, 14), glaze, -2.0, -0.9, 0.6, 1.4, 1.3, 1.2, head);   // cheek ruffs
+  part(ridged(new THREE.SphereGeometry(1, 32, 24), 0.08, 14), glaze, 2.0, -0.9, 0.6, 1.4, 1.3, 1.2, head);
+  // grey markings: over each ear and down around the eye, a white blaze between
+  for (const sx of [-1, 1]) {
+    const ear = part(new THREE.ConeGeometry(0.95, 1.7, 24), grey, sx * 1.85, 2.35, 0.1, 1, 1, 0.55, head);
+    ear.rotation.z = -sx * 0.42;
+    part(sph, eyeMat, sx * 1.12, 0.3, 2.2, 0.48, 0.32, 0.22, head);
+    part(sph, pupil, sx * 1.12, 0.29, 2.36, 0.14, 0.27, 0.08, head);
+  }
+  part(sph, pink, 0, -0.45, 2.45, 0.28, 0.18, 0.15, head);
+  // tail wrapped round the base, grey-tipped front paws peeking out
+  const tail = new THREE.Mesh(ridged(new THREE.TorusGeometry(4.6, 1.1, 20, 56, Math.PI * 0.95), 0.07, 12), glaze);
+  tail.rotation.set(Math.PI / 2, 0, 0.9); tail.position.set(0.3, 0.95, 0.2); tail.scale.set(1.0, 0.95, 0.75);
   tail.castShadow = true; cat.add(tail);
+  part(sph, grey, -1.15, 0.5, 3.1, 0.95, 0.55, 1.1);
+  part(sph, grey, 1.15, 0.5, 3.1, 0.95, 0.55, 1.1);
 
   // a reading light on the stack, so the foil catches
   const key = new THREE.SpotLight("#ffc98a", 2600, 0, 0.6, 0.8, 2);

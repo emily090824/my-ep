@@ -1297,11 +1297,11 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
     (s) => `300 ${s}px Fraunces`,
     (s) => `500 ${s}px Caveat`,
     (s) => `400 ${s}px Fraunces`,
-    (s) => `500 ${s}px Caveat`
+    (s) => `400 ${s}px 'Pinyon Script'`
   ];
   const caps = type === 1 || type === 2;
   const T = caps ? title.toUpperCase() : title;
-  let size = type === 3 || type === 5 ? 80 : 70;
+  let size = type === 5 ? 76 : type === 3 ? 80 : 70;
   ctx.font = fonts[type](size);
   while (ctx.measureText(T).width > 560 && size > 40) { size -= 2; ctx.font = fonts[type](size); }
   ctx.fillStyle = ink;
