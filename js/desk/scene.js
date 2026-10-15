@@ -1226,8 +1226,8 @@ function buildBookStack(scene) {
   for (const sx of [-1, 1]) {
     // eyes: glassy, set in the sockets under heavy lids, slanting out a little
     if (!CLAY) {
-      const eye = part(catEyeGeometry(), eyeGlass, sx * 1.1, 0.24, 1.62, 0.56, 0.46, 0.3, head);
-      eye.rotation.z = -sx * 0.05;
+      const eye = part(catEyeGeometry(), eyeGlass, sx * 1.12, 0.24, 1.62, 0.66, 0.42, 0.3, head);
+      eye.rotation.z = -sx * 0.24;
     }
   }
 
@@ -1322,8 +1322,14 @@ function catFigurineGeometry(headPos, headInv) {
   // the jaw: down from under each eye, round the whisker pads, meeting under the chin
   const jawLine = [];
   for (const sx of [-1, 1]) jawLine.push([P(sx * 1.55, -0.45, 1.75), P(sx * 1.35, -1.35, 1.85)], [P(sx * 1.35, -1.35, 1.85), P(sx * 0.75, -1.95, 1.9)], [P(sx * 0.75, -1.95, 1.9), P(0, -2.1, 1.88)]);
-  const hp = new V(), q2 = new V();
-  const out = { ridge: 1, mouth: 9, paws: 9, ear: 9, earIn: 9, crease: 9, jaw: 9 };
+  const hp = new V(), q2 = new V(), q3 = new V();
+  // eye socket: a wide almond, its outer corner tipped down
+  const eyeSocket = (h, sx) => {
+    const x = h.x - sx * 1.12, y = h.y - 0.24, a = sx * 0.24, c = Math.cos(a), sn = Math.sin(a);
+    q3.set(x * c - y * sn, x * sn + y * c, h.z - 1.98);
+    return ell(q3, [0, 0, 0], [0.72, 0.38, 0.42]);
+  };
+  const out = { ridge: 1, mouth: 9, paws: 9, ear: 9, earIn: 9, crease: 9, jaw: 9, tuft: 9 };
   const sdf = (p) => {
     // ---- body ----
     let d = ell(p, [0, 4.6, -3.0], [4.5, 4.8, 4.9]);                      // haunch
@@ -1353,9 +1359,9 @@ function catFigurineGeometry(headPos, headInv) {
     hp.copy(p).sub(headPos).applyMatrix4(headInv);
     let h = ell(hp, [0, 0, 0], [3.25, 2.85, 2.6]);
     h = smax(h, hp.z - 1.9, 0.8);                                          // flat face
-    for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 2.2, -1.1, 0.5], [1.65, 1.45, 1.5]), 0.6);   // cheek ruffs
+    for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 2.45, -1.25, 0.65], [1.95, 1.7, 1.7]), 0.6);   // chunky cheek ruffs
     // ears: big, rounded and part of the casting, tipped out a little, hollowed inside
-    out.ear = 9; out.earIn = 9;
+    out.ear = 9; out.earIn = 9; out.tuft = 9;
     if (hp.y > 0.4 && Math.abs(hp.x) > 0.5) {
       const sx = Math.sign(hp.x);
       q2.set(hp.x - sx * 1.75, hp.y - 1.75, hp.z - 0.1);
@@ -1365,7 +1371,15 @@ function catFigurineGeometry(headPos, headInv) {
       const H = 2.3, R = 1.15 * Math.max(0, 1 - q2.y / H) + 0.14;          // rounded tip
       const ear = Math.max((Math.hypot(q2.x, q2.z * 1.7) - R) * 0.8, -q2.y - 0.6, q2.y - H - 0.05);
       const inner = Math.max((Math.hypot(q2.x * 1.15, (q2.z - 0.36) * 2.2) - R * 0.7) * 0.8, 0.15 - q2.y, q2.y - H + 0.4);
-      const e = smax(ear, -inner, 0.12);
+      let e = smax(ear, -inner, 0.12);
+      // tufts of fur springing out of the ear, curling up and out
+      let tuft = 9;
+      for (const [x0, x1, y1] of [[-0.3, -0.62, 1.55], [0.02, 0.06, 1.85], [0.3, 0.62, 1.5]]) {
+        const dd = cap(q2, P(x0, 0.15, 0.32), P(x1, y1, 0.62), 0);
+        tuft = smin(tuft, dd - (0.2 * (1 - capT.h) + 0.03), 0.08);
+      }
+      out.tuft = tuft;
+      e = smin(e, tuft, 0.1);
       out.ear = ear; out.earIn = inner;
       h = smin(h, e, 0.35);
     }
@@ -1376,7 +1390,7 @@ function catFigurineGeometry(headPos, headInv) {
       for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.46, -0.96, 1.96], [0.56, 0.42, 0.36]), 0.3);  // whisker pads
       h = smin(h, ell(hp, [0, -1.62, 1.84], [0.58, 0.36, 0.42]), 0.2);       // chin
       // soft almond eyes, open, no frown
-      for (const sx of [-1, 1]) h = smax(h, -ell(hp, [sx * 1.1, 0.24, 1.98], [0.62, 0.42, 0.42]), 0.12);
+      for (const sx of [-1, 1]) h = smax(h, -eyeSocket(hp, sx), 0.12);
       // jawline: a soft groove framing the muzzle and chin, setting the face off from the ruff
       let jaw = 9;
       for (const [a, b] of jawLine) jaw = Math.min(jaw, cap(hp, a, b, 0.13));
@@ -1401,7 +1415,7 @@ function catFigurineGeometry(headPos, headInv) {
       let fd = 0, fr = 0;
       if (wB > 0.01) {        // body: long locks falling down and round the form
         const th = Math.atan2(p.x, p.z + 0.6), u = th * 3.9;
-        const L = strands(u + 0.9 * Math.sin(p.y * 0.42 + u * 0.25) + 0.25 * Math.sin(p.y * 1.2 + u), -p.y, 0.55, 3.0, 0.26, 0);
+        const L = strands(u + 0.9 * Math.sin(p.y * 0.42 + u * 0.25) + 0.25 * Math.sin(p.y * 1.2 + u), -p.y, 0.55, 3.0, 0.34, 0);
         fd += wB * L.d; fr += wB * L.r;
       }
       if (wT > 0.01) {        // tail: plumes running along its length
@@ -1418,13 +1432,14 @@ function catFigurineGeometry(headPos, headInv) {
         }
         ts /= ws;
         const ang = Math.atan2(side / ws, up / ws);
-        const L = strands(ang * 1.8 + 0.6 * Math.sin(ts * 0.5), ts, 0.45, 2.6, 0.22, 11);
+        const L = strands(ang * 1.8 + 0.6 * Math.sin(ts * 0.5), ts, 0.45, 2.6, 0.28, 11);
         fd += wT * L.d; fr += wT * L.r;
       }
       if (wH > 0.01) {        // head: short fur fanning out from the face
         const ang = Math.atan2(hp.x, -(hp.y + 0.3)), r = Math.hypot(hp.x, hp.y + 0.3);
-        const face = Math.max(hp.z > 0.9 ? 1 - sstep(2.0, 2.6, r) : 0, sstep(0.2, 1.0, hp.y));   // smooth face, crown and ears
-        const L = strands(ang * 2.6 + 0.3 * Math.sin(r * 2.0), r, 0.33, 1.3, 0.15, 23);
+        const face = hp.z > 0.9 ? 1 - sstep(1.9, 2.5, r) : 0;           // the face itself stays smooth
+        const cheek = sstep(1.2, 2.2, Math.abs(hp.x)) * sstep(0.6, -0.4, hp.y);
+        const L = strands(ang * 2.6 + 0.3 * Math.sin(r * 2.0), r, 0.36, 1.4, 0.16 + 0.14 * cheek, 23);
         fd += wH * L.d * (1 - face); fr += wH * (L.r * (1 - face) + face);
       }
       const ws = wB + wT + wH;
@@ -1488,7 +1503,7 @@ function catFigurineGeometry(headPos, headInv) {
           sdf(q.copy(pp).setZ(pp.z + e)) - sdf(q.copy(pp).setZ(pp.z - e))).normalize();
     nor.push(g.x, g.y, g.z);
     sdf(pp);
-    const ridge = out.ridge, mouthD = out.mouth, pawD = out.paws, earD = out.ear, earInD = out.earIn, creaseD = out.crease, jawD = out.jaw;
+    const ridge = out.ridge, mouthD = out.mouth, pawD = out.paws, earD = out.ear, earInD = out.earIn, creaseD = out.crease, jawD = out.jaw, tuftD = out.tuft;
     hp.copy(pp).sub(headPos).applyMatrix4(headInv);
     // markings, edged along the locks so they look brushed into the fur
     const ang = Math.atan2(hp.y, hp.x), wob = 0.18 * Math.sin(ang * 11) + 0.1 * Math.sin(ang * 23 + 1);
@@ -1502,6 +1517,7 @@ function catFigurineGeometry(headPos, headInv) {
     if (pawD < 0.3) toe = sstep(4.5, 5.2, pp.z + 0.25 * Math.sin(pp.x * 9)) * sstep(0.3, 0.1, pawD);
     gr = Math.max(gr, toe);
     if (earD < 0.25) gr = Math.max(gr, 1);
+    if (tuftD < 0.06) gr *= sstep(0.0, 0.06, tuftD);            // the tufts are white
     let c0 = WHITE.map((w, k) => w + (GREY[k] - w) * gr);
     // inner ears, a pale rosy grey
     if (earInD < 0.06) c0 = c0.map((w, k) => w + ([0.72, 0.62, 0.62][k] - w) * sstep(0.06, -0.04, earInD));
@@ -1512,7 +1528,7 @@ function catFigurineGeometry(headPos, headInv) {
     }
     // painted liner round the eyes
     if (hp.z > 1.4 && Math.abs(hp.x) < 1.9 && hp.y > -0.4 && hp.y < 0.9) {
-      const sock = ell(hp, [Math.sign(hp.x) * 1.1, 0.24, 1.98], [0.62, 0.42, 0.42]);
+      const sock = eyeSocket(hp, Math.sign(hp.x));
       const liner = sstep(0.1, 0.03, sock) * sstep(-0.06, 0.0, sock);
       c0 = c0.map((w) => w * (1 - 0.6 * liner));
     }
