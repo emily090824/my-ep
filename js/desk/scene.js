@@ -72,6 +72,7 @@ async function main() {
   const rolodex = buildRolodex(scene);
   const extras = buildProps(scene);
   const books = SHOT === "links" ? buildBookStack(scene) : null;
+  if (books) rolodex.group.visible = false;   // keep the book still uncluttered
 
   /* ---------- post: depth of field, then tone mapping ---------- */
   // multisampled target: post-processing would otherwise drop antialiasing
@@ -110,8 +111,8 @@ async function main() {
     if (books) {     // the links still: low over the desk, books and mug in front of the window
       const portrait = view.aspect < 1;
       // landscape: books right of centre, the mug with room on the left, headroom for the title plate
-      view.target.copy(books.aim).add(portrait ? new THREE.Vector3(1, 3.5, 0) : new THREE.Vector3(-11, 4, 0));
-      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-3, 16, 92) : new THREE.Vector3(-22, 15, 80));
+      view.target.copy(books.aim).add(portrait ? new THREE.Vector3(-1, 4, 0) : new THREE.Vector3(-1, 3, 0));
+      view.base.copy(books.aim).add(portrait ? new THREE.Vector3(-5, 16, 92) : new THREE.Vector3(-6, 15, 82));
     }
     camera.position.copy(view.base);
     camera.lookAt(view.target);
@@ -782,6 +783,7 @@ function buildProps(scene) {
   const bronze = new THREE.MeshStandardMaterial({ color: "#5e4126", metalness: 1, roughness: 0.42 });
   const tif = new THREE.Group();
   tif.position.copy(TIFFANY);
+  tif.visible = SHOT !== "links";
   scene.add(tif);
   // baluster base: fluted foot, swelling stem, collar
   const baseProf = [[0, 0], [6.6, 0], [6.7, 0.35], [6.3, 0.8], [5.8, 0.9], [5.6, 1.3], [4.4, 1.7], [3.4, 2.3], [2.2, 2.8], [1.5, 3.4],
@@ -1190,10 +1192,11 @@ function buildBookStack(scene) {
   const eyeMat = new THREE.MeshPhysicalMaterial({ color: "#cfd8c4", roughness: 0.1, clearcoat: 1 });
   const pupil = new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 0.3 });
   const cat = new THREE.Group();
-  cat.position.set(18, 0, 3.5);
-  cat.rotation.y = -0.55;
-  cat.scale.setScalar(1.08);
+  cat.position.set(31, 0, -24);
+  cat.rotation.y = -0.35;
+  cat.scale.setScalar(1.0);
   group.add(cat);
+  cat.visible = false;   // held back until it can be built from the reference photo
   const blob = (geo, mat, x, y, z, sx = 1, sy = 1, sz = 1, parent = cat) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.scale.set(sx, sy, sz);
     m.castShadow = m.receiveShadow = true; parent.add(m); return m;
@@ -1221,8 +1224,10 @@ function buildBookStack(scene) {
   blob(sph, glaze, -1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);       // cheek fluff
   blob(sph, glaze, 1.7, -0.9, 1.1, 1.5, 1.2, 1.3, head);
   // painted grey patches: thin caps pressed onto the face, around the eyes and up to the ears
-  blob(sph, grey, -1.35, 0.55, 1.85, 1.25, 1.0, 0.55, head);
-  blob(sph, grey, 1.45, 0.6, 1.8, 1.3, 1.05, 0.55, head);
+  for (const sx of [-1, 1]) {
+    const patch = blob(sph, grey, sx * 1.55, 1.25, 0.95, 1.1, 1.35, 1.05, head);
+    patch.rotation.z = sx * 0.35;
+  }
   for (const sx of [-1, 1]) {
     const ear = blob(new THREE.ConeGeometry(0.95, 1.6, 24), grey, sx * 1.75, 2.35, 0.2, 1, 1, 0.55, head);
     ear.rotation.z = -sx * 0.45;
