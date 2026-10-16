@@ -35,7 +35,7 @@ const HEAD = { p: P(0.25, 13.3, 2.4), ry: -0.75, rx: 0.06 };
 const EYE = { x: 1.2, y: 0.32, z: 2.05, r: [0.72, 0.43, 0.45], tilt: 0.07 };
 
 /* The cast form, with vertex colours for the glaze and markings. */
-function figurineGeometry(headPos, headInv, withFur = true) {
+function figurineGeometry(headPos, headInv, furMode = true) {
   const tail = new THREE.CatmullRomCurve3([P(-1.4, 1.4, -6.0), P(-4.1, 1.2, -4.5), P(-4.75, 1.05, -1.1), P(-4.1, 0.95, 2.3), P(-2.7, 0.85, 4.4), P(-1.95, 0.8, 5.5)]);
   const NT = 18, tailPts = tail.getSpacedPoints(NT), TAIL_FLAT = 0.62;
   const tailFlat = tailPts.map((t) => P(t.x, t.y / TAIL_FLAT, t.z)), tq = new V();
@@ -43,7 +43,7 @@ function figurineGeometry(headPos, headInv, withFur = true) {
   const legs = [-1, 1].map((sx) => [P(sx * 1.45, 4.6, 3.2), P(sx * 1.45, 1.1, 4.2)]);
   const mouth = [[P(0, -0.62, 2.22), P(0, -0.84, 2.22)], [P(0, -0.84, 2.22), P(-0.26, -1.04, 2.12)], [P(0, -0.84, 2.22), P(0.26, -1.04, 2.12)]];
   const hp = new V(), q2 = new V(), q3 = new V();
-  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0 };
+  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0, headGap: 9 };
   // distance from a point to a mouth stroke, measured across the face (ignoring depth)
   const segXY = (h, a, b) => {
     const bx = b.x - a.x, by = b.y - a.y, t = clamp01(((h.x - a.x) * bx + (h.y - a.y) * by) / (bx * bx + by * by));
@@ -118,6 +118,7 @@ function figurineGeometry(headPos, headInv, withFur = true) {
       out.mouth = mg;
     }
     out.part = d <= dt && d <= h ? 0 : dt <= h ? 1 : 2;                   // body, tail or head
+    out.headGap = h - Math.min(d, dt);                                    // how far this is from the head
     // the head settles softly into the ruff and chest
     return Math.max(smin(smin(d, dt, 1.2), h, 0.7 + 0.35 * sstep(-0.5, -2.2, hp.y)), -p.y);
   };
@@ -140,7 +141,7 @@ function figurineGeometry(headPos, headInv, withFur = true) {
      to nothing at its ends and edges, so it never breaks the rounded outline. */
   const strokes = [], CELL = 1.35, BUCKET = 2.2, buckets = new Map();
   const bkey = (x, y, z) => `${Math.floor(x / BUCKET)},${Math.floor(y / BUCKET)},${Math.floor(z / BUCKET)}`;
-  if (withFur) {
+  if (furMode === true) {
     const g = new V(), f = new V(), bn = new V(), headW = new V();
     let n = 0;
     for (let x = -8.5; x < 8.5; x += CELL) for (let y = 0; y < 18.5; y += CELL) for (let z = -9.8; z < 8.8; z += CELL) {
@@ -200,9 +201,65 @@ function figurineGeometry(headPos, headInv, withFur = true) {
     }
     return best;
   };
+  /* Moulded fur, as a test on the upper chest only. Each lock is a broad, low, rounded
+     swell laid on the smooth surface along the fur's fall: longer than wide, gently
+     curved, of varied size and spacing. The swells are summed and the sum is passed
+     through a soft limiter, so however many overlap the total never rises above
+     RELIEF_MAX (and overlaps never steepen the surface). Some locks carry a shallow,
+     curved separation along one edge, limited the same way. The test area fades into
+     the plain glaze over a wide margin, so it has no edge. */
+  const RELIEF_MAX = 0.12, SEP_MAX = 0.03;
+  const chestC = P(0, 8.6, 6.0), locks = [];
+  if (furMode === "chest") {
+    toSurface(chestC);
+    const g = new V(), rng = (n) => hash(n * 3.17 + 0.5);
+    for (let id = 1, tries = 0; locks.length < 16 && tries < 600; id++, tries++) {
+      const s = chestC.clone().add(P((rng(id) - 0.5) * 7.5, (rng(id + 0.3) - 0.5) * 6.5, (rng(id + 0.7) - 0.5) * 1.5));
+      if (toSurface(s) > 0.03 || s.distanceTo(chestC) > 3.8) continue;
+      baseSdf(s);
+      if (out.part !== 0) continue;                                       // chest only, not the head
+      const W = 1.0 + 0.55 * rng(id + 1.1), L = 1.6 + 1.2 * rng(id + 1.9);
+      if (locks.some((k) => k.c.distanceTo(s) < 0.55 * (W + k.W))) continue;
+      gradAt(s, g);
+      // the fur falls, fanning a little out from the middle of the chest
+      const f = P(0.25 * Math.sign(s.x || 1) * Math.min(1, Math.abs(s.x) / 1.5), -1, 0);
+      f.addScaledVector(g, -f.dot(g)).normalize().applyAxisAngle(g, (rng(id + 2.3) - 0.5) * 0.8);
+      locks.push({
+        c: s, f, b: new V().crossVectors(g, f).normalize(), W, L,
+        h: 0.06 + 0.03 * rng(id + 2.9), bend: (rng(id + 3.7) - 0.5) * 1.3,
+        sep: rng(id + 4.3) < 0.45 ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0
+      });
+    }
+  }
+  const lv = new V();
+  const chestRelief = (p) => {
+    const m = 1 - sstep(2.4, 4.2, p.distanceTo(chestC));
+    if (m <= 0) return 0;
+    let sum = 0, sep = 0;
+    for (const k of locks) {
+      lv.subVectors(p, k.c);
+      const a = lv.dot(k.f) / (k.L * 0.5);
+      if (a <= -1 || a >= 1) continue;
+      const cc = (lv.dot(k.b) - k.bend * k.W * a * a) / (k.W * 0.5);   // curved along its length
+      const r2 = a * a + cc * cc;
+      if (r2 >= 1) continue;
+      const q = 1 - r2;
+      sum += k.h * q * q * q;                                            // smooth, rounded, no edge
+      if (k.sep) {
+        const e = (cc - k.sep * 0.6) / 0.34;                              // wide enough for the mesh to carry smoothly
+        if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep += 0.035 * qe * qe * qa * qa; }
+      }
+    }
+    return m * (RELIEF_MAX * Math.tanh(sum / RELIEF_MAX) - SEP_MAX * Math.tanh(sep / SEP_MAX));
+  };
+
   const sdf = (p) => {
     const d = baseSdf(p);
-    const fur = withFur && Math.abs(d) < 0.35 ? furAt(p) : 0;
+    if (furMode === "chest") {
+      out.fur = 0;
+      return Math.abs(d) < 0.45 ? d - chestRelief(p) * sstep(0.4, 1.6, out.headGap) : d;   // raised, gently; none at the chin join
+    }
+    const fur = furMode === true && Math.abs(d) < 0.35 ? furAt(p) : 0;
     out.fur = fur;
     return d + fur;                                                        // pressed in, never raised
   };
