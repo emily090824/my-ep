@@ -51,9 +51,12 @@ scene.add(cat);
 // close to the reference photo: a touch above the figure, looking at it square on
 const camera = new THREE.PerspectiveCamera(26, innerWidth / innerHeight, 1, 500);
 const dist = +(q.get("dist") || 52), ty = +(q.get("ty") || 8.6);
-camera.position.set(0, +(q.get("cy") || ty + 4), dist);
-camera.lookAt(0, ty, 0);
+const tx = +(q.get("tx") || 0);
+camera.position.set(tx, +(q.get("cy") || ty + 4), dist);
+camera.lookAt(tx, ty, 0);
 renderer.render(scene, camera);
+const size = new THREE.Box3().setFromObject(cat).getSize(new THREE.Vector3());
+window.__size = { w: size.x, h: size.y, d: size.z };
 window.__ready = true;
 </script>
 </body>

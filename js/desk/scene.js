@@ -1200,7 +1200,7 @@ function buildBookStack(scene) {
   cat.scale.setScalar(1.25);
   group.add(cat);
   // the figurine itself lives in cat.js; ?clay=1 shows its bare form
-  cat.add(buildCatFigurine({ clay: new URLSearchParams(location.search).get("clay") === "1" }));
+  cat.add(buildCatFigurine({ clay: new URLSearchParams(location.search).get("clay") === "1", fur: new URLSearchParams(location.search).get("fur") !== "0" }));
 
   // a reading light on the stack, so the foil catches
   const key = new THREE.SpotLight("#ffc98a", 2600, 0, 0.6, 0.8, 2);
