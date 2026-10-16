@@ -1,7 +1,7 @@
 /* ==========================================================================
    The cat figurine: a glazed ceramic Persian, after the vase it is modelled on.
    One cast piece, made as a smooth blend of simple volumes and meshed with
-   surface nets, with moulded fur tufts, glass eyes and painted markings.
+   surface nets, with fur pressed shallowly into it, glass eyes and painted markings.
    Units are centimetres before the scene scales it; y is up, the base sits on
    y = 0, and the body's front faces +z before it is posed.
    ========================================================================== */
@@ -34,81 +34,53 @@ const HEAD = { p: P(0.25, 13.3, 2.4), ry: -0.75, rx: 0.06 };
 // eye sockets: wide almonds, the outer corners dipping a little, for a wistful look
 const EYE = { x: 1.2, y: 0.32, z: 2.05, r: [0.82, 0.35, 0.45], tilt: 0.2 };
 
-/* Moulded fur: broad, shallow tufts scattered over the form. Each is a gently curved
-   lock, wide at the root and easing to a soft point, its edges rounded off so it reads
-   as glazed clay rather than carving; neighbours overlap and some leave smooth gaps.
-   u runs across the flow of the fur and v along it. */
-function tufts(u, v, CU, CV, amp, seed) {
-  const i0 = Math.floor(u / CU), j0 = Math.floor(v / CV);
-  let best = 0;
-  for (let j = j0 - 2; j <= j0; j++) for (let i = i0 - 2; i <= i0 + 2; i++) {   // wide enough that no tuft is clipped
-    const id = i * 57.3 + j * 113.1 + seed;
-    if (hash(id + 9.2) < 0.12) continue;                               // a few gaps
-    const rootU = (i + 0.5 * (j & 1) + 0.35 * (hash(id) - 0.5)) * CU;
-    const rootV = (j + 0.5 * hash(id + 3.1)) * CV;
-    const L = CV * (1.15 + 0.55 * hash(id + 7.7));
-    const b = (v - rootV) / L;
-    if (b <= 0 || b >= 1) continue;
-    const W = CU * (0.5 + 0.3 * hash(id + 4.4));
-    const bend = (hash(id + 1.9) - 0.5) * 1.2, ess = (hash(id + 5.3) - 0.5) * 0.9;
-    const a0 = rootU + W * (bend * Math.sin(Math.PI * b * 0.9) + ess * Math.sin(Math.PI * 2 * b) + bend * 0.35 * b);   // a soft S
-    const w = W * Math.pow(1 - b, 0.65) * (0.75 + 0.25 * Math.sin(Math.PI * Math.min(1, b * 1.6)));
-    const x = (u - a0) / w;
-    if (x <= -1 || x >= 1) continue;
-    const prof = (1 - x * x) * (1 - x * x);
-    const h = prof * sstep(0, 0.4, b) * sstep(1, 0.62, b) * (0.75 + 0.35 * b) * (0.92 + 0.08 * Math.cos(Math.PI * 3 * x));   // tips ease down, no cliffs
-    best = best > 0 ? -smin(-best, -h, 0.25) : h;                       // overlapping tufts meet softly
-  }
-  return amp * Math.min(best, 1.15);
-}
-
 /* The cast form, with vertex colours for the glaze and markings. */
 function figurineGeometry(headPos, headInv) {
   const tail = new THREE.CatmullRomCurve3([P(-2.0, 2.0, -7.0), P(-5.2, 1.8, -4.4), P(-5.8, 1.6, -0.6), P(-4.8, 1.5, 2.8), P(-2.9, 1.4, 4.9), P(-1.6, 1.3, 5.6)]);
-  const NT = 18, tailPts = tail.getSpacedPoints(NT), tailSeg = tail.getLength() / NT;
-  const tailD = new Float32Array(NT), tailH = new Float32Array(NT);
+  const NT = 18, tailPts = tail.getSpacedPoints(NT);
+  const tailH = new Float32Array(NT);
   const legs = [-1, 1].map((sx) => [P(sx * 1.4, 6.0, 1.8), P(sx * 1.4, 1.0, 3.9)]);
   const mouth = [[P(0, -0.6, 2.18), P(0, -0.82, 2.2)], [P(0, -0.82, 2.2), P(-0.28, -0.98, 2.14)], [P(0, -0.82, 2.2), P(0.28, -0.98, 2.14)]];
   const hp = new V(), q2 = new V(), q3 = new V();
-  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0 };
+  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0 };
   const eyeSocket = (h, sx) => {
     const x = h.x - sx * EYE.x, y = h.y - EYE.y, a = sx * EYE.tilt, c = Math.cos(a), sn = Math.sin(a);
     q3.set(x * c - y * sn, x * sn + y * c, h.z - EYE.z);
     return ell(q3, [0, 0, 0], EYE.r);
   };
 
-  const sdf = (p) => {
-    // ---- body: compact and plump, broad at the base, a full chest ----
+  // ---- the smooth form: rounded volumes only, no fur ----
+  const baseSdf = (p) => {
+    // body: compact and plump, broad at the base, a full rounded chest
     let d = ell(p, [0, 4.3, -2.6], [4.7, 4.4, 4.9]);                     // haunch
-    d = smin(d, ell(p, [0, 7.4, 0.0], [4.2, 4.6, 3.9]), 2.4);             // torso
-    for (const [a, b] of legs) d = smin(d, cap(p, a, b, 1.15), 1.3);      // front legs under the fur
-    d = smin(d, ell(p, [0, 8.2, 2.3], [3.5, 3.6, 2.4]), 1.8);             // chest
-    d = smin(d, ell(p, [0, 5.6, 3.0], [2.8, 2.9, 1.9]), 1.6);             // bib falling to the paws
-    d = smin(d, ell(p, [0, 10.4, 1.2], [4.0, 2.0, 3.4]), 1.6);            // ruff: no neck
+    d = smin(d, ell(p, [0, 7.4, 0.0], [4.2, 4.6, 3.9]), 2.6);             // torso
+    for (const [a, b] of legs) d = smin(d, cap(p, a, b, 1.15), 1.4);      // front legs under the fur
+    d = smin(d, ell(p, [0, 8.0, 2.3], [3.6, 3.7, 2.5]), 2.0);             // chest
+    d = smin(d, ell(p, [0, 5.6, 3.0], [2.9, 2.9, 2.0]), 1.8);             // bib falling to the paws
+    d = smin(d, ell(p, [0, 10.4, 1.2], [4.1, 2.1, 3.5]), 2.0);            // ruff: no neck
     let paws = 9;
     for (const sx of [-1, 1]) {
       paws = Math.min(paws, ell(p, [sx * 1.4, 0.8, 4.6], [1.05, 0.8, 1.3]));
       if (p.z > 4.2 && p.y < 1.8) for (const o of [-0.45, 0, 0.45])
-        paws = smin(paws, ell(p, [sx * 1.4 + o, 0.55, 5.5 - Math.abs(o) * 0.35], [0.36, 0.42, 0.42]), 0.12);
+        paws = smin(paws, ell(p, [sx * 1.4 + o, 0.55, 5.5 - Math.abs(o) * 0.35], [0.36, 0.42, 0.42]), 0.15);
     }
     out.paws = paws;
-    d = smin(d, paws, 0.5);
-    // ---- tail: a plump plume wrapping the front of the base ----
-    let dt = 9, near = 9;
+    d = smin(d, paws, 0.6);
+    // tail: one smooth, thick, rounded plume wrapping the front of the base
+    let dt = 9;
     for (let i = 0; i < NT; i++) {
-      const di = cap(p, tailPts[i], tailPts[i + 1], 1.6 - (i / NT) * 0.45);
-      tailD[i] = di; tailH[i] = capT.h; near = Math.min(near, di);
-      dt = smin(dt, di, 0.9);
+      dt = smin(dt, cap(p, tailPts[i], tailPts[i + 1], 1.75 - (i / NT) * 0.35), 0.6);
+      tailH[i] = capT.h;
     }
-    // ---- head: broad and round, a flat face, full cheeks ----
+    // head: broad and round, a flat face, wide round cheeks
     hp.copy(p).sub(headPos).applyMatrix4(headInv);
     let h = ell(hp, [0, 0.1, 0], [3.55, 3.2, 2.85]);
     h = smax(h, hp.z - 2.0, 0.9);                                         // flat Persian face
     for (const sx of [-1, 1]) {
-      const k = sx > 0 ? 0.88 : 1;                                        // the far cheek, turned toward us, a touch smaller
-      h = smin(h, ell(hp, [sx * (1.6 + 0.95 * k), -1.35, 0.7], [2.0 * k, 1.75 * k, 1.8 * k]), 0.7);
+      const k = sx > 0 ? 0.9 : 1;                                         // the far cheek, turned toward us, a touch smaller
+      h = smin(h, ell(hp, [sx * (1.5 + 1.05 * k), -1.3, 0.6], [2.25 * k, 1.85 * k, 1.9 * k]), 1.0);
     }
-    // ears: small, set wide, softly rounded, their bases sunk into the head fur
+    // ears: small, set wide, softly rounded, their bases sunk into the head
     out.ear = 9; out.earIn = 9;
     if (hp.y > 0.6 && Math.abs(hp.x) > 0.8) {
       const sx = Math.sign(hp.x);
@@ -134,43 +106,94 @@ function figurineGeometry(headPos, headInv) {
       out.mouth = mg;
       h = smax(h, -mg, 0.04);
     }
-    // the head settles straight into the ruff and chest
-    const base = smin(smin(d, dt, 0.9), h, 1.0 + 0.6 * sstep(-0.5, -2.2, hp.y));
+    out.part = d <= dt && d <= h ? 0 : dt <= h ? 1 : 2;                   // body, tail or head
+    // the head settles softly into the ruff and chest
+    return Math.max(smin(smin(d, dt, 1.0), h, 1.4 + 0.8 * sstep(-0.5, -2.2, hp.y)), -p.y);
+  };
+  const gradAt = (p, gOut) => {
+    const e = 0.04, t = new V();
+    return gOut.set(baseSdf(t.copy(p).setX(p.x + e)) - baseSdf(t.copy(p).setX(p.x - e)),
+                    baseSdf(t.copy(p).setY(p.y + e)) - baseSdf(t.copy(p).setY(p.y - e)),
+                    baseSdf(t.copy(p).setZ(p.z + e)) - baseSdf(t.copy(p).setZ(p.z - e))).normalize();
+  };
+  const toSurface = (p) => {
+    const g = new V();
+    for (let k = 0; k < 6; k++) { const d = baseSdf(p); gradAt(p, g); p.addScaledVector(g, -d); }
+    return Math.abs(baseSdf(p));
+  };
 
-    // ---- moulded fur, following whichever mass this point belongs to ----
-    let fur = 0;
-    if (Math.abs(base) < 0.9) {
-      const wB = Math.exp(-Math.max(0, d - base) * 2.2), wT = Math.exp(-Math.max(0, dt - base) * 3), wH = Math.exp(-Math.max(0, h - base) * 2.2);
-      let fd = 0;
-      if (wB > 0.01) {        // body and chest: loose tufts falling down and round the form
-        const th = Math.atan2(p.x, p.z + 0.5);
-        fd += wB * tufts(th * 4.3 + 0.4 * Math.sin(p.y * 0.35), -p.y, 2.0, 2.3, 0.36, 0);
+  /* Fur: short, softly rounded, curved strokes pressed shallowly into the smooth form.
+     They are laid once, on the finished surface itself, each along the fur's flow at
+     that spot (down the body, fanning out on the cheeks, along the tail), spaced out
+     with plenty of plain glaze between. A stroke is only ever an indentation, fading
+     to nothing at its ends and edges, so it never breaks the rounded outline. */
+  const strokes = [], CELL = 1.35, BUCKET = 2.2, buckets = new Map();
+  const bkey = (x, y, z) => `${Math.floor(x / BUCKET)},${Math.floor(y / BUCKET)},${Math.floor(z / BUCKET)}`;
+  {
+    const g = new V(), f = new V(), bn = new V(), tmp = new V(), headW = new V();
+    let n = 0;
+    for (let x = -8.5; x < 8.5; x += CELL) for (let y = 0; y < 18.5; y += CELL) for (let z = -9.8; z < 8.8; z += CELL) {
+      const id = ++n * 1.618;
+      const s = P(x + CELL * hash(id), y + CELL * hash(id + 1.3), z + CELL * hash(id + 2.7));
+      if (Math.abs(baseSdf(s)) > CELL) continue;
+      if (toSurface(s) > 0.03 || s.y < 0.9) continue;
+      baseSdf(s);
+      const part = out.part;
+      if (out.paws < 0.8 || out.ear < 0.5) continue;
+      hp.copy(s).sub(headPos).applyMatrix4(headInv);
+      const r = Math.hypot(hp.x, hp.y + 0.4);
+      if (part === 2 && hp.z > 0.7 && r < 2.6) continue;                 // the face stays plain
+      const keep = part === 0 ? 0.5 : part === 1 ? 0.22 : (Math.abs(hp.x) > 1.6 || hp.y < -1.2 ? 0.55 : 0.25);
+      if (hash(id + 4.1) > keep) continue;
+      gradAt(s, g);
+      // flow: down the body, outward from the head's centre, along the tail
+      if (part === 0) f.set(0, -1, 0.15 * Math.sign(s.z));
+      else if (part === 2) f.copy(s).sub(headW.copy(headPos).add(P(0, -0.6, 0)));
+      else {
+        let best = 9, bi = 0;
+        for (let i = 0; i < NT; i++) { const dd = cap(s, tailPts[i], tailPts[i + 1], 0); if (dd < best) { best = dd; bi = i; } }
+        f.subVectors(tailPts[bi + 1], tailPts[bi]);
       }
-      if (wT > 0.01) {        // tail: tufts running along it
-        let ws = 0, ts = 0, side = 0, up = 0;
-        for (let i = 0; i < NT; i++) {
-          const w = Math.exp(-8 * (tailD[i] - near));
-          if (w < 1e-3) continue;
-          const a = tailPts[i], b = tailPts[i + 1], ax = b.x - a.x, az = b.z - a.z, al = Math.hypot(ax, az);
-          ts += w * (i + tailH[i]) * tailSeg;
-          side += w * ((p.x - a.x) * -az + (p.z - a.z) * ax) / al;
-          up += w * (p.y - (a.y + (b.y - a.y) * tailH[i]));
-          ws += w;
-        }
-        fd += wT * tufts(Math.atan2(side / ws, up / ws) * 1.9, ts / ws, 1.3, 1.8, 0.3, 11);
-      }
-      if (wH > 0.01) {        // head: cheek fur fanning outward, small tufts over the crown
-        const ang = Math.atan2(hp.x, -(hp.y + 0.4)), r = Math.hypot(hp.x, hp.y + 0.4);
-        const face = hp.z > 0.9 ? 1 - sstep(2.1, 2.7, r) : 0;
-        const earZone = out.ear < 0.4 ? 1 : 0;
-        const cheek = sstep(1.4, 2.5, Math.abs(hp.x)) * sstep(0.4, -0.6, hp.y);
-        fd += wH * tufts(ang * 3.0, r, 1.0, 1.05, 0.13 + 0.15 * cheek * (hp.x > 0 ? 0.55 : 1), 23) * (1 - face) * (1 - earZone);
-      }
-      fur = fd / (wB + wT + wH);
-      fur *= 1 - sstep(0.6, 0.0, paws);                                   // smooth paws
+      f.addScaledVector(g, -f.dot(g));
+      if (f.lengthSq() < 0.05) continue;
+      f.normalize().applyAxisAngle(g, (hash(id + 5.9) - 0.5) * 0.35);
+      bn.crossVectors(g, f).normalize();
+      const L = (part === 2 ? 0.9 : part === 1 ? 1.6 : 1.45) * (0.8 + 0.45 * hash(id + 6.6));
+      const bend = (hash(id + 7.3) - 0.5) * 0.24 * L;                         // a gentle curve, not a chevron
+      const a = s.clone().addScaledVector(f, -L / 2), b = s.clone().addScaledVector(f, L / 2);
+      const m = s.clone().addScaledVector(bn, bend);
+      toSurface(a); toSurface(b); toSurface(m);
+      const depth = part === 2 ? 0.045 : part === 1 ? 0.05 : 0.065, w = part === 2 ? 0.2 : 0.26;
+      const st = { a, m, b, depth, w };
+      strokes.push(st);
+      const k = bkey(s.x, s.y, s.z);
+      if (!buckets.has(k)) buckets.set(k, []);
+      buckets.get(k).push(st);
     }
+  }
+  const furAt = (p) => {
+    let best = 0;
+    const bx = Math.floor(p.x / BUCKET), by = Math.floor(p.y / BUCKET), bz = Math.floor(p.z / BUCKET);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) {
+      const list = buckets.get(`${bx + i},${by + j},${bz + k}`);
+      if (!list) continue;
+      for (const s of list) {
+        const d0 = cap(p, s.a, s.m, 0), h0 = capT.h, d1 = cap(p, s.m, s.b, 0), h1 = capT.h;
+        const d = Math.min(d0, d1);
+        if (d >= s.w) continue;
+        const t = d0 < d1 ? h0 * 0.5 : 0.5 + h1 * 0.5;
+        const q = 1 - (d / s.w) * (d / s.w);
+        const v = s.depth * q * q * Math.pow(Math.sin(Math.PI * t), 1.2);
+        if (v > best) best = v;
+      }
+    }
+    return best;
+  };
+  const sdf = (p) => {
+    const d = baseSdf(p);
+    const fur = Math.abs(d) < 0.35 ? furAt(p) : 0;
     out.fur = fur;
-    return Math.max(base - fur, -p.y);                                    // flat base
+    return d + fur;                                                        // pressed in, never raised
   };
 
   // ---- surface nets over a grid ----
@@ -246,9 +269,9 @@ function figurineGeometry(headPos, headInv) {
     }
     if (hp.z > 1.4 && ax < 2.2 && hp.y > -0.4 && hp.y < 1.0) {   // soft dark liner round the eyes
       const sock = eyeSocket(hp, Math.sign(hp.x));
-      c0 = c0.map((w) => w * (1 - 0.55 * sstep(0.09, 0.02, sock) * sstep(-0.06, 0.0, sock)));
+      c0 = c0.map((w) => w * (1 - 0.28 * sstep(0.08, 0.02, sock) * sstep(-0.06, 0.0, sock)));
     }
-    const shade = (0.9 + 0.1 * clamp01(fur / 0.2)) * (mouthD < 0.12 ? 0.6 + 3.3 * Math.max(0, mouthD) : 1);
+    const shade = (1 - 1.2 * fur) * (mouthD < 0.12 ? 0.6 + 3.3 * Math.max(0, mouthD) : 1);
     col.push(c0[0] * shade, c0[1] * shade, c0[2] * shade);
   }
   geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
@@ -270,9 +293,9 @@ function eyeTexture() {
     g.beginPath(); g.moveTo(110 + Math.cos(a) * r0, 116 + Math.sin(a) * r0); g.lineTo(124 + Math.cos(a) * 92, 128 + Math.sin(a) * 88); g.stroke();
   }
   g.fillStyle = "#1b1c1d"; g.beginPath(); g.ellipse(108, 112, 34, 42, 0, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "#2b2c2e"; g.lineWidth = 9; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = "#4a4d50"; g.lineWidth = 5; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
   // a soft upper lid line, heavier than the lower, as painted on the figurine
-  g.strokeStyle = "rgba(30,30,32,0.9)"; g.lineWidth = 14; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
+  g.strokeStyle = "rgba(45,46,48,0.6)"; g.lineWidth = 8; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
   g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(130, 92, 11, 8, -0.4, 0, Math.PI * 2); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
