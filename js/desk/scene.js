@@ -1254,16 +1254,21 @@ function catEyeTexture() {
   const g = c.getContext("2d");
   g.fillStyle = "#1c1d1f"; g.fillRect(0, 0, 256, 256);
   const iris = g.createRadialGradient(118, 132, 8, 124, 128, 104);
-  iris.addColorStop(0, "#e6efe2"); iris.addColorStop(0.5, "#c9dcd2"); iris.addColorStop(0.85, "#93b3aa"); iris.addColorStop(1, "#5d7a73");
+  iris.addColorStop(0, "#d9c77a"); iris.addColorStop(0.45, "#b9a65a"); iris.addColorStop(0.8, "#8c8a4a"); iris.addColorStop(1, "#5e6338");
   g.fillStyle = iris; g.beginPath(); g.ellipse(124, 128, 100, 96, 0, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "rgba(90,120,118,0.22)"; g.lineWidth = 2;        // fine streaks in the iris
+  g.strokeStyle = "rgba(90,80,30,0.25)"; g.lineWidth = 2;        // fine streaks in the iris
   for (let i = 0; i < 60; i++) {
     const a = (i / 60) * Math.PI * 2, r0 = 34 + (i % 3) * 4;
     g.beginPath(); g.moveTo(118 + Math.cos(a) * r0, 128 + Math.sin(a) * r0); g.lineTo(122 + Math.cos(a) * 92, 128 + Math.sin(a) * 88); g.stroke();
   }
-  g.fillStyle = "#17191b"; g.beginPath(); g.ellipse(120, 122, 34, 64, 0, 0, Math.PI * 2); g.fill();   // soft vertical pupil   // pupil, glancing aside
-  g.strokeStyle = "#2a2c2e"; g.lineWidth = 7; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
-  g.fillStyle = "rgba(255,255,255,0.9)"; g.beginPath(); g.ellipse(140, 92, 16, 12, -0.4, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#1a1715"; g.beginPath(); g.ellipse(122, 132, 46, 70, 0, 0, Math.PI * 2); g.fill();   // large soft pupil
+  g.strokeStyle = "#3a3936"; g.lineWidth = 5; g.beginPath(); g.ellipse(124, 128, 106, 102, 0, 0, Math.PI * 2); g.stroke();
+  // a relaxed upper lid drawn a little way down, so the look is calm, not staring
+  const lid = g.createLinearGradient(0, 0, 0, 96);
+  lid.addColorStop(0, "#5c6067"); lid.addColorStop(1, "#666a71");
+  g.fillStyle = lid; g.beginPath(); g.moveTo(0, 0); g.lineTo(256, 0); g.lineTo(256, 96); g.quadraticCurveTo(128, 46, 0, 96); g.closePath(); g.fill();
+  g.strokeStyle = "rgba(40,38,36,0.85)"; g.lineWidth = 6; g.beginPath(); g.moveTo(0, 96); g.quadraticCurveTo(128, 46, 256, 96); g.stroke();
+  g.fillStyle = "rgba(255,250,235,0.85)"; g.beginPath(); g.ellipse(146, 104, 11, 8, -0.4, 0, Math.PI * 2); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
@@ -1323,7 +1328,7 @@ function catFigurineGeometry(headPos, headInv) {
                  [P(0, -0.98, 2.3), P(0.3, -1.3, 2.24)], [P(0.3, -1.3, 2.24), P(0.62, -1.22, 2.14)]];
   // the jaw: down from under each eye, round the whisker pads, meeting under the chin
   const jawLine = [];
-  for (const sx of [-1, 1]) jawLine.push([P(sx * 1.55, -0.45, 1.75), P(sx * 1.35, -1.35, 1.85)], [P(sx * 1.35, -1.35, 1.85), P(sx * 0.75, -1.95, 1.9)], [P(sx * 0.75, -1.95, 1.9), P(0, -2.1, 1.88)]);
+  for (const sx of [-1, 1]) jawLine.push([P(sx * 1.55, -0.45, 1.75), P(sx * 1.35, -1.35, 1.85)], [P(sx * 1.35, -1.35, 1.85), P(sx * 0.95, -1.8, 1.85)]);
   const hp = new V(), q2 = new V(), q3 = new V();
   // eye socket: a wide almond, its outer corner tipped down
   const eyeSocket = (h, sx) => {
@@ -1408,15 +1413,14 @@ function catFigurineGeometry(headPos, headInv) {
       h = smax(h, -mg, 0.04);
     } else { out.mouth = 9; out.jaw = 9; }
     // ---- fur, carved into whichever mass this point belongs to ----
-    let base = smin(smin(d, dt, 0.8), h, 0.45);
-    // a shadowed crease under the chin, so it stands off the bib
+    let base = smin(smin(d, dt, 0.8), h, 0.45 + 0.75 * sstep(-0.2, -1.6, hp.y));   // the jaw melts into the bib
+    // under the chin: no carved crease now, only a faint shade where it meets the bib
     const crease = ell(hp, [0, -2.12, 1.66], [1.0, 0.14, 0.55]);
     out.crease = crease;
-    base = smax(base, -crease, 0.14);
     let fur = 0;
     out.ridge = 1;
     if (Math.abs(base) < 0.8) {
-      const wB = Math.exp(-Math.max(0, d - base) * 4), wT = Math.exp(-Math.max(0, dt - base) * 4), wH = Math.exp(-Math.max(0, h - base) * 4);
+      const wB = Math.exp(-Math.max(0, d - base) * 2.2), wT = Math.exp(-Math.max(0, dt - base) * 4), wH = Math.exp(-Math.max(0, h - base) * 2.2);
       let fd = 0, fr = 0;
       if (wB > 0.01) {        // body: long locks falling down and round the form
         const th = Math.atan2(p.x, p.z + 0.6), u = th * 3.9;
@@ -1537,7 +1541,7 @@ function catFigurineGeometry(headPos, headInv) {
       const liner = sstep(0.1, 0.03, sock) * sstep(-0.06, 0.0, sock);
       c0 = c0.map((w) => w * (1 - 0.6 * liner));
     }
-    const shade = (0.8 + 0.2 * ridge) * (mouthD < 0.16 ? 0.35 + 4 * Math.max(0, mouthD) : 1) * (0.8 + 0.2 * sstep(-0.05, 0.25, creaseD)) * (0.68 + 0.32 * sstep(0.0, 0.22, jawD));
+    const shade = (0.8 + 0.2 * ridge) * (mouthD < 0.16 ? 0.35 + 4 * Math.max(0, mouthD) : 1) * (0.68 + 0.32 * sstep(0.0, 0.22, jawD));
     col.push(c0[0] * shade, c0[1] * shade, c0[2] * shade);
   }
   geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
