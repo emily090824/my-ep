@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Dev tool: the cat figurine alone on a plain light ground, for comparing it with
+     its reference. Not linked from the site. ?clay=1 shows the bare form. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat figurine studio</title>
+<style>html, body { margin: 0; height: 100%; background: #efece6; } canvas { display: block; }</style>
+</head>
+<body>
+<script type="importmap">
+  { "imports": { "three": "../vendor/three/three.module.min.js", "three/addons/": "../vendor/three/addons/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { buildCatFigurine } from "../js/desk/cat.js";
+
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.8;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#efece6");
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
+
+// soft, even studio light: a broad key from the front left, a fill, a little top light
+scene.add(new THREE.HemisphereLight("#ffffff", "#cfc8bc", 0.55));
+const key = new THREE.DirectionalLight("#fffaf2", 1.25);
+key.position.set(-30, 45, 50); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.12;
+Object.assign(key.shadow.camera, { left: -20, right: 20, top: 25, bottom: -5, near: 1, far: 150 });
+scene.add(key);
+const fill = new THREE.DirectionalLight("#f4f6ff", 0.45); fill.position.set(40, 20, 30); scene.add(fill);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.12 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+const cat = buildCatFigurine({ clay: q.get("clay") === "1" });
+cat.rotation.y = +(q.get("turn") || 0);
+scene.add(cat);
+
+// close to the reference photo: a touch above the figure, looking at it square on
+const camera = new THREE.PerspectiveCamera(26, innerWidth / innerHeight, 1, 500);
+const dist = +(q.get("dist") || 52), ty = +(q.get("ty") || 8.6);
+camera.position.set(0, ty + 4, dist);
+camera.lookAt(0, ty, 0);
+renderer.render(scene, camera);
+window.__ready = true;
+</script>
+</body>
+</html>
