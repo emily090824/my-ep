@@ -35,11 +35,12 @@ const HEAD = { p: P(0.25, 13.3, 2.4), ry: -0.75, rx: 0.06 };
 const EYE = { x: 1.2, y: 0.32, z: 2.05, r: [0.82, 0.35, 0.45], tilt: 0.2 };
 
 /* The cast form, with vertex colours for the glaze and markings. */
-function figurineGeometry(headPos, headInv) {
-  const tail = new THREE.CatmullRomCurve3([P(-2.0, 2.0, -7.0), P(-5.2, 1.8, -4.4), P(-5.8, 1.6, -0.6), P(-4.8, 1.5, 2.8), P(-2.9, 1.4, 4.9), P(-1.6, 1.3, 5.6)]);
-  const NT = 18, tailPts = tail.getSpacedPoints(NT);
+function figurineGeometry(headPos, headInv, withFur = true) {
+  const tail = new THREE.CatmullRomCurve3([P(-1.2, 1.6, -6.4), P(-4.9, 1.3, -4.7), P(-6.1, 1.15, -0.8), P(-5.1, 1.0, 2.9), P(-2.9, 0.85, 5.0), P(-1.4, 0.7, 5.7)]);
+  const NT = 18, tailPts = tail.getSpacedPoints(NT), TAIL_FLAT = 0.62;
+  const tailFlat = tailPts.map((t) => P(t.x, t.y / TAIL_FLAT, t.z)), tq = new V();
   const tailH = new Float32Array(NT);
-  const legs = [-1, 1].map((sx) => [P(sx * 1.4, 6.0, 1.8), P(sx * 1.4, 1.0, 3.9)]);
+  const legs = [-1, 1].map((sx) => [P(sx * 1.45, 4.6, 3.2), P(sx * 1.45, 1.1, 4.2)]);
   const mouth = [[P(0, -0.6, 2.18), P(0, -0.82, 2.2)], [P(0, -0.82, 2.2), P(-0.28, -0.98, 2.14)], [P(0, -0.82, 2.2), P(0.28, -0.98, 2.14)]];
   const hp = new V(), q2 = new V(), q3 = new V();
   const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0 };
@@ -52,39 +53,44 @@ function figurineGeometry(headPos, headInv) {
   // ---- the smooth form: rounded volumes only, no fur ----
   const baseSdf = (p) => {
     // body: compact and plump, broad at the base, a full rounded chest
-    let d = ell(p, [0, 4.3, -2.6], [4.7, 4.4, 4.9]);                     // haunch
-    d = smin(d, ell(p, [0, 7.4, 0.0], [4.2, 4.6, 3.9]), 2.6);             // torso
-    for (const [a, b] of legs) d = smin(d, cap(p, a, b, 1.15), 1.4);      // front legs under the fur
-    d = smin(d, ell(p, [0, 8.0, 2.3], [3.6, 3.7, 2.5]), 2.0);             // chest
-    d = smin(d, ell(p, [0, 5.6, 3.0], [2.9, 2.9, 2.0]), 1.8);             // bib falling to the paws
-    d = smin(d, ell(p, [0, 10.4, 1.2], [4.1, 2.1, 3.5]), 2.0);            // ruff: no neck
+    let d = ell(p, [0.2, 4.0, -2.5], [5.0, 4.1, 5.2]);                   // haunch: low and full
+    d = smin(d, ell(p, [-2.4, 3.3, -2.2], [2.5, 3.0, 3.7]), 1.6);         // the near thigh, bulging a little (the pose's asymmetry)
+    d = smin(d, ell(p, [0, 6.9, 0.2], [4.35, 4.1, 4.0]), 2.2);            // torso, compact, full in the shoulders
+    d = smin(d, ell(p, [0, 10.2, 1.0], [3.8, 1.9, 3.2]), 1.2);            // ruff under the head
+    const bib = ell(p, [0, 7.6, 3.1], [3.4, 3.7, 2.55]);                  // a full, rounded bib under the face, over the legs
+    d = smin(d, bib, 1.0);
+    // front legs and paws: two tucked columns, readable at the lower front
+    for (const [a, b] of legs) d = smin(d, cap(p, a, b, 1.3), 0.8);   // thick, furry legs, mostly behind the bib
     let paws = 9;
     for (const sx of [-1, 1]) {
-      paws = Math.min(paws, ell(p, [sx * 1.4, 0.8, 4.6], [1.05, 0.8, 1.3]));
+      paws = Math.min(paws, ell(p, [sx * 1.45, 0.8, 4.85], [1.1, 0.82, 1.35]));
       if (p.z > 4.2 && p.y < 1.8) for (const o of [-0.45, 0, 0.45])
-        paws = smin(paws, ell(p, [sx * 1.4 + o, 0.55, 5.5 - Math.abs(o) * 0.35], [0.36, 0.42, 0.42]), 0.15);
+        paws = smin(paws, ell(p, [sx * 1.45 + o, 0.55, 5.75 - Math.abs(o) * 0.35], [0.38, 0.42, 0.42]), 0.15);
     }
     out.paws = paws;
-    d = smin(d, paws, 0.6);
-    // tail: one smooth, thick, rounded plume wrapping the front of the base
+    d = smin(d, paws, 0.45);
+    // tail: a broad, low, tapering tail resting on the base, its cross-section flattened
+    // (measured in a space squashed vertically), its root sunk into the haunch
     let dt = 9;
+    tq.set(p.x, p.y / TAIL_FLAT, p.z);
     for (let i = 0; i < NT; i++) {
-      dt = smin(dt, cap(p, tailPts[i], tailPts[i + 1], 1.75 - (i / NT) * 0.35), 0.6);
+      const u = i / NT;
+      dt = smin(dt, cap(tq, tailFlat[i], tailFlat[i + 1], 2.35 - 1.25 * Math.pow(u, 1.4)), 0.8);
       tailH[i] = capT.h;
     }
+    dt *= 0.8;
     // head: broad and round, a flat face, wide round cheeks
     hp.copy(p).sub(headPos).applyMatrix4(headInv);
-    let h = ell(hp, [0, 0.1, 0], [3.55, 3.2, 2.85]);
+    let h = ell(hp, [0, 0.1, 0], [3.9, 2.95, 2.9]);                       // wider than tall
     h = smax(h, hp.z - 2.0, 0.9);                                         // flat Persian face
-    for (const sx of [-1, 1]) {
-      const k = sx > 0 ? 0.9 : 1;                                         // the far cheek, turned toward us, a touch smaller
-      h = smin(h, ell(hp, [sx * (1.5 + 1.05 * k), -1.3, 0.6], [2.25 * k, 1.85 * k, 1.9 * k]), 1.0);
-    }
+    // cheeks: one broad, soft fullness across the sides of the lower face (not two balls),
+    // a little less on the far side, which the turned head shows us more of
+    h = smin(h, ell(hp, [-0.15, -1.3, 0.55], [4.35, 1.8, 2.2]), 1.1);
     // ears: small, set wide, softly rounded, their bases sunk into the head
     out.ear = 9; out.earIn = 9;
     if (hp.y > 0.6 && Math.abs(hp.x) > 0.8) {
       const sx = Math.sign(hp.x);
-      q2.set(hp.x - sx * 2.3, hp.y - 1.95, hp.z + 0.1);
+      q2.set(hp.x - sx * 2.45, hp.y - 1.8, hp.z + 0.1);
       const a = sx * 0.45, c = Math.cos(a), sn = Math.sin(a);
       q2.set(q2.x * c - q2.y * sn, q2.x * sn + q2.y * c, q2.z);
       q2.z -= q2.y * 0.12;
@@ -108,7 +114,7 @@ function figurineGeometry(headPos, headInv) {
     }
     out.part = d <= dt && d <= h ? 0 : dt <= h ? 1 : 2;                   // body, tail or head
     // the head settles softly into the ruff and chest
-    return Math.max(smin(smin(d, dt, 1.0), h, 1.4 + 0.8 * sstep(-0.5, -2.2, hp.y)), -p.y);
+    return Math.max(smin(smin(d, dt, 1.2), h, 0.8 + 0.5 * sstep(-0.5, -2.2, hp.y)), -p.y);
   };
   const gradAt = (p, gOut) => {
     const e = 0.04, t = new V();
@@ -129,8 +135,8 @@ function figurineGeometry(headPos, headInv) {
      to nothing at its ends and edges, so it never breaks the rounded outline. */
   const strokes = [], CELL = 1.35, BUCKET = 2.2, buckets = new Map();
   const bkey = (x, y, z) => `${Math.floor(x / BUCKET)},${Math.floor(y / BUCKET)},${Math.floor(z / BUCKET)}`;
-  {
-    const g = new V(), f = new V(), bn = new V(), tmp = new V(), headW = new V();
+  if (withFur) {
+    const g = new V(), f = new V(), bn = new V(), headW = new V();
     let n = 0;
     for (let x = -8.5; x < 8.5; x += CELL) for (let y = 0; y < 18.5; y += CELL) for (let z = -9.8; z < 8.8; z += CELL) {
       const id = ++n * 1.618;
@@ -191,7 +197,7 @@ function figurineGeometry(headPos, headInv) {
   };
   const sdf = (p) => {
     const d = baseSdf(p);
-    const fur = Math.abs(d) < 0.35 ? furAt(p) : 0;
+    const fur = withFur && Math.abs(d) < 0.35 ? furAt(p) : 0;
     out.fur = fur;
     return d + fur;                                                        // pressed in, never raised
   };
@@ -309,7 +315,7 @@ function eyeGeometry() {
 
 /* The figurine, posed, at the origin and unscaled. With clay: true it is shown as
    bare grey clay, for judging the form on its own. */
-export function buildCatFigurine({ clay = false } = {}) {
+export function buildCatFigurine({ clay = false, fur = true } = {}) {
   const glaze = new THREE.MeshPhysicalMaterial({
     vertexColors: true, roughness: 0.32, clearcoat: 0.9, clearcoatRoughness: 0.18
   });
@@ -318,7 +324,7 @@ export function buildCatFigurine({ clay = false } = {}) {
   const pose = new THREE.Group(); pose.rotation.y = POSE_Y; fig.add(pose);
   const head = new THREE.Group(); head.position.copy(HEAD.p); head.rotation.set(HEAD.rx, HEAD.ry, 0, "YXZ"); pose.add(head);
   const headInv = new THREE.Matrix4().makeRotationFromEuler(head.rotation).invert();
-  const body = new THREE.Mesh(figurineGeometry(HEAD.p, headInv), clay ? clayMat : glaze);
+  const body = new THREE.Mesh(figurineGeometry(HEAD.p, headInv, fur), clay ? clayMat : glaze);
   body.castShadow = body.receiveShadow = true;
   pose.add(body);
   if (!clay) {
