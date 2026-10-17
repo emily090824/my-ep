@@ -208,32 +208,41 @@ function figurineGeometry(headPos, headInv, furMode = true) {
      RELIEF_MAX (and overlaps never steepen the surface). Some locks carry a shallow,
      curved separation along one edge, limited the same way. The test area fades into
      the plain glaze over a wide margin, so it has no edge. */
-  const RELIEF_MAX = 0.12, SEP_MAX = 0.03;
+  const RELIEF_MAX = 0.12, SEP_MAX = 0.015;
   const chestC = P(0, 8.6, 6.0), locks = [];
+  // the test area: broad beneath the cheeks, reaching further down than up, and fading out
+  // over a wide, slightly irregular margin so it never reads as a patch
+  const areaDist = (p) => {
+    const rx = p.x - chestC.x, ry = p.y - chestC.y, rz = p.z - chestC.z;
+    return Math.hypot(rx * 0.6, ry * (ry < 0 ? 0.72 : 1.0), rz * 0.8) + 0.35 * Math.sin(2.3 * rx + 1.1 * ry) * Math.sin(1.7 * ry - 0.6 * rx);
+  };
   if (furMode === "chest") {
     toSurface(chestC);
     const g = new V(), rng = (n) => hash(n * 3.17 + 0.5);
-    for (let id = 1, tries = 0; locks.length < 16 && tries < 600; id++, tries++) {
-      const s = chestC.clone().add(P((rng(id) - 0.5) * 7.5, (rng(id + 0.3) - 0.5) * 6.5, (rng(id + 0.7) - 0.5) * 1.5));
-      if (toSurface(s) > 0.03 || s.distanceTo(chestC) > 3.8) continue;
+    for (let id = 1, tries = 0; locks.length < 24 && tries < 900; id++, tries++) {
+      const s = chestC.clone().add(P((rng(id) - 0.5) * 11, (rng(id + 0.3) - 0.62) * 8.5, (rng(id + 0.7) - 0.5) * 2.5));
+      if (toSurface(s) > 0.03 || areaDist(s) > 3.6) continue;
       baseSdf(s);
       if (out.part !== 0) continue;                                       // chest only, not the head
-      const W = 1.0 + 0.55 * rng(id + 1.1), L = 1.6 + 1.2 * rng(id + 1.9);
-      if (locks.some((k) => k.c.distanceTo(s) < 0.55 * (W + k.W))) continue;
+      // short, rounded forms high on the chest; a few longer ones lower down
+      const up = clamp01((s.y - (chestC.y - 3.2)) / 4.5);
+      const W = 1.25 + 0.6 * rng(id + 1.1), L = (2.5 - 1.2 * up) * (0.75 + 0.5 * rng(id + 1.9));
+      if (locks.some((k) => k.c.distanceTo(s) < 0.42 * (W + k.W))) continue;
       gradAt(s, g);
-      // the fur falls, fanning a little out from the middle of the chest
-      const f = P(0.25 * Math.sign(s.x || 1) * Math.min(1, Math.abs(s.x) / 1.5), -1, 0);
-      f.addScaledVector(g, -f.dot(g)).normalize().applyAxisAngle(g, (rng(id + 2.3) - 0.5) * 0.8);
+      // the middle falls straight down; the sides fan outward beneath the cheeks, more so near the top
+      const fan = Math.max(-1, Math.min(1, s.x / 3.0)) * (0.3 + 0.8 * up);
+      const f = P(fan, -1, 0);
+      f.addScaledVector(g, -f.dot(g)).normalize().applyAxisAngle(g, (rng(id + 2.3) - 0.5) * 0.5);
       locks.push({
         c: s, f, b: new V().crossVectors(g, f).normalize(), W, L,
-        h: 0.06 + 0.03 * rng(id + 2.9), bend: (rng(id + 3.7) - 0.5) * 1.3,
-        sep: rng(id + 4.3) < 0.45 ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0
+        h: 0.055 + 0.03 * rng(id + 2.9), bend: (rng(id + 3.7) - 0.5) * 1.0,
+        sep: rng(id + 4.3) < 0.35 ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0
       });
     }
   }
   const lv = new V();
   const chestRelief = (p) => {
-    const m = 1 - sstep(2.4, 4.2, p.distanceTo(chestC));
+    const m = 1 - sstep(2.0, 4.6, areaDist(p));
     if (m <= 0) return 0;
     let sum = 0, sep = 0;
     for (const k of locks) {
@@ -244,10 +253,10 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       const r2 = a * a + cc * cc;
       if (r2 >= 1) continue;
       const q = 1 - r2;
-      sum += k.h * q * q * q;                                            // smooth, rounded, no edge
+      sum += k.h * q * q;                                                // broad, rounded, blending into neighbours
       if (k.sep) {
-        const e = (cc - k.sep * 0.6) / 0.34;                              // wide enough for the mesh to carry smoothly
-        if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep += 0.035 * qe * qe * qa * qa; }
+        const e = (cc - k.sep * 0.6) / 0.4;                               // a soft, shallow parting
+        if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep += 0.02 * qe * qe * qa * qa; }
       }
     }
     return m * (RELIEF_MAX * Math.tanh(sum / RELIEF_MAX) - SEP_MAX * Math.tanh(sep / SEP_MAX));

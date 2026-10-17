@@ -40,6 +40,8 @@ key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.
 Object.assign(key.shadow.camera, { left: -20, right: 20, top: 25, bottom: -5, near: 1, far: 150 });
 scene.add(key);
 const fill = new THREE.DirectionalLight("#f4f6ff", 0.45); fill.position.set(40, 20, 30); scene.add(fill);
+// ?rake=1: an inspection light from the side, low, to show surface relief clearly
+if (q.get("rake") === "1") { key.position.set(-55, 22, 18); key.intensity = 1.9; fill.intensity = 0.2; }
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.12 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
