@@ -46,7 +46,7 @@ if (q.get("rake") === "1") { key.position.set(-55, 22, 18); key.intensity = 1.9;
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.12 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-const cat = buildCatFigurine({ clay: q.get("clay") === "1", fur: q.get("fur") === "0" ? false : q.get("fur") === "chest" ? "chest" : true });
+const cat = buildCatFigurine({ clay: q.get("clay") === "1", fur: q.get("fur") === "0" ? false : ["chest", "full"].includes(q.get("fur")) ? q.get("fur") : true });
 cat.rotation.y = +(q.get("turn") || 0);
 scene.add(cat);
 

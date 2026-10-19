@@ -43,7 +43,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
   const legs = [-1, 1].map((sx) => [P(sx * 1.45, 4.6, 3.2), P(sx * 1.45, 1.1, 4.2)]);
   const mouth = [[P(0, -0.62, 2.22), P(0, -0.84, 2.22)], [P(0, -0.84, 2.22), P(-0.26, -1.04, 2.12)], [P(0, -0.84, 2.22), P(0.26, -1.04, 2.12)]];
   const hp = new V(), q2 = new V(), q3 = new V();
-  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0, headGap: 9 };
+  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0, headGap: 9, tailGap: 9 };
   // distance from a point to a mouth stroke, measured across the face (ignoring depth)
   const segXY = (h, a, b) => {
     const bx = b.x - a.x, by = b.y - a.y, t = clamp01(((h.x - a.x) * bx + (h.y - a.y) * by) / (bx * bx + by * by));
@@ -119,6 +119,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     }
     out.part = d <= dt && d <= h ? 0 : dt <= h ? 1 : 2;                   // body, tail or head
     out.headGap = h - Math.min(d, dt);                                    // how far this is from the head
+    out.tailGap = Math.abs(d - dt);                                       // and from the tail's join with the body
     // the head settles softly into the ruff and chest
     return Math.max(smin(smin(d, dt, 1.2), h, 0.7 + 0.35 * sstep(-0.5, -2.2, hp.y)), -p.y);
   };
@@ -216,7 +217,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     const rx = p.x - chestC.x, ry = p.y - chestC.y, rz = p.z - chestC.z;
     return Math.hypot(rx * 0.6, ry * (ry < 0 ? 0.72 : 1.0), rz * 0.8) + 0.35 * Math.sin(2.3 * rx + 1.1 * ry) * Math.sin(1.7 * ry - 0.6 * rx);
   };
-  if (furMode === "chest") {
+  if (furMode === "chest" || furMode === "full") {
     toSurface(chestC);
     const g = new V(), rng = (n) => hash(n * 3.17 + 0.5);
     for (let id = 1, tries = 0; locks.length < 24 && tries < 900; id++, tries++) {
@@ -252,7 +253,111 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       }
     }
   }
+  /* The full treatment carries the chest's visual language to the rest of the cat, in the
+     same lock form and strength, each region along its own fur direction (after the
+     reference): short forms fanning out from the face at the cheek edges, loose groups
+     following the rounded shoulder and haunch, a few long sweeps along the tail. Every lock
+     fades out on its own, and all of them share one limit on the combined height. */
+  if (furMode === "full") {
+    const g = new V(), rng = (n) => hash(n * 5.31 + 0.27);
+    const room = (s, W) => !locks.some((k) => k.c.distanceTo(s) < 0.58 * (W + k.W));
+    const addLock = (s, f, W, L, h, bend, sepP, id, region) => {
+      gradAt(s, g);
+      f.addScaledVector(g, -f.dot(g));
+      if (f.lengthSq() < 1e-4) return;
+      f.normalize().applyAxisAngle(g, (rng(id + 2.3) - 0.5) * 0.5);
+      locks.push({ c: s, f, b: new V().crossVectors(g, f).normalize(), W, L, h, bend, region,
+                   sep: rng(id + 4.3) < sepP ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0 });
+    };
+    const headC = P(headPos.x, headPos.y - 0.8, headPos.z);
+    // cheek edges: short, softly curved forms fanning out from the face and down into the chest
+    for (let id = 1001, n = 0, tries = 0; n < 14 && tries < 900; id++, tries++) {
+      const s = headC.clone().add(P((rng(id) - 0.5) * 10, (rng(id + 0.3) - 0.7) * 5, (rng(id + 0.7) - 0.3) * 5));
+      if (toSurface(s) > 0.03) continue;
+      baseSdf(s);
+      if (out.part !== 2 || out.ear < 0.9) continue;
+      hp.copy(s).sub(headPos).applyMatrix4(headInv);
+      const r = Math.hypot(hp.x, hp.y + 0.4);
+      if (Math.abs(hp.x) < 1.8 || hp.y > 0.2 || hp.y < -3.2 || (hp.z > 0.6 && Math.hypot(hp.x * 1.25, hp.y + 0.4) < 2.5)) continue;   // the cheek edges, never the face
+      const W = 0.8 + 0.3 * rng(id + 1.1), L = Math.max(1.5 * W, 1.25 + 0.55 * rng(id + 1.9));
+      if (!room(s, W)) continue;
+      addLock(s, s.clone().sub(headC).add(P(0, -0.5, 0)), W, L, 0.06 + 0.03 * rng(id + 2.9), (rng(id + 3.7) - 0.5) * 0.9, 0.35, id, "cheek");
+      n++;
+    }
+    // shoulder and haunch: loose groups following the rounded body, with smooth spaces between
+    for (let gid = 2001, groups = 0, tries = 0; groups < 13 && tries < 2000; gid++, tries++) {
+      const s0 = P((rng(gid) - 0.5) * 12, 2.2 + rng(gid + 0.3) * 8, -8 + rng(gid + 0.7) * 11);
+      if (toSurface(s0) > 0.03) continue;
+      baseSdf(s0);
+      if (out.part !== 0 || out.paws < 1.0 || s0.y < 1.6 || areaDist(s0) < 3.2) continue;
+      if (s0.z > 2.0 && Math.abs(s0.x) < 2.9 && s0.y < 5.6) continue;    // leave the front legs plain
+      if (s0.x > 0.8 && rng(gid + 9.1) > 0.35) continue;                 // mostly the side that faces us
+      if (locks.some((k) => k.c.distanceTo(s0) < 2.1)) continue;          // groups stay apart
+      gradAt(s0, g);
+      const t1 = new V().crossVectors(g, P(0, 1, 0)).normalize(), t2 = new V().crossVectors(g, t1).normalize();
+      const count = 2 + Math.floor(rng(gid + 1.7) * 3);
+      for (let i = 0; i < count; i++) {
+        const id = gid * 10 + i;
+        const s = s0.clone().addScaledVector(t1, (rng(id) - 0.5) * 2.4).addScaledVector(t2, (rng(id + 0.5) - 0.5) * 1.8);
+        if (toSurface(s) > 0.03) continue;
+        baseSdf(s);
+        if (out.part !== 0 || out.paws < 1.0 || s.y < 1.4) continue;
+        const W = 1.0 + 0.4 * rng(id + 1.1), L = Math.max(1.5 * W, 1.8 + 0.8 * rng(id + 1.9));
+        if (!room(s, W)) continue;
+        // the fur falls down the body, sweeping back over the haunch
+        addLock(s, P(0, -1, s.z < -1 ? -0.4 : -0.1), W, L, 0.06 + 0.03 * rng(id + 2.9), (rng(id + 3.7) - 0.5) * 1.0, 0.5, id, "body");
+      }
+      groups++;
+    }
+    // tail: a few long, gently sweeping forms following its curve
+    for (let i = 0; i < 5; i++) {
+      const id = 3001 + i, u = 0.1 + i * 0.18 + (rng(id) - 0.5) * 0.06;
+      const tp = tail.getPointAt(u), tg = tail.getTangentAt(u);
+      const outward = P(tp.x, 0, tp.z + 1).normalize();
+      const s = tp.clone().addScaledVector(outward, 0.7).add(P(0, 1.2, 0));
+      if (toSurface(s) > 0.03) continue;
+      baseSdf(s);
+      if (out.part !== 1) continue;
+      const W = 1.1 + 0.25 * rng(id + 1.1), L = 2.5 + 0.7 * rng(id + 1.9);
+      if (!room(s, W)) continue;
+      addLock(s, tg.clone(), W, L, 0.05 + 0.02 * rng(id + 2.9), (rng(id + 3.7) - 0.5) * 0.7, 0.3, id, "tail");
+    }
+  }
   const lv = new V();
+  // one lock's contribution at p: [swell, parting]
+  const lockAt = (k, p) => {
+    lv.subVectors(p, k.c);
+    let a = lv.dot(k.f) / (k.L * 0.5);
+    if (a <= -1.6 || a >= 1.3) return null;
+    a = a < 0 ? a / 1.6 : a / 1.3;
+    const cc = (lv.dot(k.b) - k.bend * k.W * a * a) / (k.W * 0.5);
+    let sep = 0, sw = 0;
+    if (k.sep) {
+      const e = (cc - k.sep * 0.6) / 0.6;
+      if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep = 0.035 * qe * qe * qe * qa * qa; }
+    }
+    const r2 = a * a + cc * cc;
+    if (r2 < 1) { const q = 1 - r2; sw = k.h * q * q * q; }
+    return [sw, sep];
+  };
+  // the full treatment: all regions summed under one limit; each lock fades out by itself,
+  // and the relief stays out of tight joins (chin, tail against haunch), the face, ears, paws and base
+  const fullRelief = (p) => {
+    const m = 1 - sstep(2.0, 4.6, areaDist(p));
+    let sum = 0, sep = 0;
+    for (const k of locks) {
+      const r = lockAt(k, p);
+      if (!r) continue;
+      const w = k.region ? 1 : m;                                          // chest locks keep the chest area's soft margin
+      sum += w * r[0]; sep += w * r[1];
+    }
+    if (sum === 0 && sep === 0) return 0;
+    const rf = Math.hypot(hp.x * 1.25, hp.y + 0.4);
+    const keep = sstep(0.4, 1.6, Math.abs(out.headGap)) * sstep(0.25, 1.0, out.tailGap) * sstep(0.2, 0.7, out.ear)
+               * sstep(0.4, 1.0, out.paws) * sstep(0.6, 1.4, p.y) * (1 - sstep(0.6, 1.1, hp.z) * (1 - sstep(2.0, 2.5, rf)));
+    const eyesClear = out.headGap < 0 ? sstep(0.3, -0.4, hp.y) : 1;   // on the head, only below the eye line: brows and eyes stay as they are
+    return keep * eyesClear * (RELIEF_MAX * Math.tanh(sum / RELIEF_MAX) - SEP_MAX * Math.tanh(sep / SEP_MAX));
+  };
   const chestRelief = (p) => {
     const m = 1 - sstep(2.0, 4.6, areaDist(p));
     if (m <= 0) return 0;
@@ -279,6 +384,10 @@ function figurineGeometry(headPos, headInv, furMode = true) {
 
   const sdf = (p) => {
     const d = baseSdf(p);
+    if (furMode === "full") {
+      out.fur = 0;
+      return Math.abs(d) < 0.45 ? d - fullRelief(p) : d;
+    }
     if (furMode === "chest") {
       out.fur = 0;
       return Math.abs(d) < 0.45 ? d - chestRelief(p) * sstep(0.4, 1.6, out.headGap) : d;   // raised, gently; none at the chin join
