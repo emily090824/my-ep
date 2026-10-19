@@ -1200,11 +1200,13 @@ function buildBookStack(scene) {
   cat.scale.setScalar(1.25);
   group.add(cat);
   // the figurine itself lives in cat.js; ?clay=1 shows its bare form
-  cat.add(buildCatFigurine({ clay: new URLSearchParams(location.search).get("clay") === "1" }));
+  const cq = new URLSearchParams(location.search), furQ = cq.get("fur");
+  cat.add(buildCatFigurine({ clay: cq.get("clay") === "1", fur: furQ === "0" ? false : furQ === "chest" ? "chest" : "full" }));
 
-  // a reading light on the stack, so the foil catches
-  const key = new THREE.SpotLight("#ffc98a", 2600, 0, 0.6, 0.8, 2);
-  key.position.set(base.x - 30, 45, base.z + 30);
+  // a reading light on the stack, so the foil catches. It hangs high, from the same side:
+  // set lower, the stack's shadow reached back across the cat figurine in a hard diagonal
+  const key = new THREE.SpotLight("#ffc98a", 5300, 0, 0.6, 0.8, 2);
+  key.position.set(base.x - 25.5, 80, base.z + 25.5);
   key.target.position.copy(base).setY(10);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);

@@ -40,20 +40,25 @@ key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.
 Object.assign(key.shadow.camera, { left: -20, right: 20, top: 25, bottom: -5, near: 1, far: 150 });
 scene.add(key);
 const fill = new THREE.DirectionalLight("#f4f6ff", 0.45); fill.position.set(40, 20, 30); scene.add(fill);
+// ?rake=1: an inspection light from the side, low, to show surface relief clearly
+if (q.get("rake") === "1") { key.position.set(-55, 22, 18); key.intensity = 1.9; fill.intensity = 0.2; }
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: 0.12 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-const cat = buildCatFigurine({ clay: q.get("clay") === "1" });
+const cat = buildCatFigurine({ clay: q.get("clay") === "1", fur: q.get("fur") === "0" ? false : q.get("fur") === "chest" ? "chest" : "full" });
 cat.rotation.y = +(q.get("turn") || 0);
 scene.add(cat);
 
 // close to the reference photo: a touch above the figure, looking at it square on
 const camera = new THREE.PerspectiveCamera(26, innerWidth / innerHeight, 1, 500);
 const dist = +(q.get("dist") || 52), ty = +(q.get("ty") || 8.6);
-camera.position.set(0, ty + 4, dist);
-camera.lookAt(0, ty, 0);
+const tx = +(q.get("tx") || 0);
+camera.position.set(tx, +(q.get("cy") || ty + 4), dist);
+camera.lookAt(tx, ty, 0);
 renderer.render(scene, camera);
+const size = new THREE.Box3().setFromObject(cat).getSize(new THREE.Vector3());
+window.__size = { w: size.x, h: size.y, d: size.z };
 window.__ready = true;
 </script>
 </body>
