@@ -40,6 +40,7 @@
         "</ul></section>";
     });
     root.insertAdjacentHTML("beforeend", html);
+    if (p.promo && !document.querySelector(".arc")) root.insertAdjacentHTML("beforebegin", p.promo);
     renderSwitcher();
   }
 

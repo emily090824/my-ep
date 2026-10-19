@@ -14,8 +14,9 @@
 (async function () {
 const q = new URLSearchParams(location.search);
 const W = +(q.get("w") || 2400), H = +(q.get("h") || 1600);
-const cv = document.getElementById("c"); cv.width = W; cv.height = H;
-const g = cv.getContext("2d");
+const SC = +(q.get("scale") || 1), BARE = q.get("bare") === "1";   // scale: output resolution; bare: no cartouche or compass
+const cv = document.getElementById("c"); cv.width = W * SC; cv.height = H * SC;
+const g = cv.getContext("2d"); g.scale(SC, SC);
 await Promise.all(["italic 300 40px Fraunces", "400 40px Fraunces", "600 40px Fraunces", "italic 400 30px Spectral", "400 30px Spectral", "400 20px 'Courier Prime'"].map((f) => document.fonts.load(f)));
 
 let seed = +(q.get("seed") || 11);
@@ -122,8 +123,8 @@ for (let i = 0; i < 140; i++) { g.strokeStyle = `rgba(140,110,70,${R(0.03, 0.07)
 
 /* ---------- reserved areas: the cartouche and the compass ---------- */
 const CART = { x: 1700, y: 1195, w: 600, h: 250 }, COMPASS = { x: 1110, y: 330, r: 64 };
-markPoly([P(CART.x, CART.y), P(CART.x + CART.w, CART.y), P(CART.x + CART.w, CART.y + CART.h), P(CART.x, CART.y + CART.h)], 20);
-mark((c) => { c.beginPath(); c.arc(COMPASS.x, COMPASS.y, COMPASS.r + 26, 0, 6.283); c.fill(); });
+if (!BARE) markPoly([P(CART.x, CART.y), P(CART.x + CART.w, CART.y), P(CART.x + CART.w, CART.y + CART.h), P(CART.x, CART.y + CART.h)], 20);
+if (!BARE) mark((c) => { c.beginPath(); c.arc(COMPASS.x, COMPASS.y, COMPASS.r + 26, 0, 6.283); c.fill(); });
 
 /* ---------- the golf course ---------- */
 const holes = [
@@ -432,7 +433,7 @@ g.font = "600 22px Fraunces"; g.fillText("T H E   C L U B H O U S E", 700, 818 +
 g.font = "italic 400 19px Spectral"; g.fillText("Pool", 730, 590); g.fillText("Tennis", 522, 538);
 
 /* ---------- compass rose ---------- */
-{
+if (!BARE) {
   const { x, y, r } = COMPASS;
   ink(blob(x, y, r, r, 24, 0), 1.2, INK, true, 0.2); ink(blob(x, y, r - 7, r - 7, 24, 0), 0.8, INK_S, true, 0.2);
   for (let i = 0; i < 8; i++) {
@@ -446,7 +447,7 @@ g.font = "italic 400 19px Spectral"; g.fillText("Pool", 730, 590); g.fillText("T
 }
 
 /* ---------- the cartouche ---------- */
-{
+if (!BARE) {
   const { x, y, w, h } = CART;
   g.fillStyle = PAPER_L; g.fillRect(x, y, w, h);
   ink(closeR(rect(x + w / 2, y + h / 2, w, h)), 2, INK, false, 0.3);

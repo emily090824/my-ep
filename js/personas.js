@@ -120,6 +120,20 @@ window.PERSONAS = [
     slug: "writer",
     article: "a",
     title: "Writer",
+    // a banner above the page: the call for advance readers of the novel
+    promo:
+      '<section class="arc" aria-labelledby="arc-title">' +
+        '<div class="arc__inner">' +
+          '<figure class="arc__book"><div class="book3d">' +
+            '<img src="assets/blood-of-a-begonia.jpg" width="600" height="777" alt="The Blood of a Begonia by Emily M. Hill: a botanical print of a begonia, the title on a cream label">' +
+          '</div></figure>' +
+          '<div class="arc__copy">' +
+            '<p class="arc__lead">Sign up to be an ARC reader of</p>' +
+            '<h2 class="arc__title" id="arc-title">The Blood of a&nbsp;Begonia</h2>' +
+            '<a class="arc__btn" href="mailto:eemaranto@gmail.com?subject=ARC%20reader%3A%20The%20Blood%20of%20a%20Begonia&amp;body=I%27d%20love%20to%20read%20an%20advance%20copy%20of%20The%20Blood%20of%20a%20Begonia.%0A%0AName%3A%20%0APreferred%20format%20(ebook%20or%20print)%3A%20%0AWhere%20I%20review%20(Goodreads%2C%20BookTok%2C%20etc.)%3A%20">Sign up</a>' +
+          '</div>' +
+        '</div>' +
+      '</section>',
     letter: "W",
     visibility: "public",
     tagline: "Books, essays, and the romance of a good sentence.",
