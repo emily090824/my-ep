@@ -766,5 +766,8 @@ button.arc__btn { cursor: pointer; }
   transition: background 0.2s, color 0.2s;
 }
 .signup__submit:hover, .signup__submit:focus-visible { background: #f6f0e1; color: #1d3124; }
+[hidden] { display: none !important; }
+.signup__msg.is-done { color: #2e4535; font-size: 1.15rem; }
+.signup__submit:disabled { opacity: 0.6; cursor: wait; }
 .signup__msg { min-height: 1.4em; margin: 14px 0 0; font: italic 400 1rem "IM Fell English", Georgia, serif; color: #9b4a2f; }
 @media (max-width: 520px) { .signup__row { grid-template-columns: 1fr; } }
