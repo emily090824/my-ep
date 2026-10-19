@@ -116,6 +116,9 @@
       document.addEventListener("arc-signed-up", function () { if (known !== null) update(known + 1); });
 
     }
+    // the PlumX badge only shows once PlumX's own script has loaded and defined the element
+    var plum = document.querySelector(".thesis__metrics");
+    if (plum && window.customElements) customElements.whenDefined("plumx-widget").then(function () { plum.hidden = false; });
     renderSwitcher();
   }
 

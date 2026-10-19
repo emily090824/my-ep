@@ -176,6 +176,38 @@ window.PERSONAS = [
         '</div>' +
       '</section>' +
       '</div>' +
+      // the rest of the writing: the thesis in full, then the other published pieces
+      '<section class="works" aria-labelledby="works-title">' +
+        '<header class="works__head"><p class="kicker">Read me</p><h2 id="works-title">Other Published Work</h2></header>' +
+        '<article class="thesis">' +
+          '<p class="works__label">Master&rsquo;s thesis &middot; 2025</p>' +
+          '<h3 class="thesis__title"><a href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</a></h3>' +
+          '<p class="works__cite">Hill, E. M. (2025). Master of Arts thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href="https://doi.org/10.25777/67hy-yr98" rel="noopener">DOI: 10.25777/67hy-yr98</a></p>' +
+          '<div class="thesis__grid">' +
+            '<div class="thesis__abstract">' +
+              '<h4>Abstract</h4>' +
+              '<p>This thesis examines the transformation of romance reader identity through the lens of BookTok, investigating how digital platforms grant cultural legitimacy while simultaneously subjugating community practices to algorithmic control. Romance readers historically developed emotional labor practices, counter-public formation strategies, and fan-driven meaning-making to resist decades of cultural marginalization. Through analysis of TikTok&rsquo;s platform attributes, user behaviors, and the viral Tillie Cole controversy, this study traces how BookTok converts these resistant practices into behavioral data optimized for engagement rather than authentic discourse. The research employs theoretical frameworks including Janice Radway&rsquo;s ethnographic analysis, Shoshana Zuboff&rsquo;s surveillance capitalism, Nick Srnicek&rsquo;s platform capitalism, and Nancy Fraser&rsquo;s counterpublic theory to examine three critical dimensions: first, how romance readers developed emotional labor as cultural resistance; second, how TikTok&rsquo;s technological affordances exploit these historical practices; and third, how platform and surveillance capitalism converge to create an algorithmic hive mind that fragments community solidarity. Findings reveal that while romance readers achieve unprecedented mainstream visibility and influence through BookTok, this cultural legitimacy operates within systems fundamentally indifferent to community welfare.</p>' +
+              '<p>This transformation has broader implications for participatory cultures in digital spaces, revealing how surveillance capitalism can weaponize communities&rsquo; greatest strengths of emotional authenticity, defensive solidarity, and collective meaning-making into extractable vulnerabilities. The thesis examines how many romance readers navigate tensions between algorithmic visibility and autonomous community practices, arguing that for significant segments of this community, the pursuit of cultural legitimacy has produced not liberation, but new forms of digital containment and subjugation disguised as empowerment.</p>' +
+            '</div>' +
+            '<aside class="thesis__side">' +
+              '<a class="btn btn--solid thesis__read" href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Read the thesis</a>' +
+              '<div class="thesis__metrics" hidden>' +
+                '<h4>Readership</h4>' +
+                '<plumx-widget type="artifact" identifier-type="plumx_id" identifier="GsuIoMHkaTymNk1rMCOTkwu4PiG_jdldOhIjJHO6iHQ" display="badge" site="plumx" config=\'{"hideWhenEmpty":true,"applyFiltersToMetricsPage":true,"popupDirection":"top","printSize":"large","detailsLinkBaseUrl":"https://plumx.elsevier.com/a"}\'></plumx-widget>' +
+              '</div>' +
+            '</aside>' +
+          '</div>' +
+          '<div class="thesis__defense">' +
+            '<h4>The thesis defense</h4>' +
+            '<div class="embed16x9"><iframe loading="lazy" src="https://www.canva.com/design/DAG1_LjUa2E/Rus8krM1B10mFc2k1P2zYg/view?embed" title="Thesis Defense, a presentation by Emily Hill" allowfullscreen allow="fullscreen"></iframe></div>' +
+            '<p class="works__credit"><a href="https://www.canva.com/design/DAG1_LjUa2E/Rus8krM1B10mFc2k1P2zYg/view?utm_content=DAG1_LjUa2E&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">Thesis Defense</a> by Emily Hill</p>' +
+          '</div>' +
+        '</article>' +
+        '<ul class="works__list">' +
+          '<li><p class="works__label">Book chapter &middot; 2026</p><h3><a href="https://doi.org/10.1007/978-3-032-20388-5_21" rel="noopener">Towards Positive Food Communication Systems</a></h3><p class="works__cite">Socha, T. J., Hill, E., et al. (2026). In T. J. Socha (Ed.), <em>The Palgrave Handbook of Positive Communication for Livable Futures</em>. Palgrave Macmillan.</p></li>' +
+          '<li><p class="works__label">Book &middot; In press</p><h3>Designing Positive Family Communication <span class="works__with">with Thomas Socha</span></h3><p class="works__cite">Socha, T. J., &amp; Hill, E. Old Dominion University.</p></li>' +
+        '</ul>' +
+      '</section>' +
       '<dialog class="signup" id="arc-signup" aria-labelledby="signup-title">' +
         '<form class="signup__card" id="arc-signup-form" action="https://script.google.com/macros/s/AKfycbwvI33WBWYR7P89TAl43bahbsJ0EIrwF7M3W-RjgMROPPiN7fM4Gkq_hSx6ZOl4qGVQow/exec" method="POST" target="arc-signup-sink" novalidate>' +
           '<button class="signup__close" type="button" data-close aria-label="Close">&times;</button>' +
@@ -198,22 +230,7 @@ window.PERSONAS = [
     visibility: "public",
     tagline: "Books, essays, and the romance of a good sentence.",
     summary: "Writing about readers, fandom, and the stories communities gather around.",
-    sections: [
-      {
-        heading: "Published",
-        items: [
-          "<a href=\"https://digitalcommons.odu.edu/communication_etds/35\"><em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</em></a> (2025)",
-          "<a href=\"https://doi.org/10.1007/978-3-032-20388-5_21\">Towards positive food communication systems</a>, with T. J. Socha et al., in <em>The Palgrave Handbook of Positive Communication for Livable Futures</em> (2026)"
-        ]
-      },
-      {
-        heading: "In progress",
-        items: [
-          "<em>The Blood of a Begonia</em>, a novel (currently querying)",
-          "<em>Designing Positive Family Communication</em>, with Thomas Socha (in press)"
-        ]
-      }
-    ]
+    sections: []   // the published work is set out in full in the promo above
   },
   {
     slug: "creator",

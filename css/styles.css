@@ -847,3 +847,36 @@ button.arc__btn { cursor: pointer; }
 .arc__count { margin: 18px 0 0; font: italic 400 clamp(1.05rem, 1.6vw, 1.25rem)/1.3 "IM Fell English", Georgia, serif; color: #fbf6ea; }
 .arc__count-n { font: 400 1.5em/1 "IM Fell English SC", Georgia, serif; font-style: normal; font-variant-numeric: lining-nums tabular-nums; letter-spacing: 0.02em; margin-right: 0.12em; }
 .arc-sheet .arc__count { color: #2e4535; margin-top: 14px; text-shadow: none; }
+
+/* ---------- Writer page: other published work, back on the ivory page ---------- */
+.works { max-width: 1100px; margin: 0 auto; padding: clamp(48px, 8vw, 96px) var(--gutter) clamp(24px, 4vw, 48px); }
+.works__head { text-align: center; margin-bottom: clamp(28px, 5vw, 52px); }
+.works__head h2 { margin: 0; font: 400 clamp(2.2rem, 5vw, 3.4rem)/1.05 var(--display); font-variation-settings: "opsz" 144; color: var(--brown-900); }
+.works__label { margin: 0 0 8px; font: 400 0.78rem var(--type); letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-600); }
+.works__cite { margin: 8px 0 0; font: 400 1rem/1.55 var(--body); color: var(--brown-700); }
+.works h3 { margin: 0; font: 400 clamp(1.3rem, 2.4vw, 1.75rem)/1.25 var(--display); color: var(--brown-900); }
+.works h3 a {   /* drawn underline: the heading bump splits words into spans, which breaks text-decoration */
+  color: inherit; text-decoration: none; padding-bottom: 2px;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.works h3 a:hover { color: var(--green-800); }
+.thesis__metrics[hidden] { display: none; }
+.works h4 { margin: 0 0 12px; font: 400 0.82rem var(--type); letter-spacing: 0.1em; text-transform: uppercase; color: var(--green-600); }
+.works__with { font: italic 400 0.75em var(--body); color: var(--brown-500); }
+.thesis { padding: clamp(24px, 4vw, 40px) 0; border-top: 1px solid var(--brown-300); border-bottom: 1px solid var(--brown-300); }
+.thesis__title { max-width: 30ch; }
+.thesis .thesis__title { font-size: clamp(1.6rem, 3.2vw, 2.3rem); }
+.thesis__grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: clamp(24px, 5vw, 56px); margin-top: clamp(24px, 4vw, 36px); }
+.thesis__abstract p { margin: 0 0 1em; font: 400 1.06rem/1.7 var(--body); color: var(--brown-900); text-wrap: pretty; max-width: 68ch; }
+.thesis__side { display: flex; flex-direction: column; gap: 28px; align-items: flex-start; }
+.thesis__read { width: 100%; justify-content: center; text-align: center; }
+.thesis__metrics { width: 100%; padding-top: 20px; border-top: 1px dotted var(--line); }
+.thesis__metrics plumx-widget { display: block; min-height: 24px; }
+.thesis__defense { margin-top: clamp(24px, 4vw, 40px); }
+.embed16x9 { position: relative; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--paper); box-shadow: 0 2px 8px rgba(63, 69, 81, 0.16), 0 18px 40px -20px rgba(47, 34, 25, 0.35); }
+.embed16x9 iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.works__credit { margin: 10px 0 0; font: italic 400 0.95rem var(--body); color: var(--brown-500); }
+.works__list { list-style: none; margin: 0; padding: 0; }
+.works__list li { padding: clamp(22px, 3vw, 30px) 0; border-bottom: 1px solid var(--brown-300); }
+@media (max-width: 820px) { .thesis__grid { grid-template-columns: 1fr; } }
