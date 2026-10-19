@@ -32,7 +32,7 @@ const cap = (p, a, b, r) => {   // capsule a-b (leaves the position along it in 
 const POSE_Y = 0.85;
 const HEAD = { p: P(0.25, 13.3, 2.4), ry: -0.75, rx: 0.06 };
 // eye sockets: wide almonds, the outer corners dipping a little, for a wistful look
-const EYE = { x: 1.2, y: 0.32, z: 2.05, r: [0.72, 0.43, 0.45], tilt: 0.07 };
+const EYE = { x: 1.2, y: 0.3, z: 2.05, r: [0.74, 0.36, 0.45], tilt: -0.12 };
 
 /* The cast form, with vertex colours for the glaze and markings. */
 function figurineGeometry(headPos, headInv, furMode = true) {
@@ -41,9 +41,9 @@ function figurineGeometry(headPos, headInv, furMode = true) {
   const tailFlat = tailPts.map((t) => P(t.x, t.y / TAIL_FLAT, t.z)), tq = new V();
   const tailH = new Float32Array(NT);
   const legs = [-1, 1].map((sx) => [P(sx * 1.45, 4.6, 3.2), P(sx * 1.45, 1.1, 4.2)]);
-  const mouth = [[P(0, -0.62, 2.22), P(0, -0.84, 2.22)], [P(0, -0.84, 2.22), P(-0.26, -1.04, 2.12)], [P(0, -0.84, 2.22), P(0.26, -1.04, 2.12)]];
+  const mouth = [[P(0, -0.62, 2.3), P(0, -0.9, 2.3)], [P(0, -0.9, 2.3), P(-0.22, -1.08, 2.2)], [P(0, -0.9, 2.3), P(0.22, -1.08, 2.2)]];
   const hp = new V(), q2 = new V(), q3 = new V();
-  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0, headGap: 9, tailGap: 9 };
+  const out = { mouth: 9, paws: 9, ear: 9, earIn: 9, fur: 0, part: 0, headGap: 9, tailGap: 9, nose: 9 };
   // distance from a point to a mouth stroke, measured across the face (ignoring depth)
   const segXY = (h, a, b) => {
     const bx = b.x - a.x, by = b.y - a.y, t = clamp01(((h.x - a.x) * bx + (h.y - a.y) * by) / (bx * bx + by * by));
@@ -87,10 +87,10 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     // head: broad and round, a flat face, wide round cheeks
     hp.copy(p).sub(headPos).applyMatrix4(headInv);
     let h = ell(hp, [0, 0.1, 0], [3.9, 2.95, 2.9]);                       // wider than tall
-    h = smax(h, hp.z - 2.0, 0.9);                                         // flat Persian face
+    h = smax(h, hp.z - (2.0 - 0.07 * hp.x * hp.x), 0.9);                  // a short face, curving back gently to the sides
     // cheeks: one broad, soft fullness across the sides of the lower face (not two balls),
     // a little less on the far side, which the turned head shows us more of
-    h = smin(h, smax(ell(hp, [-0.15, -1.4, 0.75], [4.35, 1.75, 2.2]), hp.z - 1.75, 0.5), 1.1);   // kept behind the face, so the muzzle stands proud
+    h = smin(h, smax(ell(hp, [-0.15, -1.4, 0.75], [4.35, 1.75, 2.2]), hp.z - (1.78 - 0.16 * hp.x * hp.x), 0.5), 1.1);   // rounding back from the muzzle, so it stands proud
     // ears: small, set wide, softly rounded, their bases sunk into the head
     out.ear = 9; out.earIn = 9;
     if (hp.y > 0.6 && Math.abs(hp.x) > 0.8) {
@@ -105,13 +105,23 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       out.ear = ear; out.earIn = inner;
       h = smin(h, smax(ear, -inner, 0.15), 0.6);
     }
-    out.mouth = 9;
+    out.mouth = 9; out.nose = 9;
     if (hp.z > 0.8 && Math.abs(hp.x) < 2.4 && hp.y > -2.2 && hp.y < 1.4) {
-      // a short muzzle: small nose pad, soft whisker pads, a little chin
-      h = smin(h, ell(hp, [0, -0.4, 2.08], [0.42, 0.32, 0.28]), 0.3);
-      for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.34, -0.8, 2.02], [0.42, 0.3, 0.24]), 0.22);   // muzzle pads, just proud of the face
-      h = smin(h, ell(hp, [0, -1.36, 1.9], [0.44, 0.27, 0.3]), 0.3);
-      for (const sx of [-1, 1]) h = smax(h, -eyeSocket(hp, sx), 0.14);
+      // a short muzzle: a small bridge to the nose, two rounded pads beside and below it
+      // that stand a little forward of the face and blend into the cheeks, and a little chin
+      h = smin(h, ell(hp, [0, -0.3, 2.1], [0.36, 0.34, 0.26]), 0.3);
+      for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.42, -0.86, 2.02], [0.48, 0.36, 0.32]), 0.3);
+      h = smin(h, ell(hp, [0, -1.38, 1.95], [0.42, 0.26, 0.3]), 0.3);
+      // the nose: tiny, a soft triangle wider at the top, set just forward
+      q2.set(hp.x / (1 + 1.4 * clamp01(hp.y + 0.52)), hp.y, hp.z);
+      const nose = ell(q2, [0, -0.44, 2.3], [0.17, 0.17, 0.16]);
+      out.nose = nose;
+      h = smin(h, nose, 0.1);
+      for (const sx of [-1, 1]) {
+        h = smax(h, -eyeSocket(hp, sx), 0.14);
+        // a soft upper lid, drawn a little over the eye
+        h = smin(h, ell(hp, [sx * EYE.x, EYE.y + 0.37, EYE.z - 0.22], [0.64, 0.15, 0.24]), 0.16);   // just meets the top of the iris
+      }
       // the mouth is painted, not carved: a line this fine would tear the mesh
       let mg = 9;
       for (const [a, b] of mouth) mg = Math.min(mg, segXY(hp, a, b));
@@ -323,6 +333,25 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       addLock(s, tg.clone(), W, L, 0.05 + 0.02 * rng(id + 2.9), (rng(id + 3.7) - 0.5) * 0.7, 0.3, id, "tail");
     }
   }
+  if (furMode === "full") {
+    const g = new V(), rng = (n) => hash(n * 7.13 + 0.61);
+    for (let id = 4001, n = 0, tries = 0; n < 6 && tries < 900; id++, tries++) {
+      const sx = n % 2 ? 1 : -1;
+      hp.set(sx * (1.75 + 0.6 * rng(id)), -0.7 - 1.1 * rng(id + 0.3), 2.2);
+      const s = hp.clone().applyMatrix4(new THREE.Matrix4().copy(headInv).invert()).add(headPos);
+      if (toSurface(s) > 0.03) continue;
+      baseSdf(s);
+      if (out.part !== 2) continue;
+      const W = 0.6 + 0.2 * rng(id + 1.1), L = Math.max(1.5 * W, 0.95 + 0.4 * rng(id + 1.9));
+      if (locks.some((k) => k.c.distanceTo(s) < 0.5 * (W + k.W))) continue;
+      gradAt(s, g);
+      const hc = P(headPos.x, headPos.y - 0.9, headPos.z), f = s.clone().sub(hc);
+      f.addScaledVector(g, -f.dot(g)).normalize();
+      locks.push({ c: s, f, b: new V().crossVectors(g, f).normalize(), W, L, h: 0.05 + 0.02 * rng(id + 2.9),
+                   bend: (rng(id + 3.7) - 0.5) * 0.8, sep: 0, region: "cheek" });
+      n++;
+    }
+  }
   const lv = new V();
   // one lock's contribution at p: [swell, parting]
   const lockAt = (k, p) => {
@@ -354,7 +383,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     if (sum === 0 && sep === 0) return 0;
     const rf = Math.hypot(hp.x * 1.25, hp.y + 0.4);
     const keep = sstep(0.4, 1.6, Math.abs(out.headGap)) * sstep(0.25, 1.0, out.tailGap) * sstep(0.2, 0.7, out.ear)
-               * sstep(0.4, 1.0, out.paws) * sstep(0.6, 1.4, p.y) * (1 - sstep(0.6, 1.1, hp.z) * (1 - sstep(2.0, 2.5, rf)));
+               * sstep(0.4, 1.0, out.paws) * sstep(0.6, 1.4, p.y) * (1 - sstep(0.6, 1.1, hp.z) * (1 - sstep(1.55, 1.95, rf)));
     const eyesClear = out.headGap < 0 ? sstep(0.3, -0.4, hp.y) : 1;   // on the head, only below the eye line: brows and eyes stay as they are
     return keep * eyesClear * (RELIEF_MAX * Math.tanh(sum / RELIEF_MAX) - SEP_MAX * Math.tanh(sep / SEP_MAX));
   };
@@ -464,15 +493,12 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     if (pawD < 0.3) gr = Math.max(gr, sstep(5.0, 5.6, pp.z + 0.2 * Math.sin(pp.x * 9)) * sstep(0.3, 0.1, pawD));
     let c0 = mix(IVORY, SLATE, gr);
     if (earInD < 0.06) c0 = mix(c0, EAR_IN, sstep(0.06, -0.04, earInD));
-    if (hp.z > 1.9) {          // a tiny pale-pink nose, a soft triangle
-      const nose = sstep(0.02, -0.02, ax - (0.05 + (hp.y + 0.62) * 0.8)) * sstep(-0.64, -0.59, hp.y) * sstep(-0.2, -0.25, hp.y);
-      c0 = mix(c0, PINK, nose);
-    }
+    if (out.nose < 0.06) c0 = mix(c0, PINK, sstep(0.05, 0.0, out.nose));   // the tiny pale-pink nose
     if (hp.z > 1.4 && ax < 2.2 && hp.y > -0.4 && hp.y < 1.0) {   // soft dark liner round the eyes
       const sock = eyeSocket(hp, Math.sign(hp.x));
       c0 = c0.map((w) => w * (1 - 0.16 * sstep(0.07, 0.02, sock) * sstep(-0.06, 0.0, sock)));
     }
-    const shade = (1 - 1.2 * fur) * (hp.z > 1.6 && mouthD < 0.09 ? 0.55 + 0.45 * sstep(0.025, 0.085, mouthD) : 1);
+    const shade = (1 - 1.2 * fur) * (hp.z > 1.6 && mouthD < 0.09 ? 0.68 + 0.32 * sstep(0.025, 0.085, mouthD) : 1);
     col.push(c0[0] * shade, c0[1] * shade, c0[2] * shade);
   }
   geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
@@ -493,11 +519,11 @@ function eyeTexture() {
     const a = (i / 56) * Math.PI * 2, r0 = 40 + (i % 3) * 4;
     g.beginPath(); g.moveTo(110 + Math.cos(a) * r0, 116 + Math.sin(a) * r0); g.lineTo(124 + Math.cos(a) * 92, 128 + Math.sin(a) * 88); g.stroke();
   }
-  g.fillStyle = "#1b1c1d"; g.beginPath(); g.ellipse(114, 98, 31, 35, 0, 0, Math.PI * 2); g.fill();   // looking gently up
+  g.fillStyle = "#1b1c1d"; g.beginPath(); g.ellipse(118, 104, 30, 34, 0, 0, Math.PI * 2); g.fill();   // looking gently up, under the lid
   g.strokeStyle = "#6b6f72"; g.lineWidth = 4; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
   // a soft upper lid line, heavier than the lower, as painted on the figurine
   g.strokeStyle = "rgba(55,56,58,0.45)"; g.lineWidth = 6; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
-  g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(134, 82, 10, 7, -0.4, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(138, 108, 9, 6, -0.4, 0, Math.PI * 2); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
