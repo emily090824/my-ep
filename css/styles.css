@@ -809,6 +809,11 @@ button.arc__btn { cursor: pointer; }
 }
 .arc-sheet::before { content: ""; position: absolute; inset: 16px; border: 1px solid rgba(29, 49, 36, 0.35); pointer-events: none; }
 .arc-sheet__kicker { margin: 0 0 18px; text-align: center; font: 400 1.05rem "IM Fell English SC", Georgia, serif; letter-spacing: 0.16em; color: #2e4535; }
+.arc-blurb { width: min(1180px, calc(100% - 2 * var(--gutter))); }
+.arc-blurb__hook, .arc-blurb__comps { max-width: 760px; margin-left: auto !important; margin-right: auto !important; }
+/* the body reads in two columns across the wide sheet, so the lines stay a comfortable length */
+.arc-blurb__body { columns: 2 340px; column-gap: clamp(32px, 5vw, 64px); column-rule: 1px solid rgba(29, 49, 36, 0.18); }
+.arc-blurb__body p { break-inside: avoid; }
 .arc-blurb p { margin: 0 0 1.05em; font: 400 clamp(1.05rem, 1.6vw, 1.18rem)/1.7 var(--body); }
 .arc-blurb .arc-blurb__hook { margin: 0 0 0.35em; text-align: center; font: italic 400 clamp(1.35rem, 2.6vw, 1.75rem)/1.35 "IM Fell English", Georgia, serif; color: #1d3124; }
 .arc-blurb .arc-blurb__hook--2 { margin-bottom: 1.6em; }
