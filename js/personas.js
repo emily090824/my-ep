@@ -136,7 +136,7 @@ window.PERSONAS = [
         '</div>' +
       '</section>' +
       '<dialog class="signup" id="arc-signup" aria-labelledby="signup-title">' +
-        '<form class="signup__card" id="arc-signup-form" action="https://script.google.com/macros/s/AKfycbwTjfnqw3CBk9ft-b_gpNMnA_WJsK5YvZN321N8gVTJPZ8wVi4atx6bgq-QH3j3fhyd/exec" method="POST" target="_blank" novalidate>' +
+        '<form class="signup__card" id="arc-signup-form" action="https://script.google.com/macros/s/AKfycbwvI33WBWYR7P89TAl43bahbsJ0EIrwF7M3W-RjgMROPPiN7fM4Gkq_hSx6ZOl4qGVQow/exec" method="POST" target="arc-signup-sink" novalidate>' +
           '<button class="signup__close" type="button" data-close aria-label="Close">&times;</button>' +
           '<p class="signup__lead">Be among the first to read</p>' +
           '<h2 class="signup__title" id="signup-title">The Blood of a&nbsp;Begonia</h2>' +
@@ -148,10 +148,11 @@ window.PERSONAS = [
           '<div class="signup__field"><label for="arc-email">Email</label><input id="arc-email" name="email" type="email" autocomplete="email" maxlength="254" required></div>' +
           '<label class="signup__consent"><input name="consent" type="checkbox" value="yes" required><span>I&rsquo;d like to receive an advance reader copy of <em>The Blood of a Begonia</em> and occasional emails from Emily M. Hill about it. I can unsubscribe at any time.</span></label>' +
           '<button class="signup__submit" type="submit">Count me in</button>' +
-          '<p class="signup__fine">A confirmation will open in a new tab after you submit.</p>' +
           '<p class="signup__msg" role="status" aria-live="polite"></p>' +
         '</form>' +
-      '</dialog>',
+      '</dialog>' +
+      // the form posts into this hidden frame, so Google's reply page is never shown
+      '<iframe name="arc-signup-sink" title="Sign-up response" hidden></iframe>',
     letter: "W",
     visibility: "public",
     tagline: "Books, essays, and the romance of a good sentence.",

@@ -49,18 +49,27 @@
       });
       dlg.querySelector("[data-close]").addEventListener("click", function () { dlg.close(); });
       dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });   // click outside the card
-      // the form posts straight to the Google Apps Script, which answers in a new tab;
-      // here it is only checked first, then thanked once it has gone
+      // the form posts straight to the Google Apps Script, into a hidden frame; when the
+      // script's reply has loaded there, the sign-up is in and the card says thank you
+      var sink = document.querySelector('iframe[name="arc-signup-sink"]'), pending = null;
+      sink.addEventListener("load", function () {
+        if (!pending) return;
+        var f = pending; pending = null;
+        f.querySelectorAll(".signup__row, .signup__field, .signup__consent, .signup__submit, .signup__note").forEach(function (el) { el.hidden = true; });
+        f.querySelector(".signup__lead").textContent = "Thank you, " + f.firstName.value.trim() + ".";
+        var msg = f.querySelector(".signup__msg");
+        msg.textContent = "You\u2019re on the list. I\u2019ll write when your copy is ready.";
+        msg.classList.add("is-done");
+      });
       dlg.querySelector("form").addEventListener("submit", function (e) {
-        var f = e.target, msg = f.querySelector(".signup__msg");
+        var f = e.target, msg = f.querySelector(".signup__msg"), btn = f.querySelector(".signup__submit");
         if (!f.checkValidity()) { e.preventDefault(); msg.textContent = "Please fill in each field and tick the box."; return; }
-        var first = f.firstName.value.trim();
-        setTimeout(function () {   // after the browser has sent the form
-          f.querySelectorAll(".signup__row, .signup__field, .signup__consent, .signup__submit, .signup__note, .signup__fine").forEach(function (el) { el.hidden = true; });
-          f.querySelector(".signup__lead").textContent = "Thank you, " + first + ".";
-          msg.textContent = "You\u2019re on the list. Your confirmation has opened in a new tab.";
-          msg.classList.add("is-done");
-        }, 50);
+        pending = f; btn.disabled = true; msg.textContent = "Sending\u2026";
+        setTimeout(function () {   // no reply after a while: let them try again
+          if (pending !== f) return;
+          pending = null; btn.disabled = false;
+          msg.textContent = "That didn\u2019t go through. Please try again in a moment.";
+        }, 20000);
       });
       if (new URLSearchParams(location.search).get("signup") === "open") dlg.showModal();
     }
