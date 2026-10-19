@@ -76,11 +76,12 @@
       // the count of ARC readers: read from the sheet (the script's doGet), counted up
       // when it first comes into view, and checked again now and then so it keeps rising
       var counters = document.querySelectorAll("[data-arc-count]"), shown = 0, seen = false, known = null;
-      var COUNT_URL = dlg.querySelector("form").action + "?action=count";
+      // the count comes from the script's doGet, which answers {"count": n}
+      var COUNT_URL = "https://script.google.com/macros/s/AKfycbwTjfnqw3CBk9ft-b_gpNMnA_WJsK5YvZN321N8gVTJPZ8wVi4atx6bgq-QH3j3fhyd/exec";
       function paint(n) {
         counters.forEach(function (el) {
           el.querySelector(".arc__count-n").textContent = n.toLocaleString();
-          el.querySelector(".arc__count-label").textContent = n === 1 ? "reader on the advance list" : "readers on the advance list";
+          el.querySelector(".arc__count-label").textContent = n === 1 ? "ARC signup" : "ARC signups";
         });
       }
       function tickTo(target) {
@@ -93,24 +94,26 @@
         })(t0);
       }
       function update(n) {
-        if (typeof n !== "number" || !isFinite(n) || n < 1) return;   // nothing to show yet
-        known = Math.max(known || 0, n);
+        if (typeof n !== "number" || !isFinite(n) || n < 0) return;   // only a real count is shown
+        known = Math.max(known === null ? 0 : known, n);
         counters.forEach(function (el) { el.hidden = false; });
         if (seen) tickTo(known);
       }
       function poll() {
-        fetch(COUNT_URL, { cache: "no-store" }).then(function (r) { return r.json(); })
-          .then(function (d) { update(+d.count); }).catch(function () {});
+        fetch(COUNT_URL, { method: "GET", cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (d) { if (d && d.count !== undefined && d.count !== null && d.count !== "") update(Number(d.count)); })
+          .catch(function () {});   // on failure the counter simply stays hidden
       }
       if ("IntersectionObserver" in window) {
         var io = new IntersectionObserver(function (es) {
-          if (es.some(function (e) { return e.isIntersecting; }) && !seen) { seen = true; if (known) tickTo(known); }
+          if (es.some(function (e) { return e.isIntersecting; }) && !seen) { seen = true; if (known !== null) tickTo(known); }
         }, { threshold: 0.5 });
         counters.forEach(function (el) { io.observe(el); });
       } else seen = true;
       poll();
       setInterval(function () { if (!document.hidden) poll(); }, 60000);
-      document.addEventListener("arc-signed-up", function () { if (known) update(known + 1); });
+      document.addEventListener("arc-signed-up", function () { if (known !== null) update(known + 1); });
 
     }
     renderSwitcher();
