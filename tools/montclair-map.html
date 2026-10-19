@@ -14,7 +14,7 @@
 (async function () {
 const q = new URLSearchParams(location.search);
 const W = +(q.get("w") || 2400), H = +(q.get("h") || 1600);
-const SC = +(q.get("scale") || 1), BARE = q.get("bare") === "1";   // scale: output resolution; bare: no cartouche or compass
+const SC = +(q.get("scale") || 1), BARE = q.get("bare") === "1", NOLAB = q.get("labels") === "0";   // labels=0: no lettering at all   // scale: output resolution; bare: no cartouche or compass
 const cv = document.getElementById("c"); cv.width = W * SC; cv.height = H * SC;
 const g = cv.getContext("2d"); g.scale(SC, SC);
 await Promise.all(["italic 300 40px Fraunces", "400 40px Fraunces", "600 40px Fraunces", "italic 400 30px Spectral", "400 30px Spectral", "400 20px 'Courier Prime'"].map((f) => document.fonts.load(f)));
@@ -203,9 +203,9 @@ holes.forEach((h) => {
   line(gp.x, gp.y, gp.x, gp.y - 34, 1.3);
   g.fillStyle = RED; g.beginPath(); g.moveTo(gp.x, gp.y - 34); g.lineTo(gp.x + 15, gp.y - 29); g.lineTo(gp.x, gp.y - 24); g.closePath(); g.fill();
   g.font = "italic 400 21px Spectral"; g.fillStyle = INK; g.textAlign = "center";
-  g.fillText("No. " + h.n, t.x - Math.cos(a) * 34, t.y - Math.sin(a) * 34 + 7);
+  if (!NOLAB) g.fillText("No. " + h.n, t.x - Math.cos(a) * 34, t.y - Math.sin(a) * 34 + 7);
 });
-g.font = "italic 300 30px Fraunces"; g.fillStyle = INK; g.textAlign = "center"; g.fillText("Lake Montclair", 1770, 800);
+if (!NOLAB) { g.font = "italic 300 30px Fraunces"; g.fillStyle = INK; g.textAlign = "center"; g.fillText("Lake Montclair", 1770, 800); }
 
 /* ---------- roads: a heavy ink stroke, then paper down the middle, so junctions merge ---------- */
 const roads = [
@@ -426,11 +426,13 @@ function textAlong(r, s0, size = 22) {
     s += cw;
   }
 }
+if (!NOLAB) {
 textAlong(roads[1], 1350, 18); textAlong(roads[2], 120, 16); textAlong(roads[3], 30, 15);
 textAlong(roads[4], 1250, 18); textAlong(roads[5], 330, 16); textAlong(roads[0], 120, 18);
 g.textAlign = "center"; g.fillStyle = INK;
 g.font = "600 22px Fraunces"; g.fillText("T H E   C L U B H O U S E", 700, 818 + 0);
 g.font = "italic 400 19px Spectral"; g.fillText("Pool", 730, 590); g.fillText("Tennis", 522, 538);
+}
 
 /* ---------- compass rose ---------- */
 if (!BARE) {
@@ -466,10 +468,12 @@ if (!BARE) {
 }
 
 // an inked border round the sheet, and the edges darkened with age
+if (q.get("edge") !== "0") {   // edge=0: no border or darkened edges, for tiling
 ink(closeR(rect(W / 2, H / 2, W - 36, H - 36)), 1.6, INK_S, false, 0.4);
 const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.hypot(W, H) * 0.6);
 vg.addColorStop(0, "rgba(120,80,40,0)"); vg.addColorStop(1, "rgba(120,80,40,0.22)");
 g.fillStyle = vg; g.fillRect(0, 0, W, H);
+}
 
 window.__done = true;
 })();

@@ -645,7 +645,6 @@ body:not(.has-desk) main { padding-top: 66px; }
 /* ---------- the Writer page: a call for ARC readers, over the plat of Montclair ---------- */
 .arc {
   --sage: #7f9a87;
-  background: var(--sage) url(../assets/montclair-plat-sage.jpg) 50% 50% / cover no-repeat;
   color: #fbf6ea;
   min-height: calc(100svh - 66px);
   display: flex; align-items: center;
@@ -772,3 +771,63 @@ button.arc__btn { cursor: pointer; }
 .signup__fine { margin: 12px 0 0; font: italic 400 0.92rem "IM Fell English", Georgia, serif; color: #4a3426; }
 .signup__msg { min-height: 1.4em; margin: 14px 0 0; font: italic 400 1rem "IM Fell English", Georgia, serif; color: #9b4a2f; }
 @media (max-width: 520px) { .signup__row { grid-template-columns: 1fr; } }
+
+/* ---------- the rest of the Writer page: the map runs on below the banner ---------- */
+.arc-page { container-type: inline-size; }
+.arc-page > :first-child { position: relative; }
+.arc-page {
+  /* the plat at the top, then a seamless label-free continuation that repeats downward */
+  background:
+    url(../assets/montclair-plat-sage.jpg) 50% 0 / 100% auto no-repeat,
+    url(../assets/montclair-plat-sage-tile.jpg) 50% 66.667cqw / 100% auto repeat-y,
+    #7f9a87;
+  padding-bottom: clamp(48px, 8vw, 110px);
+}
+@media (max-width: 760px) {   /* on phones the map is shown larger, so the houses still read */
+  .arc-page { background-size: 1100px auto, 1100px auto, auto; background-position: 50% 0, 50% 733.33px, 0 0; }
+}
+.arc-quote { padding: clamp(24px, 6vw, 80px) var(--gutter) clamp(36px, 6vw, 80px); }
+.arc-quote blockquote {
+  margin: 0 auto; max-width: 900px; text-align: center; color: #fbf6ea;
+  padding: clamp(18px, 3vw, 36px) clamp(8px, 3vw, 40px);
+  background: radial-gradient(closest-side, rgba(127, 154, 135, 0.88), rgba(127, 154, 135, 0.6) 65%, rgba(127, 154, 135, 0));
+  text-shadow: 0 1px 2px rgba(20, 40, 28, 0.45);
+}
+.arc-quote blockquote::before { content: "\201C"; display: block; height: 0.55em; font: 400 clamp(4rem, 9vw, 7rem)/1 "Petit Formal Script", cursive; opacity: 0.85; }
+.arc-quote p { margin: 0; font: italic 400 clamp(1.5rem, 3.2vw, 2.5rem)/1.4 "IM Fell English", Georgia, serif; }
+.arc-quote footer { margin-top: 18px; font: 400 clamp(0.95rem, 1.6vw, 1.15rem) "IM Fell English SC", Georgia, serif; letter-spacing: 0.14em; }
+.arc-quote footer::before { content: "\2014\00a0"; }
+
+/* ivory sheets laid on the map, ruled like the cover label */
+.arc-sheet {
+  position: relative; margin: 0 auto clamp(40px, 6vw, 80px); width: min(780px, calc(100% - 2 * var(--gutter)));
+  padding: clamp(32px, 6vw, 64px) clamp(22px, 6vw, 64px);
+  background: #f6f0e1 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 0 0.15 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  color: #2f2219; border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(20, 40, 28, 0.3), 0 30px 60px -24px rgba(20, 40, 28, 0.6);
+  outline: 1px solid #1d3124; outline-offset: -12px;
+}
+.arc-sheet::before { content: ""; position: absolute; inset: 16px; border: 1px solid rgba(29, 49, 36, 0.35); pointer-events: none; }
+.arc-sheet__kicker { margin: 0 0 18px; text-align: center; font: 400 1.05rem "IM Fell English SC", Georgia, serif; letter-spacing: 0.16em; color: #2e4535; }
+.arc-blurb p { margin: 0 0 1.05em; font: 400 clamp(1.05rem, 1.6vw, 1.18rem)/1.7 var(--body); }
+.arc-blurb .arc-blurb__hook { margin: 0 0 0.35em; text-align: center; font: italic 400 clamp(1.35rem, 2.6vw, 1.75rem)/1.35 "IM Fell English", Georgia, serif; color: #1d3124; }
+.arc-blurb .arc-blurb__hook--2 { margin-bottom: 1.6em; }
+.arc-blurb .arc-blurb__hook--2::after { content: ""; display: block; width: 80px; margin: 22px auto 0; border-top: 1px solid #9b4a2f; }
+.arc-blurb .arc-blurb__turn { font-style: italic; text-align: center; margin: 1.4em 0; color: #1d3124; }
+.arc-sheet__cta { margin-top: 2em; text-align: center; }
+.arc-sheet__cta p { margin: 0 0 14px; font: italic 400 1.25rem "IM Fell English", Georgia, serif; color: #2e4535; text-align: center; }
+.arc__btn--dark { background: #1d3124; color: #f6f0e1; }
+.arc__btn--dark:hover, .arc__btn--dark:focus-visible { background: #f6f0e1; color: #1d3124; }
+
+.arc-author { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(22px, 5vw, 48px); align-items: center; width: min(920px, calc(100% - 2 * var(--gutter))); margin-bottom: 0; }
+.arc-author__portrait { margin: 0; justify-self: center; width: min(280px, 100%); aspect-ratio: 3 / 4; padding: 8px; border: 1px solid #1d3124; border-radius: 50%; }
+.arc-author__portrait img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; border-radius: 50%; filter: sepia(0.12); }
+.arc-author .arc-sheet__kicker { text-align: left; margin-bottom: 4px; }
+.arc-author__name { margin: 0 0 14px; font: 400 clamp(2.2rem, 4.4vw, 3.2rem)/1.25 "Petit Formal Script", cursive; color: #1d3124; }
+.arc-author p:not(.arc-sheet__kicker) { margin: 0 0 0.9em; font: 400 1.08rem/1.65 var(--body); }
+.arc-author a { color: #2e4535; }
+@media (max-width: 760px) {
+  .arc-author { grid-template-columns: 1fr; text-align: center; }
+  .arc-author__portrait { width: min(200px, 60%); }
+  .arc-author .arc-sheet__kicker { text-align: center; }
+}

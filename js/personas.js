@@ -122,6 +122,7 @@ window.PERSONAS = [
     title: "Writer",
     // a banner above the page: the call for advance readers of the novel
     promo:
+      '<div class="arc-page">' +
       '<section class="arc" aria-labelledby="arc-title">' +
         '<div class="arc__inner">' +
           '<figure class="arc__book"><div class="book3d">' +
@@ -135,6 +136,40 @@ window.PERSONAS = [
           '</div>' +
         '</div>' +
       '</section>' +
+      // a line from the novel
+      '<section class="arc-quote" aria-label="From the novel">' +
+        '<blockquote>' +
+          '<p>I must be untangled from these three people; untangled from the man inside of me and outside of me, and the woman between&nbsp;them.</p>' +
+          '<footer>The Blood of a Begonia</footer>' +
+        '</blockquote>' +
+      '</section>' +
+      // the back of the book
+      '<section class="arc-sheet arc-blurb" aria-labelledby="blurb-title">' +
+        '<p class="arc-sheet__kicker" id="blurb-title">About the book</p>' +
+        '<p class="arc-blurb__hook">Meredith Moran would do almost anything to save her country-club life in 1999&nbsp;Mississippi.</p>' +
+        '<p class="arc-blurb__hook arc-blurb__hook--2">A foursome with her husband, her former lover, and his new wife is asking a&nbsp;lot.</p>' +
+        '<p>Once a promising artist, Meredith now spends her days burning <em>Southern Living</em> recipes, overpruning her begonias, and painting forgettable florals. Her marriage to John has settled into a careful routine of disappointments. Then Austin Thomas&mdash;the college sweetheart who abandoned her&mdash;moves next door with his glamorous wife, Eleanora. Austin&rsquo;s familiar charm is dangerous enough. Eleanora&rsquo;s lavish attention makes keeping her distance even harder.</p>' +
+        '<p>When John&rsquo;s checks start bouncing, Meredith discovers debts that threaten everything she&rsquo;s worked so hard to make look effortless. He&rsquo;s already promised a generous donation to the country club&rsquo;s annual auction. A collection of her paintings could fulfill that promise and keep their ruin behind manicured hedges.</p>' +
+        '<p class="arc-blurb__turn">But her usual flowers won&rsquo;t do. Luckily, her muse is just next door.</p>' +
+        '<p>Painting her fantasies of Austin produces the best work of Meredith&rsquo;s life. It also draws the two couples into an intimacy she finds increasingly difficult to control. As John stakes their future on her canvases, Austin assumes a claim on her talent, and Eleanora&rsquo;s affection becomes an invitation with troubling expectations, Meredith begins to question whether the life her paintings could save is one she still wants.</p>' +
+        '<p>And when the others decide desire entitles them to more than a place on her canvas, saving appearances may cost Meredith the one thing she has never learned to call her own: <em>herself</em>.</p>' +
+        '<div class="arc-sheet__cta">' +
+          '<p>Read it before anyone else.</p>' +
+          '<button class="arc__btn arc__btn--dark" type="button" data-open="arc-signup">Sign up</button>' +
+        '</div>' +
+      '</section>' +
+      // meet the author
+      '<section class="arc-sheet arc-author" aria-labelledby="author-title">' +
+        '<figure class="arc-author__portrait"><img src="assets/headshot.jpg" alt="Emily M. Hill" loading="lazy"></figure>' +
+        '<div class="arc-author__text">' +
+          '<p class="arc-sheet__kicker">Meet the author</p>' +
+          '<h2 class="arc-author__name" id="author-title">Emily M. Hill</h2>' +
+          '<p>Emily M. Hill is a Louisiana-based writer drawn to the lives women build to look effortless, and to what it costs to keep them standing.</p>' +
+          '<p>She is also a media studies scholar. Her master&rsquo;s thesis at Old Dominion University, <a href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener"><em>Reading the Romance Reader</em></a>, explored BookTok, romance readership, and the fight for cultural legitimacy, and she teaches media courses at ODU.</p>' +
+          '<p>When she isn&rsquo;t writing, she&rsquo;s snuggling her four fur babies or antiquing for her next favorite lamp.</p>' +
+        '</div>' +
+      '</section>' +
+      '</div>' +
       '<dialog class="signup" id="arc-signup" aria-labelledby="signup-title">' +
         '<form class="signup__card" id="arc-signup-form" action="https://script.google.com/macros/s/AKfycbwvI33WBWYR7P89TAl43bahbsJ0EIrwF7M3W-RjgMROPPiN7fM4Gkq_hSx6ZOl4qGVQow/exec" method="POST" target="arc-signup-sink" novalidate>' +
           '<button class="signup__close" type="button" data-close aria-label="Close">&times;</button>' +
