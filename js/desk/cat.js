@@ -32,7 +32,7 @@ const cap = (p, a, b, r) => {   // capsule a-b (leaves the position along it in 
 const POSE_Y = 0.85;
 const HEAD = { p: P(0.25, 13.3, 2.4), ry: -0.75, rx: 0.06 };
 // eye sockets: wide almonds, the outer corners dipping a little, for a wistful look
-const EYE = { x: 1.2, y: 0.3, z: 2.05, r: [0.74, 0.36, 0.45], tilt: -0.12 };
+const EYE = { x: 1.2, y: 0.3, z: 2.05, r: [0.74, 0.36, 0.45], top: 0.47, tilt: -0.06 };
 
 /* The cast form, with vertex colours for the glaze and markings. */
 function figurineGeometry(headPos, headInv, furMode = true) {
@@ -52,7 +52,8 @@ function figurineGeometry(headPos, headInv, furMode = true) {
   const eyeSocket = (h, sx) => {
     const x = h.x - sx * EYE.x, y = h.y - EYE.y, a = sx * EYE.tilt, c = Math.cos(a), sn = Math.sin(a);
     q3.set(x * c - y * sn, x * sn + y * c, h.z - EYE.z);
-    return ell(q3, [0, 0, 0], EYE.r);
+    // a soft arch above, a gentle curve below (the two meet smoothly at the corners)
+    return ell(q3, [0, 0, 0], [EYE.r[0], q3.y > 0 ? EYE.top : EYE.r[1], EYE.r[2]]);
   };
 
   // ---- the smooth form: rounded volumes only, no fur ----
@@ -110,18 +111,14 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       // a short muzzle: a small bridge to the nose, two rounded pads beside and below it
       // that stand a little forward of the face and blend into the cheeks, and a little chin
       h = smin(h, ell(hp, [0, -0.3, 2.1], [0.36, 0.34, 0.26]), 0.3);
-      for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.42, -0.86, 2.02], [0.48, 0.36, 0.32]), 0.3);
+      for (const sx of [-1, 1]) h = smin(h, ell(hp, [sx * 0.47, -0.86, 2.02], [0.56, 0.37, 0.32]), 0.3);
       h = smin(h, ell(hp, [0, -1.38, 1.95], [0.42, 0.26, 0.3]), 0.3);
       // the nose: tiny, a soft triangle wider at the top, set just forward
       q2.set(hp.x / (1 + 1.4 * clamp01(hp.y + 0.52)), hp.y, hp.z);
-      const nose = ell(q2, [0, -0.44, 2.3], [0.17, 0.17, 0.16]);
+      const nose = ell(q2, [0, -0.43, 2.3], [0.21, 0.19, 0.16]);
       out.nose = nose;
       h = smin(h, nose, 0.1);
-      for (const sx of [-1, 1]) {
-        h = smax(h, -eyeSocket(hp, sx), 0.14);
-        // a soft upper lid, drawn a little over the eye
-        h = smin(h, ell(hp, [sx * EYE.x, EYE.y + 0.37, EYE.z - 0.22], [0.64, 0.15, 0.24]), 0.16);   // just meets the top of the iris
-      }
+      for (const sx of [-1, 1]) h = smax(h, -eyeSocket(hp, sx), 0.14);
       // the mouth is painted, not carved: a line this fine would tear the mesh
       let mg = 9;
       for (const [a, b] of mouth) mg = Math.min(mg, segXY(hp, a, b));
@@ -496,7 +493,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     if (out.nose < 0.06) c0 = mix(c0, PINK, sstep(0.05, 0.0, out.nose));   // the tiny pale-pink nose
     if (hp.z > 1.4 && ax < 2.2 && hp.y > -0.4 && hp.y < 1.0) {   // soft dark liner round the eyes
       const sock = eyeSocket(hp, Math.sign(hp.x));
-      c0 = c0.map((w) => w * (1 - 0.16 * sstep(0.07, 0.02, sock) * sstep(-0.06, 0.0, sock)));
+      c0 = c0.map((w) => w * (1 - 0.1 * sstep(0.05, 0.02, sock) * sstep(-0.06, 0.0, sock)));
     }
     const shade = (1 - 1.2 * fur) * (hp.z > 1.6 && mouthD < 0.09 ? 0.68 + 0.32 * sstep(0.025, 0.085, mouthD) : 1);
     col.push(c0[0] * shade, c0[1] * shade, c0[2] * shade);
@@ -510,20 +507,19 @@ function figurineGeometry(headPos, headInv, furMode = true) {
 function eyeTexture() {
   const c = document.createElement("canvas"); c.width = c.height = 256;
   const g = c.getContext("2d");
-  g.fillStyle = "#33363a"; g.fillRect(0, 0, 256, 256);
-  const iris = g.createRadialGradient(118, 120, 10, 124, 128, 104);
-  iris.addColorStop(0, "#e4ebe3"); iris.addColorStop(0.45, "#c8d5cc"); iris.addColorStop(0.82, "#98aba2"); iris.addColorStop(1, "#5f716b");
-  g.fillStyle = iris; g.beginPath(); g.ellipse(124, 128, 100, 96, 0, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = "rgba(80,100,94,0.22)"; g.lineWidth = 2;
+  g.fillStyle = "#4d5154"; g.fillRect(0, 0, 256, 256);                 // only a fine edge of this shows
+  const iris = g.createRadialGradient(128, 112, 10, 128, 128, 112);
+  iris.addColorStop(0, "#e4ebe3"); iris.addColorStop(0.45, "#c8d5cc"); iris.addColorStop(0.82, "#a3b5ac"); iris.addColorStop(1, "#7a8c85");
+  g.fillStyle = iris; g.beginPath(); g.ellipse(128, 128, 116, 112, 0, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(80,100,94,0.2)"; g.lineWidth = 2;
   for (let i = 0; i < 56; i++) {
-    const a = (i / 56) * Math.PI * 2, r0 = 40 + (i % 3) * 4;
-    g.beginPath(); g.moveTo(110 + Math.cos(a) * r0, 116 + Math.sin(a) * r0); g.lineTo(124 + Math.cos(a) * 92, 128 + Math.sin(a) * 88); g.stroke();
+    const a = (i / 56) * Math.PI * 2, r0 = 38 + (i % 3) * 4;
+    g.beginPath(); g.moveTo(128 + Math.cos(a) * r0, 96 + Math.sin(a) * r0); g.lineTo(128 + Math.cos(a) * 104, 128 + Math.sin(a) * 100); g.stroke();
   }
-  g.fillStyle = "#1b1c1d"; g.beginPath(); g.ellipse(118, 104, 30, 34, 0, 0, Math.PI * 2); g.fill();   // looking gently up, under the lid
-  g.strokeStyle = "#6b6f72"; g.lineWidth = 4; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, 0, Math.PI * 2); g.stroke();
-  // a soft upper lid line, heavier than the lower, as painted on the figurine
-  g.strokeStyle = "rgba(55,56,58,0.45)"; g.lineWidth = 6; g.beginPath(); g.ellipse(124, 128, 108, 104, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
-  g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(138, 108, 9, 6, -0.4, 0, Math.PI * 2); g.fill();
+  // both eyes share this, so the gaze is coordinated: centred, gently up
+  g.fillStyle = "#1b1c1d"; g.beginPath(); g.ellipse(128, 92, 28, 33, 0, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "#7a7e80"; g.lineWidth = 3; g.beginPath(); g.ellipse(128, 128, 116, 112, 0, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = "rgba(255,255,255,0.85)"; g.beginPath(); g.ellipse(144, 78, 9, 6, -0.4, 0, Math.PI * 2); g.fill();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
@@ -553,8 +549,8 @@ export function buildCatFigurine({ clay = false, fur = "full" } = {}) {
     const geo = eyeGeometry();
     for (const sx of [-1, 1]) {
       const eye = new THREE.Mesh(geo, eyeMat);
-      eye.position.set(sx * EYE.x, EYE.y, EYE.z - 0.38);
-      eye.scale.set(EYE.r[0] * 0.92, EYE.r[1] * 1.08, 0.3);
+      eye.position.set(sx * EYE.x, EYE.y + 0.06, EYE.z - 0.5);   // set back, so the rim of the opening frames it
+      eye.scale.set(EYE.r[0] * 0.92, 0.46, 0.3);
       eye.rotation.z = -sx * EYE.tilt;
       eye.castShadow = true;
       head.add(eye);
