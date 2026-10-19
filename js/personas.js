@@ -149,12 +149,14 @@ window.PERSONAS = [
         '<p class="arc-blurb__hook">Meredith Moran would do almost anything to save her country-club life in 1999&nbsp;Mississippi.</p>' +
         '<p class="arc-blurb__hook arc-blurb__hook--2">A foursome with her husband, her former lover, and his new wife is asking a&nbsp;lot.</p>' +
         '<div class="arc-blurb__body">' +
+        '<div class="arc-blurb__col">' +
         '<p>Once a promising artist, Meredith, spends her days burning the latest <em>Southern Living</em> recipes, overpruning her begonias, and painting mediocre florals. Her inspiration has dried up, and so has her marriage to John, an amputee veteran whose disability checks sustain their lavish lifestyle. When Austin Thomas, the college lover who abandoned her, and newly elected politician, moves next door with his wife, Meredith wants answers, and she fears she&rsquo;ll want him, too.</p>' +
         '<p>When John starts bouncing checks, Meredith discovers mountains of debt that threatens their lifestyle, and he has already promised a generous donation to the country club&rsquo;s annual gala and silent auction. Meredith&rsquo;s paintings could fulfill his promise and keep their ruin behind manicured hedges for a bit longer. But her middling florals won&rsquo;t do.</p>' +
+        '</div><div class="arc-blurb__col">' +
         '<p class="arc-blurb__turn">Luckily, her muse is just next door.</p>' +
         '<p>Meredith dips her brush in sin, and painting her fantasies of Austin produces the best work of Meredith&rsquo;s life. It also draws the two couples into an intimacy she finds increasingly difficult to control. As John stakes their future on her canvases, Austin assumes a claim on her talent, and Eleanora&rsquo;s affection becomes an invitation with troubling expectations, Meredith begins to question whether the life her paintings could save is one she still wants.</p>' +
         '<p>And when the others decide desire entitles them to more than a place on her canvas, saving appearances may cost Meredith the one thing she has never learned to call her own: <em>herself</em>.</p>' +
-        '</div>' +
+        '</div></div>' +
         '<p class="arc-blurb__comps"><span class="sc">The Blood of a Begonia</span> combines the marital disillusionment of Jessica Anthony&rsquo;s <em>The Most</em>, the exploration of art and unequal intimacy in Ursula Villarreal-Moura&rsquo;s <em>Like Happiness</em>, and the Southern Gothic homecoming and fraught mother-daughter reconciliation of Thao Thai&rsquo;s <em>Banyan Moon</em>.</p>' +
         '<div class="arc-sheet__cta">' +
           '<p>Read it before anyone else.</p>' +
