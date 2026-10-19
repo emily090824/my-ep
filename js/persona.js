@@ -41,6 +41,22 @@
     });
     root.insertAdjacentHTML("beforeend", html);
     if (p.promo && !document.querySelector(".arc")) root.insertAdjacentHTML("beforebegin", p.promo);
+    var dlg = document.getElementById("arc-signup");
+    if (dlg && !dlg.dataset.wired) {
+      dlg.dataset.wired = "1";
+      document.querySelectorAll('[data-open="arc-signup"]').forEach(function (b) {
+        b.addEventListener("click", function () { dlg.showModal(); });
+      });
+      dlg.querySelector("[data-close]").addEventListener("click", function () { dlg.close(); });
+      dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });   // click outside the card
+      dlg.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var f = e.target, msg = f.querySelector(".signup__msg");
+        if (!f.checkValidity()) { msg.textContent = "Please fill in each field and tick the box."; return; }
+        msg.textContent = "Mockup only: this form isn\u2019t connected yet.";
+      });
+      if (new URLSearchParams(location.search).get("signup") === "open") dlg.showModal();
+    }
     renderSwitcher();
   }
 
