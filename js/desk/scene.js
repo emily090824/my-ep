@@ -1201,7 +1201,7 @@ function buildBookStack(scene) {
   group.add(cat);
   // the figurine itself lives in cat.js; ?clay=1 shows its bare form
   const cq = new URLSearchParams(location.search), furQ = cq.get("fur");
-  cat.add(buildCatFigurine({ clay: cq.get("clay") === "1", fur: furQ === "0" ? false : furQ === "chest" || furQ === "full" ? furQ : true }));
+  cat.add(buildCatFigurine({ clay: cq.get("clay") === "1", fur: furQ === "0" ? false : furQ === "chest" ? "chest" : "full" }));
 
   // a reading light on the stack, so the foil catches. It hangs high, from the same side:
   // set lower, the stack's shadow reached back across the cat figurine in a hard diagonal

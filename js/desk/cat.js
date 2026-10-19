@@ -510,7 +510,7 @@ function eyeGeometry() {
 
 /* The figurine, posed, at the origin and unscaled. With clay: true it is shown as
    bare grey clay, for judging the form on its own. */
-export function buildCatFigurine({ clay = false, fur = true } = {}) {
+export function buildCatFigurine({ clay = false, fur = "full" } = {}) {
   const glaze = new THREE.MeshPhysicalMaterial({
     vertexColors: true, roughness: 0.32, clearcoat: 0.9, clearcoatRoughness: 0.18
   });
