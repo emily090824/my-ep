@@ -131,10 +131,26 @@ window.PERSONAS = [
           '<div class="arc__copy">' +
             '<p class="arc__lead">Sign up to be an<br> <abbr title="advance reader copy">ARC</abbr> reader of</p>' +
             '<h2 class="arc__title" id="arc-title">The Blood of<br> a&nbsp;Begonia</h2>' +
-            '<a class="arc__btn" href="mailto:eemaranto@gmail.com?subject=ARC%20reader%3A%20The%20Blood%20of%20a%20Begonia&amp;body=I%27d%20love%20to%20read%20an%20advance%20copy%20of%20The%20Blood%20of%20a%20Begonia.%0A%0AName%3A%20%0APreferred%20format%20(ebook%20or%20print)%3A%20%0AWhere%20I%20review%20(Goodreads%2C%20BookTok%2C%20etc.)%3A%20">Sign up</a>' +
+            '<button class="arc__btn" type="button" data-open="arc-signup">Sign up</button>' +
           '</div>' +
         '</div>' +
-      '</section>',
+      '</section>' +
+      '<dialog class="signup" id="arc-signup" aria-labelledby="signup-title">' +
+        '<form class="signup__card" method="dialog" novalidate>' +
+          '<button class="signup__close" type="button" data-close aria-label="Close">&times;</button>' +
+          '<p class="signup__lead">Be among the first to read</p>' +
+          '<h2 class="signup__title" id="signup-title">The Blood of a&nbsp;Begonia</h2>' +
+          '<p class="signup__note">Advance reader copies go out before publication. Leave your name and email and I&rsquo;ll write when yours is ready.</p>' +
+          '<div class="signup__row">' +
+            '<label class="signup__field"><span>First name</span><input name="firstName" autocomplete="given-name" required autofocus></label>' +
+            '<label class="signup__field"><span>Last name</span><input name="lastName" autocomplete="family-name" required></label>' +
+          '</div>' +
+          '<label class="signup__field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>' +
+          '<label class="signup__consent"><input name="consent" type="checkbox" required><span>I&rsquo;d like to receive an advance reader copy of <em>The Blood of a Begonia</em> and occasional emails from Emily M. Hill about it. I can unsubscribe at any time.</span></label>' +
+          '<button class="signup__submit" type="submit">Count me in</button>' +
+          '<p class="signup__msg" role="status" aria-live="polite"></p>' +
+        '</form>' +
+      '</dialog>',
     letter: "W",
     visibility: "public",
     tagline: "Books, essays, and the romance of a good sentence.",

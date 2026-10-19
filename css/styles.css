@@ -723,3 +723,51 @@ body:not(.has-desk) main { padding-top: 66px; }
   .book3d { --w: min(220px, 58vw); }
   .arc__lead { max-width: 15ch; }
 }
+
+/* ---------- the ARC sign-up popup: a card of ivory paper over the sage map ---------- */
+button.arc__btn { cursor: pointer; }
+.signup {
+  padding: 0; border: 0; background: transparent; color: #1d3124;
+  width: min(560px, calc(100vw - 32px)); max-height: calc(100svh - 32px);
+}
+.signup::backdrop { background: rgba(29, 49, 36, 0.55); backdrop-filter: blur(2px); }
+.signup__card {
+  position: relative; margin: 0;
+  padding: clamp(28px, 6vw, 48px) clamp(22px, 6vw, 52px) clamp(24px, 5vw, 40px);
+  background: #f6f0e1 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 0 0.15 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  border-radius: 3px; text-align: center;
+  box-shadow: 0 2px 4px rgba(20, 40, 28, 0.3), 0 30px 60px -20px rgba(20, 40, 28, 0.6);
+  outline: 1px solid #1d3124; outline-offset: -12px;          /* an inked double rule, like the cover label */
+}
+.signup__card::before { content: ""; position: absolute; inset: 16px; border: 1px solid rgba(29, 49, 36, 0.35); pointer-events: none; }
+.signup__close:focus:not(:focus-visible) { outline: none; }
+.signup__close {
+  position: absolute; top: 18px; right: 22px; z-index: 1;
+  border: 0; background: none; cursor: pointer; color: #1d3124;
+  font: 400 1.9rem/1 "IM Fell English", Georgia, serif;
+}
+.signup__lead { margin: 0; font: italic 400 1.3rem/1.2 "IM Fell English", Georgia, serif; color: #2e4535; }
+.signup__title { margin: 2px 0 10px; font: 400 clamp(2rem, 6vw, 2.8rem)/1.3 "Petit Formal Script", cursive; color: #1d3124; }
+.signup__note { margin: 0 auto 22px; max-width: 40ch; font: 400 1rem/1.5 var(--body); color: #4a3426; }
+.signup__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.signup__field { display: block; text-align: left; margin: 0 0 18px; }
+.signup__field span { display: block; font: 400 0.95rem "IM Fell English SC", Georgia, serif; letter-spacing: 0.08em; color: #2e4535; }
+.signup__field input {
+  width: 100%; padding: 6px 2px 5px; border: 0; border-bottom: 1.5px solid #1d3124; background: transparent;
+  font: 400 1.1rem var(--body); color: #1d3124; border-radius: 0;
+}
+.signup__field input:focus { outline: none; border-bottom-color: #9b4a2f; box-shadow: 0 1.5px 0 #9b4a2f; }
+.signup__consent { display: flex; gap: 10px; align-items: flex-start; text-align: left; margin: 6px 0 24px; font: 400 0.92rem/1.45 var(--body); color: #4a3426; cursor: pointer; }
+.signup__consent input { flex: none; width: 18px; height: 18px; margin: 2px 0 0; accent-color: #1d3124; }
+.signup__submit {
+  display: inline-flex; justify-content: center; min-width: min(100%, 300px); padding: 0.7em 1.6em; border-radius: 999px; cursor: pointer;
+  border: 2px solid #1d3124; background: #1d3124; color: #f6f0e1;
+  font: 400 1.3rem/1 "IM Fell English SC", Georgia, serif; letter-spacing: 0.12em;
+  transition: background 0.2s, color 0.2s;
+}
+.signup__submit:hover, .signup__submit:focus-visible { background: #f6f0e1; color: #1d3124; }
+[hidden] { display: none !important; }
+.signup__msg.is-done { color: #2e4535; font-size: 1.15rem; }
+.signup__submit:disabled { opacity: 0.6; cursor: wait; }
+.signup__msg { min-height: 1.4em; margin: 14px 0 0; font: italic 400 1rem "IM Fell English", Georgia, serif; color: #9b4a2f; }
+@media (max-width: 520px) { .signup__row { grid-template-columns: 1fr; } }
