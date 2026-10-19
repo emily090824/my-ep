@@ -6,7 +6,6 @@
 
   var slug = new URLSearchParams(location.search).get("p") || "marketer";
   document.body.classList.add("persona-page--" + slug);
-  var SIGNUP_URL = "https://script.google.com/macros/s/AKfycbwkTqf809PwOU603MbgUJ00NGc0QJhy3RNWXLZ6kMMqbzGtGHJAZ7y7elsJcMYcudncrg/exec";
   var p = window.PERSONAS.find(function (x) { return x.slug === slug; });
 
   if (p && p.visibility !== "public") {
@@ -50,30 +49,18 @@
       });
       dlg.querySelector("[data-close]").addEventListener("click", function () { dlg.close(); });
       dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });   // click outside the card
+      // the form posts straight to the Google Apps Script, which answers in a new tab;
+      // here it is only checked first, then thanked once it has gone
       dlg.querySelector("form").addEventListener("submit", function (e) {
-        e.preventDefault();
         var f = e.target, msg = f.querySelector(".signup__msg");
-        if (!f.checkValidity()) { msg.textContent = "Please fill in each field and tick the box."; return; }
-        // Google Apps Script web app: it reads the fields from e.parameter. A no-cors post
-        // can't read the reply, so a request that goes through counts as received.
-        var btn = f.querySelector(".signup__submit");
-        var data = new URLSearchParams({
-          firstName: f.firstName.value.trim(), lastName: f.lastName.value.trim(),
-          email: f.email.value.trim(), consent: f.consent.checked ? "yes" : "no",
-          timestamp: new Date().toISOString(), source: "emh-site writer page"
-        });
-        btn.disabled = true; msg.textContent = "Sending\u2026";
-        fetch(SIGNUP_URL, { method: "POST", mode: "no-cors", body: data })
-          .then(function () {
-            f.querySelectorAll(".signup__row, .signup__field, .signup__consent, .signup__submit, .signup__note").forEach(function (el) { el.hidden = true; });
-            f.querySelector(".signup__lead").textContent = "Thank you, " + data.get("firstName") + ".";
-            msg.textContent = "You\u2019re on the list. I\u2019ll write when your copy is ready.";
-            msg.classList.add("is-done");
-          })
-          .catch(function () {
-            btn.disabled = false;
-            msg.textContent = "That didn\u2019t go through. Please try again in a moment.";
-          });
+        if (!f.checkValidity()) { e.preventDefault(); msg.textContent = "Please fill in each field and tick the box."; return; }
+        var first = f.firstName.value.trim();
+        setTimeout(function () {   // after the browser has sent the form
+          f.querySelectorAll(".signup__row, .signup__field, .signup__consent, .signup__submit, .signup__note, .signup__fine").forEach(function (el) { el.hidden = true; });
+          f.querySelector(".signup__lead").textContent = "Thank you, " + first + ".";
+          msg.textContent = "You\u2019re on the list. Your confirmation has opened in a new tab.";
+          msg.classList.add("is-done");
+        }, 50);
       });
       if (new URLSearchParams(location.search).get("signup") === "open") dlg.showModal();
     }

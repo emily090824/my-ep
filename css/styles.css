@@ -751,7 +751,7 @@ button.arc__btn { cursor: pointer; }
 .signup__note { margin: 0 auto 22px; max-width: 40ch; font: 400 1rem/1.5 var(--body); color: #4a3426; }
 .signup__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
 .signup__field { display: block; text-align: left; margin: 0 0 18px; }
-.signup__field span { display: block; font: 400 0.95rem "IM Fell English SC", Georgia, serif; letter-spacing: 0.08em; color: #2e4535; }
+.signup__field label { display: block; font: 400 0.95rem "IM Fell English SC", Georgia, serif; letter-spacing: 0.08em; color: #2e4535; }
 .signup__field input {
   width: 100%; padding: 6px 2px 5px; border: 0; border-bottom: 1.5px solid #1d3124; background: transparent;
   font: 400 1.1rem var(--body); color: #1d3124; border-radius: 0;
@@ -769,5 +769,6 @@ button.arc__btn { cursor: pointer; }
 [hidden] { display: none !important; }
 .signup__msg.is-done { color: #2e4535; font-size: 1.15rem; }
 .signup__submit:disabled { opacity: 0.6; cursor: wait; }
+.signup__fine { margin: 12px 0 0; font: italic 400 0.92rem "IM Fell English", Georgia, serif; color: #4a3426; }
 .signup__msg { min-height: 1.4em; margin: 14px 0 0; font: italic 400 1rem "IM Fell English", Georgia, serif; color: #9b4a2f; }
 @media (max-width: 520px) { .signup__row { grid-template-columns: 1fr; } }

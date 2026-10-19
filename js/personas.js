@@ -136,18 +136,19 @@ window.PERSONAS = [
         '</div>' +
       '</section>' +
       '<dialog class="signup" id="arc-signup" aria-labelledby="signup-title">' +
-        '<form class="signup__card" method="dialog" novalidate>' +
+        '<form class="signup__card" id="arc-signup-form" action="https://script.google.com/macros/s/AKfycbwTjfnqw3CBk9ft-b_gpNMnA_WJsK5YvZN321N8gVTJPZ8wVi4atx6bgq-QH3j3fhyd/exec" method="POST" target="_blank" novalidate>' +
           '<button class="signup__close" type="button" data-close aria-label="Close">&times;</button>' +
           '<p class="signup__lead">Be among the first to read</p>' +
           '<h2 class="signup__title" id="signup-title">The Blood of a&nbsp;Begonia</h2>' +
           '<p class="signup__note">Advance reader copies go out before publication. Leave your name and email and I&rsquo;ll write when yours is ready.</p>' +
           '<div class="signup__row">' +
-            '<label class="signup__field"><span>First name</span><input name="firstName" autocomplete="given-name" required autofocus></label>' +
-            '<label class="signup__field"><span>Last name</span><input name="lastName" autocomplete="family-name" required></label>' +
+            '<div class="signup__field"><label for="arc-first-name">First name</label><input id="arc-first-name" name="firstName" type="text" autocomplete="given-name" maxlength="100" required autofocus></div>' +
+            '<div class="signup__field"><label for="arc-last-name">Last name</label><input id="arc-last-name" name="lastName" type="text" autocomplete="family-name" maxlength="100" required></div>' +
           '</div>' +
-          '<label class="signup__field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>' +
-          '<label class="signup__consent"><input name="consent" type="checkbox" required><span>I&rsquo;d like to receive an advance reader copy of <em>The Blood of a Begonia</em> and occasional emails from Emily M. Hill about it. I can unsubscribe at any time.</span></label>' +
+          '<div class="signup__field"><label for="arc-email">Email</label><input id="arc-email" name="email" type="email" autocomplete="email" maxlength="254" required></div>' +
+          '<label class="signup__consent"><input name="consent" type="checkbox" value="yes" required><span>I&rsquo;d like to receive an advance reader copy of <em>The Blood of a Begonia</em> and occasional emails from Emily M. Hill about it. I can unsubscribe at any time.</span></label>' +
           '<button class="signup__submit" type="submit">Count me in</button>' +
+          '<p class="signup__fine">A confirmation will open in a new tab after you submit.</p>' +
           '<p class="signup__msg" role="status" aria-live="polite"></p>' +
         '</form>' +
       '</dialog>',
