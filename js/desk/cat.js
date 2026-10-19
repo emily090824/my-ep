@@ -208,7 +208,7 @@ function figurineGeometry(headPos, headInv, furMode = true) {
      RELIEF_MAX (and overlaps never steepen the surface). Some locks carry a shallow,
      curved separation along one edge, limited the same way. The test area fades into
      the plain glaze over a wide margin, so it has no edge. */
-  const RELIEF_MAX = 0.12, SEP_MAX = 0.015;
+  const RELIEF_MAX = 0.12, SEP_MAX = 0.03;
   const chestC = P(0, 8.6, 6.0), locks = [];
   // the test area: broad beneath the cheeks, reaching further down than up, and fading out
   // over a wide, slightly irregular margin so it never reads as a patch
@@ -226,18 +226,30 @@ function figurineGeometry(headPos, headInv, furMode = true) {
       if (out.part !== 0) continue;                                       // chest only, not the head
       // short, rounded forms high on the chest; a few longer ones lower down
       const up = clamp01((s.y - (chestC.y - 3.2)) / 4.5);
-      const W = 1.25 + 0.6 * rng(id + 1.1), L = (2.5 - 1.2 * up) * (0.75 + 0.5 * rng(id + 1.9));
-      if (locks.some((k) => k.c.distanceTo(s) < 0.42 * (W + k.W))) continue;
+      const W = 0.95 + 0.45 * rng(id + 1.1);
+      // always clearly longer than wide (a near-round lock reads as a bump and catches a pinpoint highlight)
+      const L = Math.max(1.5 * W, Math.min(2.3, (2.2 - 1.0 * up) * (0.75 + 0.45 * rng(id + 1.9))));
+      if (locks.some((k) => k.c.distanceTo(s) < 0.58 * (W + k.W))) continue;
       gradAt(s, g);
       // the middle falls straight down; the sides fan outward beneath the cheeks, more so near the top
       const fan = Math.max(-1, Math.min(1, s.x / 3.0)) * (0.3 + 0.8 * up);
       const f = P(fan, -1, 0);
       f.addScaledVector(g, -f.dot(g)).normalize().applyAxisAngle(g, (rng(id + 2.3) - 0.5) * 0.5);
-      locks.push({
+      const lock = {
         c: s, f, b: new V().crossVectors(g, f).normalize(), W, L,
-        h: 0.055 + 0.03 * rng(id + 2.9), bend: (rng(id + 3.7) - 0.5) * 1.0,
-        sep: rng(id + 4.3) < 0.35 ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0
-      });
+        h: 0.06 + 0.03 * rng(id + 2.9), bend: (rng(id + 3.7) - 0.5) * 0.9,
+        sep: rng(id + 4.3) < 0.5 ? (rng(id + 5.1) < 0.5 ? -1 : 1) : 0
+      };
+      locks.push(lock);
+      // break up the longer locks: a shorter form overlapping the lower part, a little aside
+      if (L > 1.7 && rng(id + 6.2) < 0.45) {
+        const side = rng(id + 6.9) < 0.5 ? -1 : 1;
+        const c2 = s.clone().addScaledVector(f, L * 0.4).addScaledVector(lock.b, side * W * 0.5);
+        toSurface(c2);
+        const f2 = f.clone().applyAxisAngle(g, side * 0.18);
+        locks.push({ c: c2, f: f2, b: new V().crossVectors(g, f2).normalize(), W: W * 0.8, L: Math.max(1.5 * W * 0.8, L * 0.6),
+                     h: lock.h * 0.9, bend: -lock.bend * 0.6, sep: 0 });
+      }
     }
   }
   const lv = new V();
@@ -247,17 +259,20 @@ function figurineGeometry(headPos, headInv, furMode = true) {
     let sum = 0, sep = 0;
     for (const k of locks) {
       lv.subVectors(p, k.c);
-      const a = lv.dot(k.f) / (k.L * 0.5);
-      if (a <= -1 || a >= 1) continue;
+      let a = lv.dot(k.f) / (k.L * 0.5);
+      if (a <= -1.6 || a >= 1.3) continue;
+      a = a < 0 ? a / 1.6 : a / 1.3;                                      // a long root above; the end below also eases out, so locks meet softly
       const cc = (lv.dot(k.b) - k.bend * k.W * a * a) / (k.W * 0.5);   // curved along its length
+      // the parting has its own footprint, fading to nothing on every side (it must not be
+      // cut off where the lock's own footprint ends, or the surface breaks there)
+      if (k.sep) {
+        const e = (cc - k.sep * 0.6) / 0.6;                               // a shallow parting, wide enough for the mesh
+        if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep += 0.035 * qe * qe * qe * qa * qa; }
+      }
       const r2 = a * a + cc * cc;
       if (r2 >= 1) continue;
       const q = 1 - r2;
-      sum += k.h * q * q;                                                // broad, rounded, blending into neighbours
-      if (k.sep) {
-        const e = (cc - k.sep * 0.6) / 0.4;                               // a soft, shallow parting
-        if (e > -1 && e < 1) { const qe = 1 - e * e, qa = 1 - a * a; sep += 0.02 * qe * qe * qa * qa; }
-      }
+      sum += k.h * q * q * q;                                            // a rounded ridge, easing smoothly out at its edges
     }
     return m * (RELIEF_MAX * Math.tanh(sum / RELIEF_MAX) - SEP_MAX * Math.tanh(sep / SEP_MAX));
   };
