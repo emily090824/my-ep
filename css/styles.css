@@ -663,7 +663,7 @@ body:not(.has-desk) main { padding-top: 66px; }
 .book3d {
   --w: min(360px, 34vw); --t: calc(var(--w) * 0.21);       /* the thickness of a full novel (lengths only: depth cannot be a percentage) */
   position: relative; width: var(--w); aspect-ratio: 600 / 777;
-  transform-style: preserve-3d; transform: rotateX(-12deg) rotateY(36deg) translateX(calc(var(--t) * 0.5));
+  transform-style: preserve-3d; transform: rotateX(-8deg) rotateY(22deg) translateX(calc(var(--t) * 0.35));
 }
 .book3d > div { position: absolute; backface-visibility: hidden; }
 .book3d__front { inset: 0; transform: translateZ(calc(var(--t) / 2)); border-radius: 1px 4px 4px 1px; overflow: hidden; }
