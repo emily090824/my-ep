@@ -1329,3 +1329,61 @@ export function modernSpineTextures({ title, sub, icon, design, seed = 1 }) {
   rctx.fillStyle = "#b8b8b8"; rctx.fillRect(0, 0, W, H);   // satin print
   return { map: toTexture(c), rough: toTexture(rc, { srgb: false }) };
 }
+
+// A crocheted lace doily, seen from above: a solid centre, rings of petals and chain
+// loops with open lace between, and a scalloped picot edge. Alpha cuts out the openwork.
+export function doilyTexture() {
+  const N = 1024, c = document.createElement("canvas"); c.width = c.height = N;
+  const g = c.getContext("2d"), C = N / 2, R = N / 2 - 4;
+  g.translate(C, C);
+  const thread = "#f3eee2";
+  g.strokeStyle = g.fillStyle = thread; g.lineCap = "round";
+  const ring = (r, w) => { g.lineWidth = w * 1.9; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); };
+  // the centre: a solid round with a few pierced holes
+  g.beginPath(); g.arc(0, 0, R * 0.22, 0, Math.PI * 2); g.fill();
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.beginPath(); g.arc(Math.cos(a) * R * 0.16, Math.sin(a) * R * 0.16, R * 0.018, 0, Math.PI * 2); g.fill(); }
+  g.beginPath(); g.arc(0, 0, R * 0.05, 0, Math.PI * 2); g.fill();
+  g.globalCompositeOperation = "source-over";
+  ring(R * 0.23, 8);
+  // petals radiating from the centre
+  for (let i = 0; i < 16; i++) {
+    g.save(); g.rotate((i / 16) * Math.PI * 2);
+    g.lineWidth = 13; g.beginPath(); g.ellipse(R * 0.33, 0, R * 0.1, R * 0.045, 0, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 8; g.beginPath(); g.moveTo(R * 0.24, 0); g.lineTo(R * 0.43, 0); g.stroke();
+    g.restore();
+  }
+  ring(R * 0.44, 7);
+  // chain loops: arches between spokes
+  for (let k = 0; k < 2; k++) {
+    const r0 = R * (0.44 + k * 0.14), r1 = R * (0.58 + k * 0.14), n = 24 + k * 8;
+    for (let i = 0; i < n; i++) {
+      const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
+      g.lineWidth = 10; g.beginPath();
+      g.moveTo(Math.cos(a0) * r0, Math.sin(a0) * r0);
+      g.quadraticCurveTo(Math.cos(am) * r1 * 1.08, Math.sin(am) * r1 * 1.08, Math.cos(a1) * r0, Math.sin(a1) * r0);
+      g.stroke();
+    }
+    ring(r1, 6);
+  }
+  // a band of small shells
+  for (let i = 0; i < 40; i++) {
+    g.save(); g.rotate((i / 40) * Math.PI * 2);
+    g.lineWidth = 10; g.beginPath(); g.arc(R * 0.82, 0, R * 0.045, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.moveTo(R * 0.72, 0); g.lineTo(R * 0.775, 0); g.stroke();
+    g.restore();
+  }
+  ring(R * 0.87, 6);
+  // scalloped picot edge
+  const n = 48;
+  g.lineWidth = 11; g.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
+    if (i === 0) g.moveTo(Math.cos(a0) * R * 0.87, Math.sin(a0) * R * 0.87);
+    if (i < n) g.quadraticCurveTo(Math.cos(am) * R * 1.06, Math.sin(am) * R * 1.06, Math.cos(a1) * R * 0.87, Math.sin(a1) * R * 0.87);
+  }
+  g.stroke();
+  for (let i = 0; i < n; i++) { const am = ((i + 0.5) / n) * Math.PI * 2; g.beginPath(); g.arc(Math.cos(am) * R * 0.975, Math.sin(am) * R * 0.975, 10, 0, Math.PI * 2); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}

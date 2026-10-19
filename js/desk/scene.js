@@ -983,6 +983,16 @@ function buildProps(scene) {
   handle.rotation.z = -Math.PI / 2 - 0.25;
   const coffee = add(new THREE.CircleGeometry(3.72, 48), new THREE.MeshPhysicalMaterial({ color: "#26140a", roughness: 0.08, clearcoat: 1 }), 0, 8.1, 0, mug);
   coffee.rotation.x = -Math.PI / 2;
+  if (SHOT === "links") {
+    // in the links still the mug sits further left, on a crocheted doily
+    mug.position.set(15, 0.06, 6);
+    const doily = new THREE.Mesh(new THREE.CircleGeometry(8.2, 96),
+      new THREE.MeshStandardMaterial({ map: TX.doilyTexture(), alphaTest: 0.5, roughness: 0.9, side: THREE.DoubleSide }));
+    doily.rotation.set(-Math.PI / 2, 0, 0.3);
+    doily.position.set(mug.position.x, 0.04, mug.position.z);
+    doily.receiveShadow = true;
+    scene.add(doily);
+  }
 
   const smoke = TX.smokeTexture();
   const puffs = Array.from({ length: 10 }, (_, i) => {
