@@ -1,0 +1,477 @@
+<!doctype html>
+<!-- Dev tool: draws the hand-inked plat of the Montclair Country Club used behind the
+     Writer page. Not linked from the site. Render it and save the canvas as an image. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Montclair plat</title>
+<link rel="stylesheet" href="../css/fonts.css">
+<style>html, body { margin: 0; background: #ddd; } canvas { display: block; width: 100%; height: auto; }</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(async function () {
+const q = new URLSearchParams(location.search);
+const W = +(q.get("w") || 2400), H = +(q.get("h") || 1600);
+const cv = document.getElementById("c"); cv.width = W; cv.height = H;
+const g = cv.getContext("2d");
+await Promise.all(["italic 300 40px Fraunces", "400 40px Fraunces", "600 40px Fraunces", "italic 400 30px Spectral", "400 30px Spectral", "400 20px 'Courier Prime'"].map((f) => document.fonts.load(f)));
+
+let seed = +(q.get("seed") || 11);
+const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+const R = (a, b) => a + (b - a) * rnd();
+const PAPER = "#f2e7cf", PAPER_L = "#f6eddb", INK = "rgba(58,36,20,0.9)", INK_S = "rgba(58,36,20,0.55)", RED = "#b0373a";
+const P = (x, y) => ({ x, y });
+
+/* ---------- curves and the inked line ---------- */
+function spline(pts, closed = false, step = 6) {
+  const out = [], n = pts.length;
+  const get = (i) => closed ? pts[(i + n) % n] : pts[Math.max(0, Math.min(n - 1, i))];
+  const segs = closed ? n : n - 1;
+  for (let i = 0; i < segs; i++) {
+    const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
+    const len = Math.hypot(p2.x - p1.x, p2.y - p1.y), k = Math.max(2, Math.ceil(len / step));
+    for (let j = 0; j < k; j++) {
+      const t = j / k, t2 = t * t, t3 = t2 * t;
+      out.push(P(0.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+                 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3)));
+    }
+  }
+  if (!closed) out.push(pts[n - 1]);
+  return out;
+}
+// a hand-drawn line: a gentle, smooth wobble, with the nib's pressure varying
+function wobble(pts, amp = 0.9) {
+  const a1 = R(0, 6.28), a2 = R(0, 6.28), f1 = R(0.02, 0.05), f2 = R(0.07, 0.13);
+  let s = 0;
+  return pts.map((p, i) => {
+    if (i) s += Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y);
+    const q0 = pts[Math.max(0, i - 1)], q1 = pts[Math.min(pts.length - 1, i + 1)];
+    let nx = -(q1.y - q0.y), ny = q1.x - q0.x; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    const o = amp * (Math.sin(s * f1 + a1) * 0.7 + Math.sin(s * f2 + a2) * 0.3);
+    return P(p.x + nx * o, p.y + ny * o);
+  });
+}
+function path(pts, closed) { g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y))); if (closed) g.closePath(); }
+function ink(pts, w = 1.6, color = INK, closed = false, amp = 0.9) {
+  const p = wobble(pts, amp);
+  g.strokeStyle = color; g.lineWidth = w; g.lineJoin = g.lineCap = "round";
+  path(p, closed); g.stroke();
+}
+function line(x1, y1, x2, y2, w = 1.2, color = INK) { ink(spline([P(x1, y1), P(x2, y2)], false, 5), w, color, false, 0.5); }
+function hatch(clipPts, ang, gap, w = 0.9, color = INK_S, jitter = 0.6) {
+  g.save(); path(clipPts, true); g.clip();
+  const xs = clipPts.map((p) => p.x), ys = clipPts.map((p) => p.y);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const r = Math.hypot(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / 2 + 4;
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  for (let o = -r; o <= r; o += gap * R(0.85, 1.15)) {
+    const ox = cx - dy * o, oy = cy + dx * o;
+    ink([P(ox - dx * r, oy - dy * r), P(ox + dx * r, oy + dy * r)].flatMap((p, i, a) => i ? spline(a, false, 6) : []), w, color, false, jitter);
+  }
+  g.restore();
+}
+function stipple(clipPts, n, color = INK_S, rr = 0.9) {
+  g.save(); path(clipPts, true); g.clip(); g.fillStyle = color;
+  const xs = clipPts.map((p) => p.x), ys = clipPts.map((p) => p.y);
+  for (let i = 0; i < n; i++) { g.beginPath(); g.arc(R(Math.min(...xs), Math.max(...xs)), R(Math.min(...ys), Math.max(...ys)), rr * R(0.6, 1.2), 0, 6.283); g.fill(); }
+  g.restore();
+}
+function blob(cx, cy, rx, ry, n = 9, rough = 0.18, rot = 0) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 6.283, k = 1 + R(-rough, rough);
+    const x = Math.cos(a) * rx * k, y = Math.sin(a) * ry * k;
+    pts.push(P(cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)));
+  }
+  return spline(pts, true, 5);
+}
+function offsetPoly(pts, d) {   // offset an open polyline sideways
+  return pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    let nx = -(b.y - a.y), ny = b.x - a.x; const l = Math.hypot(nx, ny) || 1;
+    return P(p.x + nx / l * d, p.y + ny / l * d);
+  });
+}
+function along(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y)); return L; }
+function pointAt(pts, L, s) {
+  let i = 1; while (i < L.length - 1 && L[i] < s) i++;
+  const t = (s - L[i - 1]) / ((L[i] - L[i - 1]) || 1), a = pts[i - 1], b = pts[i];
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, ang: Math.atan2(b.y - a.y, b.x - a.x) };
+}
+
+/* ---------- an occupancy mask, so nothing is drawn on top of anything else ---------- */
+const MS = 4, mk = document.createElement("canvas"); mk.width = W / MS; mk.height = H / MS;
+const m = mk.getContext("2d"); m.fillStyle = "#fff"; m.fillRect(0, 0, mk.width, mk.height); m.setTransform(1 / MS, 0, 0, 1 / MS, 0, 0);
+m.fillStyle = m.strokeStyle = "#000"; m.lineCap = m.lineJoin = "round";
+let md = null;
+const mark = (fn) => { fn(m); md = null; };
+const free = (x, y) => {
+  if (x < 0 || y < 0 || x >= W || y >= H) return true;
+  if (!md) md = m.getImageData(0, 0, mk.width, mk.height).data;
+  return md[((y / MS | 0) * mk.width + (x / MS | 0)) * 4] > 128;
+};
+const markPoly = (pts, pad = 0) => mark((c) => { c.lineWidth = pad * 2; c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.closePath(); c.fill(); if (pad) c.stroke(); });
+const markLine = (pts, w) => mark((c) => { c.lineWidth = w; c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.stroke(); });
+
+/* ---------- paper ---------- */
+g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
+for (let i = 0; i < W * H / 260; i++) { g.fillStyle = `rgba(120,90,50,${R(0.02, 0.06)})`; g.fillRect(R(0, W), R(0, H), R(0.6, 2), R(0.6, 2)); }
+for (let i = 0; i < 140; i++) { g.strokeStyle = `rgba(140,110,70,${R(0.03, 0.07)})`; g.lineWidth = 0.7; const x = R(0, W), y = R(0, H), a = R(0, 6.28), l = R(8, 30); g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l, y + Math.sin(a + 0.6) * l, x + Math.cos(a + 0.3) * l * 1.6, y + Math.sin(a + 0.3) * l * 1.6); g.stroke(); }
+
+/* ---------- reserved areas: the cartouche and the compass ---------- */
+const CART = { x: 1700, y: 1195, w: 600, h: 250 }, COMPASS = { x: 1110, y: 330, r: 64 };
+markPoly([P(CART.x, CART.y), P(CART.x + CART.w, CART.y), P(CART.x + CART.w, CART.y + CART.h), P(CART.x, CART.y + CART.h)], 20);
+mark((c) => { c.beginPath(); c.arc(COMPASS.x, COMPASS.y, COMPASS.r + 26, 0, 6.283); c.fill(); });
+
+/* ---------- the golf course ---------- */
+const holes = [
+  { n: 1, pts: [P(930, 830), P(1180, 705), P(1420, 575)], w: 92 },
+  { n: 2, pts: [P(1530, 480), P(1760, 370), P(1975, 310)], w: 84 },
+  { n: 3, pts: [P(2095, 395), P(2140, 630), P(2105, 860)], w: 88 },
+  { n: 4, pts: [P(2010, 985), P(1810, 1075), P(1585, 1110)], w: 88 },
+  { n: 5, pts: [P(1455, 1225), P(1250, 1295), P(1010, 1325)], w: 82 },
+  { n: 6, pts: [P(1290, 985), P(1420, 925), P(1545, 860)], w: 58 }
+];
+const pond = blob(1770, 790, 135, 78, 10, 0.16, -0.25);
+const fairways = holes.map((h) => {
+  const c = spline(h.pts, false, 8), L = along(c), T = L[L.length - 1];
+  const left = [], right = [];
+  c.forEach((p, i) => {
+    const t = L[i] / T, w = h.w * (0.55 + 0.45 * Math.sin(Math.PI * Math.min(1, t * 1.15))) * (1 + 0.12 * Math.sin(t * 9 + h.n));
+    const a = c[Math.max(0, i - 1)], b = c[Math.min(c.length - 1, i + 1)];
+    let nx = -(b.y - a.y), ny = b.x - a.x; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    left.push(P(p.x + nx * w / 2, p.y + ny * w / 2)); right.push(P(p.x - nx * w / 2, p.y - ny * w / 2));
+  });
+  const ctrl = [...left.filter((_, i) => i % 6 === 0), left[left.length - 1], ...right.reverse().filter((_, i) => i % 6 === 0), right[right.length - 1]];
+  return { h, outline: spline(ctrl, true, 5), c };
+});
+fairways.forEach((f) => markPoly(f.outline, 26));
+markPoly(pond, 22);
+
+// the rough: little tufts of grass across the open ground of the course
+const course = [P(880, 240), P(2240, 240), P(2260, 1180), P(1640, 1180), P(1500, 1400), P(940, 1400), P(870, 900)];
+g.save(); path(course, true); g.clip();
+for (let i = 0; i < 1400; i++) {
+  const x = R(860, 2260), y = R(230, 1410);
+  if (!free(x, y)) continue;
+  g.strokeStyle = `rgba(58,36,20,${R(0.25, 0.45)})`; g.lineWidth = 0.8;
+  g.beginPath(); g.moveTo(x - 2.5, y - 3); g.lineTo(x, y + 1); g.lineTo(x + 2.5, y - 3.5); g.stroke();
+}
+g.restore();
+
+// cart path: a dotted line from each green to the next tee
+g.setLineDash([2, 6]);
+for (let i = 0; i < holes.length - 1; i++) {
+  const a = holes[i].pts[2], b = holes[i + 1].pts[0];
+  ink(spline([a, P((a.x + b.x) / 2 + R(-40, 40), (a.y + b.y) / 2 + R(-40, 40)), b], false, 6), 1.1, INK_S);
+}
+g.setLineDash([]);
+
+// the pond
+g.fillStyle = "rgba(96,78,58,0.10)"; path(pond, true); g.fill();
+g.save(); path(pond, true); g.clip(); g.strokeStyle = "rgba(58,36,20,0.18)"; g.lineWidth = 16; path(pond, true); g.stroke(); g.restore();
+g.save(); path(pond, true); g.clip();
+for (let i = 0; i < 46; i++) { const x = R(1630, 1910), y = R(700, 880), l = R(14, 34); ink(spline([P(x, y), P(x + l / 2, y - 2), P(x + l, y)], false, 4), 0.9, INK_S, false, 0.4); }
+g.restore();
+ink(pond, 1.8, INK, true);
+
+// fairways: mown stripes, then an inked edge
+fairways.forEach((f) => {
+  g.fillStyle = PAPER_L; path(f.outline, true); g.fill();
+  const a = f.h.pts[0], b = f.h.pts[2];
+  hatch(f.outline, Math.atan2(b.y - a.y, b.x - a.x) + Math.PI / 2, 30, 13, "rgba(120,96,60,0.035)", 0.3);   // faint mowing stripes
+  ink(f.outline, 1.7, INK, true);
+});
+// tees, greens, flags and bunkers
+holes.forEach((h) => {
+  const [t, , gp] = h.pts, a = Math.atan2(h.pts[1].y - t.y, h.pts[1].x - t.x);
+  const tee = [-1, 1].flatMap((sy) => [-1, 1].map((sx) => P(t.x + Math.cos(a) * 14 * sx * sy - Math.sin(a) * 9 * sy, t.y + Math.sin(a) * 14 * sx * sy + Math.cos(a) * 9 * sy)));
+  g.fillStyle = PAPER_L; path(tee, true); g.fill(); ink(tee.concat([tee[0]]), 1.4, INK, false, 0.3);
+  const green = blob(gp.x, gp.y, 36, 27, 8, 0.12, a);
+  g.fillStyle = PAPER_L; path(green, true); g.fill();
+  stipple(green, 140, "rgba(58,36,20,0.35)", 0.7);
+  ink(green, 1.6, INK, true);
+  for (const side of [-1, 1]) {
+    if (rnd() < 0.25) continue;
+    const bx = gp.x - Math.sin(a) * side * 46 - Math.cos(a) * 14, by = gp.y + Math.cos(a) * side * 46 - Math.sin(a) * 14;
+    const bunker = blob(bx, by, 20, 11, 7, 0.25, a + R(-0.5, 0.5));
+    g.fillStyle = PAPER_L; path(bunker, true); g.fill(); stipple(bunker, 120, INK_S, 0.8); ink(bunker, 1.3, INK, true);
+  }
+  line(gp.x, gp.y, gp.x, gp.y - 34, 1.3);
+  g.fillStyle = RED; g.beginPath(); g.moveTo(gp.x, gp.y - 34); g.lineTo(gp.x + 15, gp.y - 29); g.lineTo(gp.x, gp.y - 24); g.closePath(); g.fill();
+  g.font = "italic 400 21px Spectral"; g.fillStyle = INK; g.textAlign = "center";
+  g.fillText("No. " + h.n, t.x - Math.cos(a) * 34, t.y - Math.sin(a) * 34 + 7);
+});
+g.font = "italic 300 30px Fraunces"; g.fillStyle = INK; g.textAlign = "center"; g.fillText("Lake Montclair", 1770, 800);
+
+/* ---------- roads: a heavy ink stroke, then paper down the middle, so junctions merge ---------- */
+const roads = [
+  { name: "Montclair Boulevard", w: 34, pts: [P(-60, 1470), P(240, 1340), P(470, 1160), P(610, 985), P(700, 905)] },
+  { name: "Magnolia Drive", w: 24, pts: [P(-60, 245), P(300, 195), P(620, 245), P(900, 175), P(1250, 120), P(1600, 140), P(1950, 92), P(2460, 120)] },
+  { name: "Azalea Lane", w: 22, pts: [P(-60, 640), P(170, 585), P(320, 440), P(305, 225)] },
+  { name: "Camellia Court", w: 20, pts: [P(170, 585), P(150, 780), P(250, 905)] },
+  { name: "Old Canton Road", w: 26, pts: [P(240, 1340), P(600, 1455), P(1000, 1485), P(1400, 1545), P(1800, 1505), P(2460, 1565)] },
+  { name: "Fairway Drive", w: 22, pts: [P(2460, 1100), P(2300, 955), P(2310, 610), P(2265, 300), P(1950, 92)] }
+];
+roads.forEach((r) => { r.c = wobble(spline(r.pts, false, 6), 1.2); markLine(r.c, r.w + 30); });
+const culs = [P(250, 905)];
+mark((c) => culs.forEach((p) => { c.beginPath(); c.arc(p.x, p.y, 44, 0, 6.283); c.fill(); }));
+const drive = { x: 700, y: 862, r: 62 };   // the clubhouse's circular drive
+mark((c) => { c.beginPath(); c.arc(drive.x, drive.y, drive.r + 28, 0, 6.283); c.fill(); });
+function roadStroke(width, color) {
+  g.strokeStyle = color; g.lineCap = g.lineJoin = "round";
+  roads.forEach((r) => { g.lineWidth = r.w + width; path(r.c); g.stroke(); });
+  culs.forEach((p) => { g.lineWidth = width; g.fillStyle = color; g.beginPath(); g.arc(p.x, p.y, 30 + width / 2, 0, 6.283); g.fill(); });
+  g.lineWidth = 26 + width; g.beginPath(); g.arc(drive.x, drive.y, drive.r, 0, 6.283); g.stroke();
+}
+roadStroke(3.6, INK); roadStroke(0, PAPER_L);
+// the drive's island: a fountain in a ring of begonias
+const island = blob(drive.x, drive.y, drive.r - 13, drive.r - 13, 10, 0.03);
+g.fillStyle = PAPER; path(island, true); g.fill(); ink(island, 1.5, INK, true);
+for (let i = 0; i < 40; i++) { const a = (i / 40) * 6.283, rr = drive.r - 22 + R(-3, 3); g.fillStyle = i % 3 ? RED : "rgba(58,36,20,0.6)"; g.beginPath(); g.arc(drive.x + Math.cos(a) * rr, drive.y + Math.sin(a) * rr, R(1.6, 2.6), 0, 6.283); g.fill(); }
+ink(blob(drive.x, drive.y, 16, 16, 8, 0.02), 1.4, INK, true); ink(blob(drive.x, drive.y, 7, 7, 6, 0.02), 1.1, INK, true);
+
+/* ---------- pool, tennis, parking ---------- */
+function rect(cx, cy, w, h, a = 0) {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => P(cx + (x * w / 2) * c - (y * h / 2) * s, cy + (x * w / 2) * s + (y * h / 2) * c));
+}
+const closeR = (r) => r.concat([r[0]]);
+const deck = rect(730, 500, 250, 130), pool = rect(730, 500, 175, 68);
+markPoly(deck, 14);
+g.fillStyle = PAPER_L; path(deck, true); g.fill(); ink(closeR(deck), 1.5, INK, false, 0.4);
+g.fillStyle = "rgba(96,78,58,0.13)"; path(pool, true); g.fill(); ink(closeR(pool), 1.6, INK, false, 0.3);
+for (let i = 1; i < 5; i++) { const y = 466 + i * 13.6; g.setLineDash([5, 4]); line(650, y, 810, y, 0.8, INK_S); g.setLineDash([]); }
+for (let i = 0; i < 6; i++) { const lc = rect(640 + i * 22, 448, 9, 18); ink(closeR(lc), 0.9, INK, false, 0.2); }
+const courts = [0, 1, 2].map((i) => rect(450 + i * 72, 445, 58, 116));
+markPoly(rect(522, 445, 230, 140), 10);
+ink(closeR(rect(522, 445, 230, 140)), 1.2, INK_S, false, 0.3);
+courts.forEach((c, i) => {
+  const cx = 450 + i * 72, cy = 445;
+  g.fillStyle = PAPER_L; path(c, true); g.fill(); ink(closeR(c), 1.3, INK, false, 0.2);
+  line(cx - 21, cy - 58, cx - 21, cy + 58, 0.8, INK_S); line(cx + 21, cy - 58, cx + 21, cy + 58, 0.8, INK_S);
+  line(cx - 21, cy - 31, cx + 21, cy - 31, 0.8, INK_S); line(cx - 21, cy + 31, cx + 21, cy + 31, 0.8, INK_S);
+  line(cx, cy - 31, cx, cy + 31, 0.8, INK_S); line(cx - 32, cy, cx + 32, cy, 2.2, INK);
+});
+const lot = rect(468, 860, 190, 104);
+markPoly(lot, 10);
+g.fillStyle = PAPER_L; path(lot, true); g.fill(); ink(closeR(lot), 1.4, INK, false, 0.3);
+for (const row of [0, 1]) for (let i = 0; i <= 9; i++) { const x = 380 + i * 19, y0 = 812 + row * 54; line(x, y0, x, y0 + 40, 0.9, INK_S); }
+for (let i = 0; i < 7; i++) { const x = 390 + Math.floor(R(0, 9)) * 19, y = R(0, 1) < 0.5 ? 832 : 886; const car = rect(x, y, 11, 26); g.fillStyle = PAPER; path(car, true); g.fill(); hatch(car, 0.7, 3, 0.7); ink(closeR(car), 1, INK, false, 0.2); }
+
+/* ---------- buildings, seen from above and a little to the south ---------- */
+const LIFT = 0.78, LIGHT = { x: -0.55, y: -0.45, z: 0.7 };
+const pr = (x, y, z) => P(x, y - z * LIFT);
+function house(cx, cy, ang, w, d, h, roof = "hip", opt = {}) {
+  const c = Math.cos(ang), s = Math.sin(ang);
+  const at = (lx, ly, z) => pr(cx + lx * c - ly * s, cy + lx * s + ly * c, z);
+  const corner = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]];
+  const rh = Math.min(w, d) * (opt.pitch || 0.42);
+  // cast shadow, to the lower right
+  const sh = corner.map(([x, y]) => P(cx + x * c - y * s, cy + x * s + y * c));
+  const shadow = sh.concat(sh.slice().reverse().map((p) => P(p.x + (h + rh) * 0.55, p.y + (h + rh) * 0.25)));
+  const hull = convex(shadow);
+  g.fillStyle = "rgba(58,36,20,0.06)"; path(hull, true); g.fill(); hatch(hull, -0.9, 3.4, 0.7, "rgba(58,36,20,0.35)", 0.3);
+  // walls that face us
+  for (let i = 0; i < 4; i++) {
+    const [ax, ay] = corner[i], [bx, by] = corner[(i + 1) % 4];
+    const nx = (ay + by) / 2 * -0 + ((bx - ax) === 0 ? Math.sign(ax) : 0), ny = (by - ay) === 0 ? Math.sign(ay) : 0;
+    const wnx = nx * c - ny * s, wny = nx * s + ny * c;
+    if (wny <= 0.05) continue;
+    const quad = [at(ax, ay, 0), at(bx, by, 0), at(bx, by, h), at(ax, ay, h)];
+    g.fillStyle = PAPER_L; path(quad, true); g.fill();
+    const lit = wnx * LIGHT.x + wny * LIGHT.y < -0.15;
+    if (!lit) hatch(quad, Math.PI / 2 + 0.1, 3.2, 0.7, "rgba(58,36,20,0.45)", 0.2);
+    const len = Math.hypot(bx - ax, by - ay), nWin = Math.max(1, Math.floor(len / 16));
+    for (let k = 0; k < nWin; k++) {
+      const t = (k + 0.5) / nWin;
+      if (opt.door && i === 2 && k === Math.floor(nWin / 2)) {
+        const p1 = at(ax + (bx - ax) * (t - 0.06), ay + (by - ay) * (t - 0.06), 0), p2 = at(ax + (bx - ax) * (t + 0.06), ay + (by - ay) * (t + 0.06), h * 0.62);
+        ink(closeR([p1, P(p2.x, p1.y), p2, P(p1.x, p2.y)]), 0.9, INK, false, 0.15); continue;
+      }
+      const u0 = t - 0.18 / nWin * 2, u1 = t + 0.18 / nWin * 2;
+      const q0 = at(ax + (bx - ax) * u0, ay + (by - ay) * u0, h * 0.35), q1 = at(ax + (bx - ax) * u1, ay + (by - ay) * u1, h * 0.35);
+      const q2 = at(ax + (bx - ax) * u1, ay + (by - ay) * u1, h * 0.72), q3 = at(ax + (bx - ax) * u0, ay + (by - ay) * u0, h * 0.72);
+      g.fillStyle = "rgba(58,36,20,0.5)"; path([q0, q1, q2, q3], true); g.fill();
+    }
+    ink(closeR(quad), 1.2, INK, false, 0.25);
+  }
+  // roof planes
+  const long = w >= d, hw = w / 2, hd = d / 2;
+  let r1, r2;
+  if (roof === "gable") { r1 = long ? [-hw, 0] : [0, -hd]; r2 = long ? [hw, 0] : [0, hd]; }
+  else { const k = long ? hw - hd : hd - hw; r1 = long ? [-k, 0] : [0, -k]; r2 = long ? [k, 0] : [0, k]; }
+  const C = corner.map(([x, y]) => [x, y, h]), Rg = [[...r1, h + rh], [...r2, h + rh]];
+  let planes;
+  if (long) planes = [[C[0], C[1], Rg[1], Rg[0]], [C[3], C[2], Rg[1], Rg[0]], [C[0], C[3], Rg[0]], [C[1], C[2], Rg[1]]];
+  else planes = [[C[0], C[3], Rg[1], Rg[0]], [C[1], C[2], Rg[1], Rg[0]], [C[0], C[1], Rg[0]], [C[3], C[2], Rg[1]]];
+  const world = (p) => [cx + p[0] * c - p[1] * s, cy + p[0] * s + p[1] * c, p[2]];
+  planes = planes.map((pl) => pl.map(world)).filter((pl) => new Set(pl.map(String)).size >= 3);
+  planes.sort((A, B) => A.reduce((t, p) => t + p[1], 0) / A.length - B.reduce((t, p) => t + p[1], 0) / B.length);
+  planes.forEach((pl) => {
+    const e1 = [pl[1][0] - pl[0][0], pl[1][1] - pl[0][1], pl[1][2] - pl[0][2]], e2 = [pl[2][0] - pl[0][0], pl[2][1] - pl[0][1], pl[2][2] - pl[0][2]];
+    let n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+    if (n[2] < 0) n = n.map((v) => -v);
+    const nl = Math.hypot(...n), sh = (n[0] * LIGHT.x + n[1] * LIGHT.y + n[2] * LIGHT.z) / nl;
+    const poly = pl.map((p) => pr(p[0], p[1], p[2]));
+    g.fillStyle = PAPER_L; path(poly, true); g.fill();
+    // shingle courses run along the eave
+    const eave = Math.atan2(poly[1].y - poly[0].y, poly[1].x - poly[0].x);
+    hatch(poly, eave, sh > 0.55 ? 6 : 4.2, 0.7, `rgba(58,36,20,${sh > 0.55 ? 0.35 : 0.5})`, 0.25);
+    if (sh < 0.5) hatch(poly, eave + 1.2, 3, 0.7, "rgba(58,36,20,0.45)", 0.2);
+    ink(closeR(poly), 1.3, INK, false, 0.25);
+  });
+  if (opt.chimney) {
+    const [lx, ly] = [r1[0] * 0.4 + (long ? 0 : hd * 0.3), r1[1] * 0.4 + (long ? hd * 0.3 : 0)];
+    const base = h + rh * 0.55, top = h + rh + 6;
+    const cq = [at(lx - 3, ly + 3, base), at(lx + 3, ly + 3, base), at(lx + 3, ly + 3, top), at(lx - 3, ly + 3, top)];
+    g.fillStyle = PAPER_L; path(cq, true); g.fill(); hatch(cq, 1.6, 2.5, 0.6); ink(closeR(cq), 1, INK, false, 0.1);
+    const ct = [at(lx - 3, ly - 3, top), at(lx + 3, ly - 3, top), at(lx + 3, ly + 3, top), at(lx - 3, ly + 3, top)];
+    g.fillStyle = "rgba(58,36,20,0.7)"; path(ct, true); g.fill();
+  }
+}
+function convex(pts) {
+  const p = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y), cr = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lo = [], up = [];
+  for (const q of p) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (const q of p.reverse()) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+
+/* ---------- trees, in the reference's style: a lumpy crown, hatched on its shaded side ---------- */
+function tree(x, y, r) {
+  const sh = blob(x + r * 0.55, y + r * 0.35, r * 0.95, r * 0.6, 9, 0.12, 0.3);
+  hatch(sh, -0.9, 3.2, 0.7, "rgba(58,36,20,0.4)", 0.3);
+  const n = Math.max(7, Math.round(r / 2.6)), pts = [];
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * 6.283, a1 = ((i + 1) / n) * 6.283, k = R(0.88, 1.08);
+    for (let j = 0; j <= 5; j++) {
+      const t = j / 5, a = a0 + (a1 - a0) * t, bump = 1 + 0.16 * Math.sin(Math.PI * t);
+      pts.push(P(x + Math.cos(a) * r * k * bump, y - r * 0.55 + Math.sin(a) * r * 0.92 * k * bump));
+    }
+  }
+  g.fillStyle = PAPER_L; path(pts, true); g.fill();
+  g.save(); path(pts, true); g.clip();
+  for (let i = 0; i < r * 2.2; i++) {
+    const a = R(-0.2, 2.2), rr = R(0.35, 1) * r, px = x + Math.cos(a) * rr * 0.9, py = y - r * 0.55 + Math.sin(a) * rr * 0.85;
+    g.strokeStyle = "rgba(58,36,20,0.5)"; g.lineWidth = 0.8;
+    g.beginPath(); g.arc(px, py, R(2, 4), Math.PI * 0.1, Math.PI * 0.9); g.stroke();
+  }
+  hatch(pts.map((p) => P(p.x + r * 0.35, p.y + r * 0.3)), -0.9, 3, 0.6, "rgba(58,36,20,0.35)", 0.2);
+  g.restore();
+  ink(pts, 1.3, INK, true, 0.3);
+}
+
+/* ---------- place the buildings and trees ---------- */
+const things = [];   // drawn back to front
+// the clubhouse: a long main block with two wings
+const club = [
+  { x: 700, y: 700, w: 300, d: 140, h: 46, roof: "hip", opt: { door: true, chimney: true, pitch: 0.4 } },
+  { x: 505, y: 715, w: 120, d: 104, h: 34, roof: "hip", opt: {} },
+  { x: 895, y: 715, w: 120, d: 104, h: 34, roof: "hip", opt: {} }
+];
+club.forEach((b) => { things.push({ y: b.y + b.d / 2, draw: () => house(b.x, b.y, 0, b.w, b.d, b.h, b.roof, b.opt) }); markPoly(rect(b.x, b.y - 10, b.w, b.d + 40), 16); });
+// clubhouse beds of begonias along the front
+const beds = () => { for (let i = 0; i < 90; i++) { const x = R(560, 840), y = R(780, 790); g.fillStyle = i % 3 ? RED : "rgba(58,36,20,0.6)"; g.beginPath(); g.arc(x, y, R(1.5, 2.4), 0, 6.283); g.fill(); } };
+things.push({ y: 778, draw: beds });
+
+// houses along the streets
+const roadHouses = ["Magnolia Drive", "Azalea Lane", "Camellia Court", "Old Canton Road", "Fairway Drive", "Montclair Boulevard"];
+roads.filter((r) => roadHouses.includes(r.name)).forEach((r) => {
+  const L = along(r.c), T = L[L.length - 1], blvd = r.name === "Montclair Boulevard";
+  for (const side of [-1, 1]) {
+    for (let s = R(20, 70); s < T; s += blvd ? 56 : R(105, 135)) {
+      const p = pointAt(r.c, L, s), nx = -Math.sin(p.ang), ny = Math.cos(p.ang);
+      if (blvd) {   // the boulevard is an allée of live oaks, not houses
+        const tx = p.x + nx * side * (r.w / 2 + 20), ty = p.y + ny * side * (r.w / 2 + 20);
+        if (free(tx, ty + 40 * 0) || true) things.push({ y: ty, draw: ((a, b) => () => tree(a, b, 17))(tx, ty) });
+        continue;
+      }
+      const w = R(54, 74), d = R(40, 52), h = R(16, 22), off = r.w / 2 + 34 + d / 2;
+      const hx = p.x + nx * side * off, hy = p.y + ny * side * off;
+      const fp = rect(hx, hy, w + 20, d + 20, p.ang);
+      if (!fp.every((q) => free(q.x, q.y)) || !free(hx, hy)) continue;
+      markPoly(fp, 10);
+      const opt = { door: true, chimney: rnd() < 0.6, pitch: R(0.36, 0.5) };
+      things.push({ y: hy + d / 2, draw: ((a, b, c, ww, dd, hh, rf, o) => () => house(a, b, c, ww, dd, hh, rf, o))(hx, hy, p.ang, w, d, h, rnd() < 0.5 ? "hip" : "gable", opt) });
+      // a driveway to the street
+      const dx1 = p.x + nx * side * (r.w / 2 + 2), dy1 = p.y + ny * side * (r.w / 2 + 2), along1 = w * 0.32;
+      things.push({ y: hy - 999, draw: ((x1, y1, x2, y2, a, b) => () => { line(x1 + a, y1 + b, x2 + a, y2 + b, 1, INK_S); line(x1 - a, y1 - b, x2 - a, y2 - b, 1, INK_S); })(dx1 + Math.cos(p.ang) * along1, dy1 + Math.sin(p.ang) * along1, hx + Math.cos(p.ang) * along1 - nx * side * (d / 2), hy + Math.sin(p.ang) * along1 - ny * side * (d / 2), Math.cos(p.ang) * 7, Math.sin(p.ang) * 7) });
+    }
+  }
+});
+// trees: dense round the edges of the course and through the back gardens, none on anything
+for (let i = 0, placed = 0; i < 9000 && placed < 520; i++) {
+  const x = R(-20, W + 20), y = R(-10, H + 40), r = R(11, 20);
+  if (!free(x, y) || !free(x - r, y) || !free(x + r, y) || !free(x, y - r * 1.4) || !free(x, y + r * 0.4)) continue;
+  markPoly(blob(x, y - r * 0.4, r * 0.8, r * 0.8, 8, 0), 0);
+  things.push({ y, draw: ((a, b, c) => () => tree(a, b, c))(x, y, r) });
+  placed++;
+}
+things.sort((a, b) => a.y - b.y).forEach((t) => t.draw());
+
+/* ---------- lettering: street names along their curves ---------- */
+function textAlong(r, s0, size = 22) {
+  const L = along(r.c), T = L[L.length - 1], txt = r.name.toUpperCase().split("").join(" ");
+  g.font = `400 ${size}px Spectral`; g.fillStyle = INK;
+  const wdt = g.measureText(txt).width; let s = Math.min(Math.max(s0, 10), T - wdt - 10);
+  const flip = Math.cos(pointAt(r.c, L, s + wdt / 2).ang) < 0;
+  const chars = flip ? [...txt].reverse() : [...txt];   // read upright: right to left along a path that runs leftward
+  for (const ch of chars) {
+    const cw = g.measureText(ch).width, p = pointAt(r.c, L, s + cw / 2);
+    g.save(); g.translate(p.x, p.y); g.rotate(p.ang + (flip ? Math.PI : 0)); g.textAlign = "center"; g.fillText(ch, 0, size * 0.33); g.restore();
+    s += cw;
+  }
+}
+textAlong(roads[1], 1350, 18); textAlong(roads[2], 120, 16); textAlong(roads[3], 30, 15);
+textAlong(roads[4], 1250, 18); textAlong(roads[5], 330, 16); textAlong(roads[0], 120, 18);
+g.textAlign = "center"; g.fillStyle = INK;
+g.font = "600 22px Fraunces"; g.fillText("T H E   C L U B H O U S E", 700, 818 + 0);
+g.font = "italic 400 19px Spectral"; g.fillText("Pool", 730, 590); g.fillText("Tennis", 522, 538);
+
+/* ---------- compass rose ---------- */
+{
+  const { x, y, r } = COMPASS;
+  ink(blob(x, y, r, r, 24, 0), 1.2, INK, true, 0.2); ink(blob(x, y, r - 7, r - 7, 24, 0), 0.8, INK_S, true, 0.2);
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4 - Math.PI / 2, l = i % 2 ? r * 0.55 : r * 0.95, wv = i % 2 ? 6 : 10;
+    const tip = P(x + Math.cos(a) * l, y + Math.sin(a) * l), lft = P(x + Math.cos(a - 1.5708) * wv, y + Math.sin(a - 1.5708) * wv), rgt = P(x + Math.cos(a + 1.5708) * wv, y + Math.sin(a + 1.5708) * wv);
+    g.fillStyle = PAPER_L; path([P(x, y), lft, tip, rgt], true); g.fill();
+    g.fillStyle = "rgba(58,36,20,0.75)"; path([P(x, y), lft, tip], true); g.fill();
+    ink([P(x, y), lft, tip, rgt, P(x, y)], 1, INK, false, 0.1);
+  }
+  g.font = "600 22px Fraunces"; g.fillStyle = INK; g.textAlign = "center"; g.fillText("N", x, y - r - 10);
+}
+
+/* ---------- the cartouche ---------- */
+{
+  const { x, y, w, h } = CART;
+  g.fillStyle = PAPER_L; g.fillRect(x, y, w, h);
+  ink(closeR(rect(x + w / 2, y + h / 2, w, h)), 2, INK, false, 0.3);
+  ink(closeR(rect(x + w / 2, y + h / 2, w - 14, h - 14)), 0.9, INK, false, 0.3);
+  for (const [cx, cy] of [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]) { g.fillStyle = PAPER_L; g.beginPath(); g.arc(cx, cy, 12, 0, 6.283); g.fill(); ink(blob(cx, cy, 12, 12, 10, 0), 1.3, INK, true, 0.1); ink(blob(cx, cy, 5, 5, 8, 0), 1, INK, true, 0.1); }
+  g.textAlign = "center"; g.fillStyle = INK;
+  g.font = "400 17px 'Courier Prime'"; g.fillText("P L A T   O F   T H E", x + w / 2, y + 48);
+  g.font = "italic 300 74px Fraunces"; g.fillText("Montclair", x + w / 2, y + 122);
+  g.font = "600 21px Fraunces"; g.fillText("C O U N T R Y   C L U B", x + w / 2, y + 160);
+  ink(spline([P(x + 150, y + 178), P(x + w / 2, y + 182), P(x + w - 150, y + 178)], false, 6), 1, INK_S, false, 0.2);
+  g.font = "italic 400 19px Spectral"; g.fillText("Hinds County, Mississippi  ·  Surveyed 1999", x + w / 2, y + 210);
+  // a scale bar
+  const sx = x + w / 2 - 90, sy = y + 228;
+  for (let i = 0; i < 4; i++) { g.fillStyle = i % 2 ? PAPER_L : "rgba(58,36,20,0.8)"; g.fillRect(sx + i * 45, sy, 45, 6); }
+  g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(sx, sy, 180, 6);
+}
+
+// an inked border round the sheet, and the edges darkened with age
+ink(closeR(rect(W / 2, H / 2, W - 36, H - 36)), 1.6, INK_S, false, 0.4);
+const vg = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.45, W / 2, H / 2, Math.hypot(W, H) * 0.6);
+vg.addColorStop(0, "rgba(120,80,40,0)"); vg.addColorStop(1, "rgba(120,80,40,0.22)");
+g.fillStyle = vg; g.fillRect(0, 0, W, H);
+
+window.__done = true;
+})();
+</script>
+</body>
+</html>

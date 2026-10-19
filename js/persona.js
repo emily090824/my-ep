@@ -5,6 +5,7 @@
   var fill = window.EMH.fill;
 
   var slug = new URLSearchParams(location.search).get("p") || "marketer";
+  document.body.classList.add("persona-page--" + slug);
   var p = window.PERSONAS.find(function (x) { return x.slug === slug; });
 
   if (p && p.visibility !== "public") {
