@@ -60,6 +60,7 @@
         var msg = f.querySelector(".signup__msg");
         msg.textContent = "You\u2019re on the list. I\u2019ll write when your copy is ready.";
         msg.classList.add("is-done");
+        document.dispatchEvent(new Event("arc-signed-up"));
       });
       dlg.querySelector("form").addEventListener("submit", function (e) {
         var f = e.target, msg = f.querySelector(".signup__msg"), btn = f.querySelector(".signup__submit");
@@ -72,6 +73,45 @@
         }, 20000);
       });
       if (new URLSearchParams(location.search).get("signup") === "open") dlg.showModal();
+      // the count of ARC readers: read from the sheet (the script's doGet), counted up
+      // when it first comes into view, and checked again now and then so it keeps rising
+      var counters = document.querySelectorAll("[data-arc-count]"), shown = 0, seen = false, known = null;
+      var COUNT_URL = dlg.querySelector("form").action + "?action=count";
+      function paint(n) {
+        counters.forEach(function (el) {
+          el.querySelector(".arc__count-n").textContent = n.toLocaleString();
+          el.querySelector(".arc__count-label").textContent = n === 1 ? "reader on the advance list" : "readers on the advance list";
+        });
+      }
+      function tickTo(target) {
+        var from = shown, t0 = performance.now(), dur = Math.min(2200, 500 + (target - from) * 40);
+        if (target <= from || matchMedia("(prefers-reduced-motion: reduce)").matches) { shown = target; paint(target); return; }
+        (function step(t) {
+          var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+          paint(Math.round(from + (target - from) * e));
+          if (k < 1) requestAnimationFrame(step); else shown = target;
+        })(t0);
+      }
+      function update(n) {
+        if (typeof n !== "number" || !isFinite(n) || n < 1) return;   // nothing to show yet
+        known = Math.max(known || 0, n);
+        counters.forEach(function (el) { el.hidden = false; });
+        if (seen) tickTo(known);
+      }
+      function poll() {
+        fetch(COUNT_URL, { cache: "no-store" }).then(function (r) { return r.json(); })
+          .then(function (d) { update(+d.count); }).catch(function () {});
+      }
+      if ("IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (es) {
+          if (es.some(function (e) { return e.isIntersecting; }) && !seen) { seen = true; if (known) tickTo(known); }
+        }, { threshold: 0.5 });
+        counters.forEach(function (el) { io.observe(el); });
+      } else seen = true;
+      poll();
+      setInterval(function () { if (!document.hidden) poll(); }, 60000);
+      document.addEventListener("arc-signed-up", function () { if (known) update(known + 1); });
+
     }
     renderSwitcher();
   }

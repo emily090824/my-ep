@@ -207,6 +207,25 @@ holes.forEach((h) => {
 });
 if (!NOLAB) { g.font = "italic 300 30px Fraunces"; g.fillStyle = INK; g.textAlign = "center"; g.fillText("Lake Montclair", 1770, 800); }
 
+/* ---------- south of Old Canton Road: the rest of the town (when the sheet runs taller) ---------- */
+const SOUTH = H > 1700;
+const creek = SOUTH ? { name: "Sweetgum Creek", w: 34, pts: [P(-60, 3900), P(400, 3780), P(800, 3950), P(1200, 3850), P(1600, 4010), P(2000, 3880), P(2460, 3990)] } : null;
+const millPond = SOUTH ? blob(2200, 6230, 125, 72, 10, 0.16, 0.2) : null;
+if (SOUTH) {
+  creek.c = wobble(spline(creek.pts, false, 6), 3);
+  markLine(creek.c, creek.w + 40); markPoly(millPond, 22);
+  // the creek: a band of water between wandering banks, rippled
+  g.strokeStyle = "rgba(96,78,58,0.13)"; g.lineWidth = creek.w; g.lineCap = "round"; path(creek.c); g.stroke();
+  for (const side of [-1, 1]) ink(offsetPoly(creek.c, side * creek.w / 2).map((p, i) => P(p.x, p.y + Math.sin(i * 0.21) * 2.5)), 1.5, INK);
+  const CL = along(creek.c), CT = CL[CL.length - 1];
+  for (let sx = 30; sx < CT; sx += R(28, 60)) { const p = pointAt(creek.c, CL, sx), l = R(12, 26), o = R(-8, 8), nx = -Math.sin(p.ang), ny = Math.cos(p.ang);
+    ink(spline([P(p.x + nx * o, p.y + ny * o), P(p.x + nx * o + Math.cos(p.ang) * l, p.y + ny * o + Math.sin(p.ang) * l)], false, 4), 0.9, INK_S, false, 0.3); }
+  g.fillStyle = "rgba(96,78,58,0.10)"; path(millPond, true); g.fill();
+  g.save(); path(millPond, true); g.clip();
+  for (let i = 0; i < 30; i++) { const x = R(2080, 2320), y = R(6170, 6290), l = R(14, 30); ink(spline([P(x, y), P(x + l / 2, y - 2), P(x + l, y)], false, 4), 0.9, INK_S, false, 0.4); }
+  g.restore(); ink(millPond, 1.8, INK, true);
+}
+
 /* ---------- roads: a heavy ink stroke, then paper down the middle, so junctions merge ---------- */
 const roads = [
   { name: "Montclair Boulevard", w: 34, pts: [P(-60, 1470), P(240, 1340), P(470, 1160), P(610, 985), P(700, 905)] },
@@ -216,8 +235,21 @@ const roads = [
   { name: "Old Canton Road", w: 26, pts: [P(240, 1340), P(600, 1455), P(1000, 1485), P(1400, 1545), P(1800, 1505), P(2460, 1565)] },
   { name: "Fairway Drive", w: 22, pts: [P(2460, 1100), P(2300, 955), P(2310, 610), P(2265, 300), P(1950, 92)] }
 ];
+if (SOUTH) roads.push(
+  { name: "Church Street", w: 24, pts: [P(1000, 1485), P(1040, 1900), P(985, 2400), P(1060, 2900), P(1020, 3400), P(1100, 4000), P(1050, 4600), P(1120, 5200), P(1080, 5800), P(1150, 6400), P(1100, H + 60)] },
+  { name: "Pecan Grove Lane", w: 22, pts: [P(-60, 2250), P(400, 2180), P(800, 2280), P(1030, 2240), P(1400, 2160), P(1900, 2260), P(2460, 2200)] },
+  { name: "Dogwood Circle", w: 20, pts: [P(1062, 2900), P(1400, 2700), P(1850, 2800), P(1990, 3120), P(1700, 3380), P(1300, 3330), P(1045, 3150)] },
+  { name: "Begonia Lane", w: 20, pts: [P(-60, 3020), P(350, 2950), P(700, 3060), P(1050, 3020)] },
+  { name: "Wisteria Court", w: 18, pts: [P(450, 2985), P(470, 3200), P(420, 3420)] },
+  { name: "Old Jackson Road", w: 26, pts: [P(-60, 4520), P(600, 4430), P(1080, 4500), P(1600, 4570), P(2460, 4480)] },
+  { name: "Live Oak Drive", w: 22, pts: [P(-60, 5420), P(500, 5310), P(1110, 5430), P(1700, 5330), P(2460, 5430)] },
+  { name: "Mimosa Way", w: 20, pts: [P(500, 5312), P(450, 5800), P(560, 6300), P(500, 6700)] },
+  { name: "Cypress Lane", w: 20, pts: [P(1800, 5335), P(1900, 5800), P(1830, 6400)] },
+  { name: "Old Natchez Road", w: 26, pts: [P(-60, 6980), P(700, 6880), P(1400, 7000), P(2460, 6900)] }
+);
 roads.forEach((r) => { r.c = wobble(spline(r.pts, false, 6), 1.2); markLine(r.c, r.w + 30); });
 const culs = [P(250, 905)];
+if (SOUTH) culs.push(P(420, 3420), P(500, 6700), P(1830, 6400));
 mark((c) => culs.forEach((p) => { c.beginPath(); c.arc(p.x, p.y, 44, 0, 6.283); c.fill(); }));
 const drive = { x: 700, y: 862, r: 62 };   // the clubhouse's circular drive
 mark((c) => { c.beginPath(); c.arc(drive.x, drive.y, drive.r + 28, 0, 6.283); c.fill(); });
@@ -377,9 +409,30 @@ club.forEach((b) => { things.push({ y: b.y + b.d / 2, draw: () => house(b.x, b.y
 // clubhouse beds of begonias along the front
 const beds = () => { for (let i = 0; i < 90; i++) { const x = R(560, 840), y = R(780, 790); g.fillStyle = i % 3 ? RED : "rgba(58,36,20,0.6)"; g.beginPath(); g.arc(x, y, R(1.5, 2.4), 0, 6.283); g.fill(); } };
 things.push({ y: 778, draw: beds });
+if (SOUTH) {
+  // a white clapboard church with a steeple, and its graveyard behind an iron fence
+  const ch = { x: 1340, y: 4640 };
+  markPoly(rect(ch.x, ch.y - 20, 160, 140), 12);
+  things.push({ y: ch.y + 35, draw: () => house(ch.x, ch.y, 0, 130, 70, 34, "gable", { door: true, pitch: 0.75 }) });
+  things.push({ y: ch.y + 50, draw: () => house(ch.x - 78, ch.y + 6, 0, 30, 30, 62, "hip", { pitch: 1.7 }) });
+  const yard = rect(1500, 4880, 470, 300);
+  markPoly(yard, 14);
+  things.push({ y: 4700, draw: () => {
+    g.setLineDash([1.5, 4]); ink(closeR(yard), 1.4, INK, false, 0.3); g.setLineDash([]);
+    for (let row = 0; row < 7; row++) for (let i = 0; i < 13; i++) {
+      if (rnd() < 0.22) continue;
+      const x = 1290 + i * 33 + R(-4, 4), y = 4760 + row * 38 + R(-3, 3);
+      if (rnd() < 0.15) { line(x, y - 9, x, y + 5, 1.6); line(x - 5, y - 4, x + 5, y - 4, 1.6); continue; }   // a cross
+      const st = [P(x - 5, y + 4), P(x - 5, y - 5), P(x - 3, y - 8), P(x + 3, y - 8), P(x + 5, y - 5), P(x + 5, y + 4)];
+      hatch([P(x + 5, y + 4), P(x + 12, y + 7), P(x + 12, y - 2), P(x + 5, y - 5)], -0.9, 2.4, 0.6, "rgba(58,36,20,0.4)", 0.2);
+      g.fillStyle = PAPER_L; path(st, true); g.fill(); ink(st, 1.1, INK, true, 0.1);
+    }
+  } });
+}
 
 // houses along the streets
-const roadHouses = ["Magnolia Drive", "Azalea Lane", "Camellia Court", "Old Canton Road", "Fairway Drive", "Montclair Boulevard"];
+const roadHouses = ["Magnolia Drive", "Azalea Lane", "Camellia Court", "Old Canton Road", "Fairway Drive", "Montclair Boulevard",
+  "Church Street", "Pecan Grove Lane", "Dogwood Circle", "Begonia Lane", "Wisteria Court", "Old Jackson Road", "Live Oak Drive", "Mimosa Way", "Cypress Lane", "Old Natchez Road"];
 roads.filter((r) => roadHouses.includes(r.name)).forEach((r) => {
   const L = along(r.c), T = L[L.length - 1], blvd = r.name === "Montclair Boulevard";
   for (const side of [-1, 1]) {
@@ -404,7 +457,7 @@ roads.filter((r) => roadHouses.includes(r.name)).forEach((r) => {
   }
 });
 // trees: dense round the edges of the course and through the back gardens, none on anything
-for (let i = 0, placed = 0; i < 9000 && placed < 520; i++) {
+for (let i = 0, placed = 0, k = H / 1600; i < 9000 * k && placed < 520 * k; i++) {
   const x = R(-20, W + 20), y = R(-10, H + 40), r = R(11, 20);
   if (!free(x, y) || !free(x - r, y) || !free(x + r, y) || !free(x, y - r * 1.4) || !free(x, y + r * 0.4)) continue;
   markPoly(blob(x, y - r * 0.4, r * 0.8, r * 0.8, 8, 0), 0);
@@ -429,6 +482,16 @@ function textAlong(r, s0, size = 22) {
 if (!NOLAB) {
 textAlong(roads[1], 1350, 18); textAlong(roads[2], 120, 16); textAlong(roads[3], 30, 15);
 textAlong(roads[4], 1250, 18); textAlong(roads[5], 330, 16); textAlong(roads[0], 120, 18);
+if (SOUTH) {
+  const at = { "Church Street": [700, 2700, 4300, 5900], "Pecan Grove Lane": [180, 1700], "Dogwood Circle": [420], "Begonia Lane": [120], "Wisteria Court": [60],
+               "Old Jackson Road": [200, 1800], "Live Oak Drive": [160, 1750], "Mimosa Way": [120, 900], "Cypress Lane": [200], "Old Natchez Road": [260, 1700] };
+  roads.slice(6).forEach((r) => (at[r.name] || [200]).forEach((sp) => textAlong(r, sp, 17)));
+  g.font = "italic 300 26px Fraunces"; g.fillStyle = INK;
+  [300, 1500].forEach((sp) => textAlong({ name: "Sweetgum Creek", c: offsetPoly(creek.c, -30) }, sp, 18));
+  g.textAlign = "center"; g.font = "italic 300 26px Fraunces"; g.fillText("Mill Pond", 2200, 6238);
+  g.font = "600 17px Fraunces"; g.fillText("S T.   A G N E S", 1340, 4720);
+  g.font = "italic 400 18px Spectral"; g.fillText("Cemetery", 1500, 5052);
+}
 g.textAlign = "center"; g.fillStyle = INK;
 g.font = "600 22px Fraunces"; g.fillText("T H E   C L U B H O U S E", 700, 818 + 0);
 g.font = "italic 400 19px Spectral"; g.fillText("Pool", 730, 590); g.fillText("Tennis", 522, 538);

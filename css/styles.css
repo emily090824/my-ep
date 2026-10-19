@@ -773,18 +773,11 @@ button.arc__btn { cursor: pointer; }
 @media (max-width: 520px) { .signup__row { grid-template-columns: 1fr; } }
 
 /* ---------- the rest of the Writer page: the map runs on below the banner ---------- */
-.arc-page { container-type: inline-size; }
 .arc-page > :first-child { position: relative; }
 .arc-page {
-  /* the plat at the top, then a seamless label-free continuation that repeats downward */
-  background:
-    url(../assets/montclair-plat-sage.jpg) 50% 0 / 100% auto no-repeat,
-    url(../assets/montclair-plat-sage-tile.jpg) 50% 66.667cqw / 100% auto repeat-y,
-    #7f9a87;
+  /* one tall plat: the club at the top, the rest of the town running south behind the page */
+  background: #7f9a87 url(../assets/montclair-plat-sage.jpg) 50% 0 / cover no-repeat;
   padding-bottom: clamp(48px, 8vw, 110px);
-}
-@media (max-width: 760px) {   /* on phones the map is shown larger, so the houses still read */
-  .arc-page { background-size: 1100px auto, 1100px auto, auto; background-position: 50% 0, 50% 733.33px, 0 0; }
 }
 .arc-quote { padding: clamp(24px, 6vw, 80px) var(--gutter) clamp(36px, 6vw, 80px); }
 .arc-quote blockquote {
@@ -849,3 +842,8 @@ button.arc__btn { cursor: pointer; }
   .arc-author .arc-sheet__kicker { text-align: center; }
   .arc-author p:not(.arc-sheet__kicker) { text-align: left; }
 }
+
+/* the running count of ARC readers */
+.arc__count { margin: 18px 0 0; font: italic 400 clamp(1.05rem, 1.6vw, 1.25rem)/1.3 "IM Fell English", Georgia, serif; color: #fbf6ea; }
+.arc__count-n { font: 400 1.5em/1 "IM Fell English SC", Georgia, serif; font-style: normal; font-variant-numeric: lining-nums tabular-nums; letter-spacing: 0.02em; margin-right: 0.12em; }
+.arc-sheet .arc__count { color: #2e4535; margin-top: 14px; text-shadow: none; }
