@@ -814,6 +814,9 @@ button.arc__btn { cursor: pointer; }
 .arc-blurb .arc-blurb__hook--2 { margin-bottom: 1.6em; }
 .arc-blurb .arc-blurb__hook--2::after { content: ""; display: block; width: 80px; margin: 22px auto 0; border-top: 1px solid #9b4a2f; }
 .arc-blurb .arc-blurb__turn { font-style: italic; text-align: center; margin: 1.4em 0; color: #1d3124; }
+.arc-blurb .arc-blurb__comps { margin-top: 1.8em; padding-top: 1.4em; border-top: 1px solid rgba(29, 49, 36, 0.3); font-style: italic; color: #4a3426; }
+.arc-blurb__comps em { font-style: normal; }
+.arc-blurb__comps .sc { font: 400 1.05em "IM Fell English SC", Georgia, serif; font-style: normal; letter-spacing: 0.06em; color: #1d3124; }
 .arc-sheet__cta { margin-top: 2em; text-align: center; }
 .arc-sheet__cta p { margin: 0 0 14px; font: italic 400 1.25rem "IM Fell English", Georgia, serif; color: #2e4535; text-align: center; }
 .arc__btn--dark { background: #1d3124; color: #f6f0e1; }
