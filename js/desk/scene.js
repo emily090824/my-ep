@@ -868,6 +868,7 @@ function buildProps(scene) {
   /* soft warm fill on the card faces (no visible source) */
   const fill = new THREE.PointLight("#ff9d4a", 300, 0, 2);
   fill.position.set(19, 7.7, 7);
+  fill.visible = SHOT !== "links";   // no cards in the links still, and it would sit right beside the mug there
   scene.add(fill);
 
   /* portrait frame on a strut */
@@ -992,6 +993,10 @@ function buildProps(scene) {
     doily.position.set(mug.position.x, 0.04, mug.position.z);
     doily.receiveShadow = true;
     scene.add(doily);
+    // warm lamplight from the left, kept well away so it models the mug instead of flaring on it
+    const mugLight = new THREE.PointLight("#ffb46a", 1100, 0, 2);
+    mugLight.position.set(mug.position.x - 14, 18, mug.position.z + 14);
+    scene.add(mugLight);
   }
 
   const smoke = TX.smokeTexture();
