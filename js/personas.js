@@ -125,7 +125,8 @@ window.PERSONAS = [
       '<section class="arc" aria-labelledby="arc-title">' +
         '<div class="arc__inner">' +
           '<figure class="arc__book"><div class="book3d">' +
-            '<img src="assets/blood-of-a-begonia.jpg" width="600" height="777" alt="The Blood of a Begonia by Emily M. Hill: a botanical print of a begonia, the title on a cream label">' +
+            '<div class="book3d__front"><img src="assets/blood-of-a-begonia.jpg" width="600" height="777" alt="The Blood of a Begonia by Emily M. Hill: a botanical print of a begonia, the title on a cream label"></div>' +
+            '<div class="book3d__spine" aria-hidden="true"><span class="book3d__spine-title">The Blood of a Begonia</span><span class="book3d__spine-author">Emily M. Hill</span></div>' +
           '</div></figure>' +
           '<div class="arc__copy">' +
             '<p class="arc__lead">Sign up to be an<br> <abbr title="advance reader copy">ARC</abbr> reader of</p>' +
