@@ -152,6 +152,30 @@
     });
 
     // the PlumX badge only shows once PlumX's own script has loaded and defined the element
+    // two round buttons that float in the bottom corners: home to the rolodex, and back to the top
+    if (p.promo && !document.querySelector(".float-btn")) {
+      document.body.insertAdjacentHTML("beforeend",
+        '<a class="float-btn float-btn--home" href="./#rolodex" aria-label="Back to the rolodex" title="Back to the rolodex">' +
+          '<svg viewBox="0 0 48 48" aria-hidden="true">' +
+            // a fan of cards on their wheel, standing on two feet
+            '<g class="cards">' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(-42 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(42 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(-21 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(21 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8"/>' +
+            '</g>' +
+            '<circle cx="24" cy="27" r="4.2"/><circle cx="24" cy="27" r="1.2" class="dot"/>' +
+            '<path d="M24 31.5l-7 9M24 31.5l7 9M12 41h24"/>' +
+          '</svg></a>' +
+        '<button class="float-btn float-btn--top" type="button" aria-label="Back to top" title="Back to top">' +
+          '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 36V13M14 22l10-10 10 10"/></svg></button>');
+      var topBtn = document.querySelector(".float-btn--top");
+      topBtn.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+      var onScroll = function () { document.body.classList.toggle("is-scrolled", scrollY > innerHeight * 0.6); };
+      addEventListener("scroll", onScroll, { passive: true }); onScroll();
+    }
+
     var plum = document.querySelector(".thesis__metrics");
     if (plum && !document.querySelector('script[src*="plumx-widget.js"]')) {   // PlumX's loader, only on the page that shows a badge
       var ps = document.createElement("script");
