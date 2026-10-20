@@ -176,6 +176,33 @@
       addEventListener("scroll", onScroll, { passive: true }); onScroll();
     }
 
+    // the thesis defense: Canva's viewer loads only when the cover is clicked
+    document.querySelectorAll(".deck").forEach(function (deck) {
+      var cover = deck.querySelector(".deck__cover");
+      if (!cover || deck.dataset.wired) return;
+      deck.dataset.wired = "1";
+      cover.addEventListener("click", function () {
+        deck.classList.add("is-loading");
+        var f = document.createElement("iframe");
+        f.src = deck.dataset.src; f.title = "Thesis Defense, a presentation by Emily Hill";
+        f.allowFullscreen = true; f.setAttribute("allow", "fullscreen");
+        f.addEventListener("load", function () { deck.classList.remove("is-loading"); cover.remove(); });
+        deck.appendChild(f);
+      });
+    });
+    // warm up the connection to Canva when the reader nears the presentation, so it opens faster
+    var deckEl = document.querySelector(".deck");
+    if (deckEl && "IntersectionObserver" in window) {
+      var warm = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) return;
+        warm.disconnect();
+        ["https://www.canva.com", "https://static.canva.com"].forEach(function (h) {
+          var l = document.createElement("link"); l.rel = "preconnect"; l.href = h; l.crossOrigin = ""; document.head.appendChild(l);
+        });
+      }, { rootMargin: "600px" });
+      warm.observe(deckEl);
+    }
+
     var plum = document.querySelector(".thesis__metrics");
     if (plum && !document.querySelector('script[src*="plumx-widget.js"]')) {   // PlumX's loader, only on the page that shows a badge
       var ps = document.createElement("script");

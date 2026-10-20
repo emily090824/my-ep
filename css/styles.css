@@ -647,7 +647,7 @@ body:not(.has-desk) main { padding-top: 66px; }
   --sage: #7f9a87;
   color: #fbf6ea;
   display: flex; align-items: center;
-  padding: clamp(32px, 5vw, 64px) var(--gutter) clamp(28px, 4vw, 48px);
+  padding: clamp(32px, 5vw, 64px) var(--gutter) clamp(14px, 1.4vw, 20px);
 }
 .arc__inner {
   width: 100%; max-width: var(--max); margin: 0 auto;
@@ -778,7 +778,7 @@ button.arc__btn { cursor: pointer; }
   background: #7f9a87 url(../assets/montclair-plat-sage.jpg) 50% 0 / cover no-repeat;
   padding-bottom: clamp(48px, 8vw, 110px);
 }
-.arc-quote { padding: 0 var(--gutter) clamp(12px, 2vw, 28px); }
+.arc-quote { padding: 0 var(--gutter) clamp(26px, 3.9vw, 56px); }   /* centred between the banner and the summary */
 .arc-quote blockquote {
   margin: 0 auto; max-width: 900px; text-align: center; color: #fbf6ea;
   padding: clamp(4px, 1vw, 12px) clamp(8px, 3vw, 40px);
@@ -960,3 +960,35 @@ button.arc__btn { cursor: pointer; }
 .float-btn--top svg { width: 26px; height: 26px; stroke-width: 2.4; }
 body.is-scrolled .float-btn--top { opacity: 1; transform: none; pointer-events: auto; }
 @media (max-width: 760px) { .float-btn { width: 50px; height: 50px; } .float-btn svg { width: 26px; height: 26px; } }
+
+/* the thesis defense, behind a cover card until it is asked for */
+.deck { background: #1d3124; }
+.deck iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.deck__cover {
+  position: absolute; inset: 0; z-index: 1; width: 100%; padding: clamp(18px, 5vw, 64px); border: 0; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(6px, 1.4vw, 14px); text-align: center;
+  color: #f6f0e1;
+  background:
+    linear-gradient(rgba(29, 49, 36, 0.78), rgba(29, 49, 36, 0.86)),
+    #7f9a87 url(../assets/montclair-plat-sage.jpg) 50% 4% / 160% auto no-repeat;
+  outline: 1px solid rgba(246, 240, 225, 0.55); outline-offset: -14px;
+  transition: background-size 0.6s;
+}
+.deck__cover:hover { background-size: auto, 168% auto; }
+.deck__kicker { font: 400 clamp(0.7rem, 1.2vw, 0.86rem) var(--type); letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+.deck__title { font: 400 clamp(1.7rem, 4.6vw, 3.4rem)/1.15 "Petit Formal Script", cursive; }
+.deck__sub { max-width: 34ch; font: italic 400 clamp(0.95rem, 1.8vw, 1.3rem)/1.35 "IM Fell English", Georgia, serif; opacity: 0.92; }
+.deck__play {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: clamp(6px, 1.6vw, 18px); padding: 0.6em 1.3em; border-radius: 999px;
+  background: #f6f0e1; color: #1d3124; font: 400 clamp(1rem, 1.7vw, 1.2rem)/1 "IM Fell English SC", Georgia, serif; letter-spacing: 0.1em;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.5); transition: transform 0.2s;
+}
+.deck__play svg { width: 1em; height: 1em; fill: currentColor; }
+.deck__cover:hover .deck__play, .deck__cover:focus-visible .deck__play { transform: scale(1.04); }
+.deck__cover:focus-visible { outline: 3px solid #f6f0e1; outline-offset: -8px; }
+.deck.is-loading .deck__play { opacity: 0.7; }
+.deck.is-loading .deck__play svg { display: none; }
+.deck.is-loading .deck__play::before { content: "Opening\2026"; }
+.deck.is-loading .deck__play { font-size: 0; }
+.deck.is-loading .deck__play::before { font-size: clamp(1rem, 1.7vw, 1.2rem); }
+@media (max-width: 520px) { .deck__sub { display: none; } }
