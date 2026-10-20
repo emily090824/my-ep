@@ -4,6 +4,22 @@
   var switcher = document.getElementById("persona-switch");
   var fill = window.EMH.fill;
 
+  // the E H monogram, drawn as a book on its side: the E is the spine and the two boards, the H the fore-edge,
+  // the shared bar the middle. Drawn beside the author's name on the Writer page (and, in tools/favicon.html, as the site icon).
+  var EH_BOOK =
+    '<svg class="eh-book" viewBox="6 5.5 37 37" aria-hidden="true">' +
+      '<path class="leaves" d="M14.2 12.7H30.3M14.2 15.2H29.9M14.2 17.8H29.9M14.2 20.3H30.3M14.2 28.9H30.3M14.2 31.4H29.9M14.2 34H29.9M14.2 36.5H30.3"/>' +
+      '<path class="ink" d="M9.5 8.2Q11.6 6.6 13.7 8.2V39.8Q11.6 41.4 9.5 39.8Z"/>' +
+      '<path class="ink" d="M7.1 7.2h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M7.1 39.7h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M35.3 8.2Q37.4 6.6 39.5 8.2V39.8Q37.4 41.4 35.3 39.8Z"/>' +
+      '<path class="ink" d="M32.9 7.2h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M32.9 39.7h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M11.8 7.2H31.6L32.6 12.2H31.8Q30.6 9.6 28.4 9.2H11.8Z"/>' +
+      '<path class="ink" d="M11.8 40.8H31.6L32.6 35.8H31.8Q30.6 38.4 28.4 38.8H11.8Z"/>' +
+      '<path class="ink" d="M12 23.9H36V26.1H12Z"/>' +
+    '</svg>';
+
   var slug = new URLSearchParams(location.search).get("p") || "marketer";
   document.body.classList.add("persona-page--" + slug);
   var p = window.PERSONAS.find(function (x) { return x.slug === slug; });
@@ -47,8 +63,9 @@
       var mast = document.querySelector(".masthead");
       if (mast) {
         mast.insertAdjacentHTML("afterbegin",
-          '<p class="author-head"><span class="author-head__name">Emily Elizabeth Hill</span>' +
-          '<span class="author-head__line">Author of <i>The Blood of a Begonia</i></span></p>');
+          '<div class="author-head">' + EH_BOOK +
+            '<p><span class="author-head__name">Emily Elizabeth Hill</span>' +
+            '<span class="author-head__line">Author of <i>The Blood of a Begonia</i></span></p></div>');
         var fit = function () { document.body.style.setProperty("--head-h", mast.offsetHeight + "px"); };
         fit();
         if (window.ResizeObserver) new ResizeObserver(fit).observe(mast);

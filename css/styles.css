@@ -934,7 +934,11 @@ button.arc__btn { cursor: pointer; }
 }
 .persona-page--writer .masthead .monogram { display: none; }
 body.persona-page--writer main { padding-top: var(--head-h, 84px); }
-.author-head { margin: 0; text-align: center; color: #f6f0e1; }
+.author-head { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px); color: #f6f0e1; }
+.author-head p { margin: 0; }
+.author-head .eh-book { flex: none; width: clamp(28px, 3vw, 38px); height: auto; }
+.author-head .eh-book .ink { fill: currentColor; }
+.author-head .eh-book .leaves { fill: none; stroke: currentColor; stroke-width: 0.9; }
 .author-head__name { display: block; font: 400 clamp(1.45rem, 3vw, 2.3rem)/1.1 "IM Fell English SC", Georgia, serif; letter-spacing: 0.14em; }
 .author-head__line { display: block; margin-top: 5px; font: italic 400 clamp(0.82rem, 1.2vw, 1rem)/1.2 "IM Fell English", Georgia, serif; letter-spacing: 0.06em; color: #cfd8c9; }
 .author-head__line i { font-style: normal; }
