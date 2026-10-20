@@ -93,7 +93,7 @@ window.PERSONAS = [
       {
         heading: "Publications & research",
         items: [
-          "Hill, E. M. (2025). <a href=\"https://digitalcommons.odu.edu/communication_etds/35\"><em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy.</em></a> MA thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href=\"https://doi.org/10.25777/67hy-yr98\">DOI: 10.25777/67hy-yr98</a>",
+          "Hill, E. M. (2025). <a href=\"https://digitalcommons.odu.edu/communication_etds/35/\"><em>Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy.</em></a> MA thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href=\"https://doi.org/10.25777/67hy-yr98\">DOI: 10.25777/67hy-yr98</a>",
           "Socha, T. J., Hill, E., et al. (2026). <a href=\"https://doi.org/10.1007/978-3-032-20388-5_21\">Towards positive food communication systems.</a> In T. J. Socha (Ed.), <em>The Palgrave Handbook of Positive Communication for Livable Futures</em>. Palgrave Macmillan.",
           "Socha, T., & Hill, E. <em>Designing Positive Family Communication.</em> Norfolk, VA: Old Dominion University, in press.",
           "Socha, T. J., Hill, E., et al. Predictors of food-support awareness: An exploratory applied positive communication study. Southern States Communication Association, Norfolk, VA."
@@ -172,7 +172,7 @@ window.PERSONAS = [
           '<p class="arc-sheet__kicker">Meet the author</p>' +
           '<h2 class="arc-author__name" id="author-title">Emily M. Hill</h2>' +
           '<p>I&rsquo;m a Southern belle like Meredith, drawn to how the Deep South demands much and gives little, especially to women. I wrote this novel after a quarter-life crisis brought me home, where I kept asking the question at Meredith&rsquo;s center: how can a woman claim her desires and ambitions as her own in a culture that insists they serve men and God?</p>' +
-          '<p>A marketing professional with over eight years of experience, I earned my master&rsquo;s at Old Dominion University, where <a href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">my thesis</a> explored BookTok and community agency and how readers discover books. I also teach audiences, media analysis, and pop culture as an adjunct professor at ODU.</p>' +
+          '<p>A marketing professional with over eight years of experience, I earned my master&rsquo;s at Old Dominion University, where <a href="https://digitalcommons.odu.edu/communication_etds/35/" rel="noopener">my thesis</a> explored BookTok and community agency and how readers discover books. I also teach audiences, media analysis, and pop culture as an adjunct professor at ODU.</p>' +
         '</div>' +
       '</section>' +
       '</div>' +
@@ -182,11 +182,11 @@ window.PERSONAS = [
         '<article class="thesis">' +
           '<div class="thesis__head"><div>' +
           '<p class="works__label">Master&rsquo;s thesis &middot; 2025</p>' +
-          '<h3 class="thesis__title"><a href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</a></h3>' +
+          '<h3 class="thesis__title"><a href="https://digitalcommons.odu.edu/communication_etds/35/" rel="noopener">Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</a></h3>' +
           '<p class="works__cite">Hill, E. M. (2025). Master of Arts thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href="https://doi.org/10.25777/67hy-yr98" rel="noopener">DOI: 10.25777/67hy-yr98</a></p>' +
           '</div>' +
           '<aside class="thesis__side">' +
-              '<a class="btn btn--solid thesis__read" href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Read the thesis</a>' +
+              '<a class="btn btn--solid thesis__read" href="https://digitalcommons.odu.edu/communication_etds/35/" rel="noopener">Read the thesis</a>' +
               '<div class="thesis__metrics" hidden>' +
                 '<h4>Readership</h4>' +
                 '<plumx-widget type="artifact" identifier-type="doi" identifier="10.25777/67hy-yr98" display="badge" site="plumx" theme="liberty" config=\'{"hideWhenEmpty":true,"popupDirection":"right","printSize":"large","detailsLinkBaseUrl":"https://plumx.elsevier.com/a"}\'></plumx-widget>' +

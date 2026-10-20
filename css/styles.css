@@ -996,3 +996,6 @@ body.is-scrolled .float-btn--top { opacity: 1; transform: none; pointer-events: 
 /* the Writer page ends with its published work: no "Emily as a Writer" card or card switcher below
    (the rolodex button in the corner is the way back) */
 .persona-page--writer #persona, .persona-page--writer #persona-switch { display: none; }
+/* the Writer page's footer, in the book's deep green */
+.persona-page--writer .colophon { background: #1d3124; border-top: 0; padding-top: 34px; padding-bottom: 44px; }
+.persona-page--writer .colophon p { color: #f6f0e1; opacity: 0.85; }
