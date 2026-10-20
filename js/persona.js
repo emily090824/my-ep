@@ -84,8 +84,9 @@
       ];
       function paint(n) {
         counters.forEach(function (el) {
-          el.querySelector(".arc__count-n").textContent = n.toLocaleString();
-          el.querySelector(".arc__count-label").textContent = n === 1 ? "ARC signup" : "ARC signups";
+          // "Join the 5 other ARC readers"; with none yet, an invitation to be the first
+          if (n === 0) { el.innerHTML = "Be the first ARC reader"; return; }
+          el.innerHTML = "Join " + (n === 1 ? "" : "the ") + '<span class="arc__count-n">' + n.toLocaleString() + "</span> other ARC reader" + (n === 1 ? "" : "s");
         });
       }
       function tickTo(target) {

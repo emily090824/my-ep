@@ -845,7 +845,7 @@ button.arc__btn { cursor: pointer; }
 
 /* the running count of ARC readers */
 .arc__count { margin: 18px 0 0; font: italic 400 clamp(1.05rem, 1.6vw, 1.25rem)/1.3 "IM Fell English", Georgia, serif; color: #fbf6ea; }
-.arc__count-n { font: 400 1.5em/1 "IM Fell English SC", Georgia, serif; font-style: normal; font-variant-numeric: lining-nums tabular-nums; letter-spacing: 0.02em; margin-right: 0.12em; }
+.arc__count-n { font: 400 1.25em/1 var(--body); font-style: normal; font-variant-numeric: lining-nums tabular-nums; letter-spacing: 0.02em; margin: 0 0.06em; }
 .arc-sheet .arc__count { color: #2e4535; margin-top: 14px; text-shadow: none; }
 
 /* ---------- Writer page: other published work, back on the ivory page ---------- */
