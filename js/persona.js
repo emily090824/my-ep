@@ -5,7 +5,7 @@
   var fill = window.EMH.fill;
 
   // the E H monogram, drawn as a book on its side: the E is the spine and the two boards, the H the fore-edge,
-  // the shared bar the middle. Used by the Writer page's name header and its corner button.
+  // the shared bar the middle. Drawn over the author's name on the Writer page (and, in tools/favicon.html, as the site icon).
   var EH_BOOK =
     '<svg class="eh-book" viewBox="6 5.5 37 37" aria-hidden="true">' +
       '<path class="leaves" d="M14.2 12.7H30.3M14.2 15.2H29.9M14.2 17.8H29.9M14.2 20.3H30.3M14.2 28.9H30.3M14.2 31.4H29.9M14.2 34H29.9M14.2 36.5H30.3"/>' +
@@ -180,7 +180,18 @@
     if (p.promo && !document.querySelector(".float-btn")) {
       document.body.insertAdjacentHTML("beforeend",
         '<a class="float-btn float-btn--home" href="https://emilymarantohill.com/" aria-label="Back to the rolodex" title="Back to the rolodex">' +
-          EH_BOOK + '</a>' +
+          '<svg viewBox="0 0 48 48" aria-hidden="true">' +
+            // a fan of cards on their wheel, standing on two feet
+            '<g class="cards">' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(-42 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(42 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(-21 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8" transform="rotate(21 24 27)"/>' +
+              '<rect x="15" y="6" width="18" height="13" rx="1.8"/>' +
+            '</g>' +
+            '<circle cx="24" cy="27" r="4.2"/><circle cx="24" cy="27" r="1.2" class="dot"/>' +
+            '<path d="M24 31.5l-7 9M24 31.5l7 9M12 41h24"/>' +
+          '</svg></a>' +
         '<button class="float-btn float-btn--top" type="button" aria-label="Back to top" title="Back to top">' +
           '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 36V13M14 22l10-10 10 10"/></svg></button>');
       var topBtn = document.querySelector(".float-btn--top");

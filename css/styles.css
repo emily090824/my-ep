@@ -924,7 +924,7 @@ button.arc__btn { cursor: pointer; }
 .works .fold-toggle { font-family: var(--type); font-size: 0.86rem; text-transform: uppercase; color: var(--green-800); border-top-color: var(--brown-300); }
 
 /* the Writer page keeps the reader in the book: no site menu (side tabs or the phone Menu button);
-   the way back is the rolodex link at the foot of the page, or the round E H button in the corner */
+   the way back is the rolodex link at the foot of the page, or the rolodex button in the corner */
 .persona-page--writer .site-nav, .persona-page--writer .menu-toggle { display: none !important; }
 
 /* the Writer page opens on the author's name, not the site masthead: deep green at the top, fading into the map */
@@ -966,10 +966,13 @@ body.persona-page--writer main { padding-top: 0; }
 .float-btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .float-btn:hover, .float-btn:focus-visible { background: #1d3124; color: #f6f0e1; }
 .float-btn:focus-visible { outline: 2px solid #9b4a2f; outline-offset: 6px; }
-.float-btn .eh-book .ink { fill: currentColor; stroke: none; }
-.float-btn .eh-book .leaves { stroke-width: 0.9; stroke-linecap: butt; }
-.float-btn--home svg { width: 34px; height: 34px; }
-@media (max-width: 760px) { .float-btn--home svg { width: 30px; height: 30px; } }
+.float-btn .cards rect { fill: #f6f0e1; stroke-width: 1.7; }
+.float-btn:hover .cards rect, .float-btn:focus-visible .cards rect { fill: #1d3124; }
+.float-btn circle { fill: #f6f0e1; }
+.float-btn:hover circle, .float-btn:focus-visible circle { fill: #1d3124; }
+.float-btn .dot { fill: currentColor; stroke: none; }
+.float-btn--home svg { width: 42px; height: 42px; margin-top: -2px; }
+@media (max-width: 760px) { .float-btn--home svg { width: 36px; height: 36px; } }
 .float-btn--home { left: max(18px, env(safe-area-inset-left)); }
 .float-btn--top { right: max(18px, env(safe-area-inset-right)); opacity: 0; transform: translateY(12px); pointer-events: none; }
 .float-btn--top svg { width: 26px; height: 26px; stroke-width: 2.4; }
