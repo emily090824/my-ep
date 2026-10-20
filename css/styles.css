@@ -922,3 +922,7 @@ button.arc__btn { cursor: pointer; }
 .fold-toggle::after { content: ""; width: 7px; height: 7px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-3px) rotate(45deg); transition: transform 0.2s; }
 .fold-toggle[aria-expanded="true"]::after { transform: translateY(2px) rotate(-135deg); }
 .works .fold-toggle { font-family: var(--type); font-size: 0.86rem; text-transform: uppercase; color: var(--green-800); border-top-color: var(--brown-300); }
+
+/* the Writer page keeps the reader in the book: no site menu (side tabs or the phone Menu button);
+   the way back is the rolodex link at the foot of the page, or the monogram */
+.persona-page--writer .site-nav, .persona-page--writer .menu-toggle { display: none !important; }
