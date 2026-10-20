@@ -992,3 +992,7 @@ body.is-scrolled .float-btn--top { opacity: 1; transform: none; pointer-events: 
 .deck.is-loading .deck__play { font-size: 0; }
 .deck.is-loading .deck__play::before { font-size: clamp(1rem, 1.7vw, 1.2rem); }
 @media (max-width: 520px) { .deck__sub { display: none; } }
+
+/* the Writer page ends with its published work: no "Emily as a Writer" card or card switcher below
+   (the rolodex button in the corner is the way back) */
+.persona-page--writer #persona, .persona-page--writer #persona-switch { display: none; }
