@@ -155,7 +155,7 @@
     // two round buttons that float in the bottom corners: home to the rolodex, and back to the top
     if (p.promo && !document.querySelector(".float-btn")) {
       document.body.insertAdjacentHTML("beforeend",
-        '<a class="float-btn float-btn--home" href="./#rolodex" aria-label="Back to the rolodex" title="Back to the rolodex">' +
+        '<a class="float-btn float-btn--home" href="https://emilymarantohill.com/" aria-label="Back to the rolodex" title="Back to the rolodex">' +
           '<svg viewBox="0 0 48 48" aria-hidden="true">' +
             // a fan of cards on their wheel, standing on two feet
             '<g class="cards">' +
