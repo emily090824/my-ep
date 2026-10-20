@@ -120,6 +120,7 @@ window.PERSONAS = [
     slug: "writer",
     article: "a",
     title: "Writer",
+    pageTitle: "Emily Elizabeth Hill · The Blood of a Begonia",   // the browser tab, in place of "Emily as a Writer"
     // a banner above the page: the call for advance readers of the novel
     promo:
       '<div class="arc-page">' +

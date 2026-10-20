@@ -39,7 +39,7 @@
 
   function renderPage() {
     clear();
-    document.title = "Emily as " + p.article + " " + p.title + " · Emily Maranto Hill";
+    document.title = p.pageTitle || "Emily as " + p.article + " " + p.title + " · Emily Maranto Hill";
     var html =
       '<header class="persona__hero">' +
         '<div class="persona-seal">' + window.ICONS[p.slug] + '</div>' +
