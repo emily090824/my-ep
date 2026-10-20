@@ -116,6 +116,30 @@
       document.addEventListener("arc-signed-up", function () { if (known !== null) update(known + 1); });
 
     }
+    // on phones, long passages fold to a few lines with a "Read more" toggle, so the page scrolls quickly
+    var phone = matchMedia("(max-width: 760px)");
+    document.querySelectorAll("[data-collapse]").forEach(function (box, i) {
+      if (box.dataset.foldWired) return;
+      box.dataset.foldWired = "1";
+      if (!box.id) box.id = "fold-" + i;
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "fold-toggle"; btn.setAttribute("aria-controls", box.id);
+      box.insertAdjacentElement("afterend", btn);
+      function set(open) {
+        box.classList.toggle("is-folded", !open);
+        btn.setAttribute("aria-expanded", String(open));
+        btn.textContent = open ? "Show less" : box.dataset.collapse;
+      }
+      function sync() { btn.hidden = !phone.matches; if (phone.matches) set(false); else box.classList.remove("is-folded"); }
+      btn.addEventListener("click", function () {
+        var open = box.classList.contains("is-folded");
+        set(open);
+        if (!open) box.scrollIntoView({ block: "nearest" });   // folding back up: keep the reader in place
+      });
+      (phone.addEventListener ? phone.addEventListener("change", sync) : phone.addListener(sync));
+      sync();
+    });
+
     // the PlumX badge only shows once PlumX's own script has loaded and defined the element
     var plum = document.querySelector(".thesis__metrics");
     if (plum && window.customElements) customElements.whenDefined("plumx-widget").then(function () { plum.hidden = false; });

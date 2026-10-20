@@ -149,7 +149,7 @@ window.PERSONAS = [
         '<p class="arc-sheet__kicker" id="blurb-title">About the book</p>' +
         '<p class="arc-blurb__hook">Meredith Moran would do almost anything to save her country-club life in 1999&nbsp;Mississippi.</p>' +
         '<p class="arc-blurb__hook arc-blurb__hook--2">A foursome with her husband, her former lover, and his new wife is asking a&nbsp;lot.</p>' +
-        '<div class="arc-blurb__body">' +
+        '<div class="arc-blurb__body" data-collapse="Read the full summary">' +
         '<div class="arc-blurb__col">' +
         '<p>Once a promising artist, Meredith, spends her days burning the latest <em>Southern Living</em> recipes, overpruning her begonias, and painting mediocre florals. Her inspiration has dried up, and so has her marriage to John, an amputee veteran whose disability checks sustain their lavish lifestyle. When Austin Thomas, the college lover who abandoned her, and newly elected politician, moves next door with his wife, Meredith wants answers, and she fears she&rsquo;ll want him, too.</p>' +
         '<p>When John starts bouncing checks, Meredith discovers mountains of debt that threatens their lifestyle, and he has already promised a generous donation to the country club&rsquo;s annual gala and silent auction. Meredith&rsquo;s paintings could fulfill his promise and keep their ruin behind manicured hedges for a bit longer. But her middling florals won&rsquo;t do.</p>' +
@@ -180,22 +180,25 @@ window.PERSONAS = [
       '<section class="works" aria-labelledby="works-title">' +
         '<header class="works__head"><p class="kicker">Read me</p><h2 id="works-title">Other Published Work</h2></header>' +
         '<article class="thesis">' +
+          '<div class="thesis__head"><div>' +
           '<p class="works__label">Master&rsquo;s thesis &middot; 2025</p>' +
           '<h3 class="thesis__title"><a href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Reading the Romance Reader: BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</a></h3>' +
           '<p class="works__cite">Hill, E. M. (2025). Master of Arts thesis, Communication &amp; Theatre Arts, Old Dominion University. <a href="https://doi.org/10.25777/67hy-yr98" rel="noopener">DOI: 10.25777/67hy-yr98</a></p>' +
-          '<div class="thesis__grid">' +
-            '<div class="thesis__abstract">' +
-              '<h4>Abstract</h4>' +
-              '<p>This thesis examines the transformation of romance reader identity through the lens of BookTok, investigating how digital platforms grant cultural legitimacy while simultaneously subjugating community practices to algorithmic control. Romance readers historically developed emotional labor practices, counter-public formation strategies, and fan-driven meaning-making to resist decades of cultural marginalization. Through analysis of TikTok&rsquo;s platform attributes, user behaviors, and the viral Tillie Cole controversy, this study traces how BookTok converts these resistant practices into behavioral data optimized for engagement rather than authentic discourse. The research employs theoretical frameworks including Janice Radway&rsquo;s ethnographic analysis, Shoshana Zuboff&rsquo;s surveillance capitalism, Nick Srnicek&rsquo;s platform capitalism, and Nancy Fraser&rsquo;s counterpublic theory to examine three critical dimensions: first, how romance readers developed emotional labor as cultural resistance; second, how TikTok&rsquo;s technological affordances exploit these historical practices; and third, how platform and surveillance capitalism converge to create an algorithmic hive mind that fragments community solidarity. Findings reveal that while romance readers achieve unprecedented mainstream visibility and influence through BookTok, this cultural legitimacy operates within systems fundamentally indifferent to community welfare.</p>' +
-              '<p>This transformation has broader implications for participatory cultures in digital spaces, revealing how surveillance capitalism can weaponize communities&rsquo; greatest strengths of emotional authenticity, defensive solidarity, and collective meaning-making into extractable vulnerabilities. The thesis examines how many romance readers navigate tensions between algorithmic visibility and autonomous community practices, arguing that for significant segments of this community, the pursuit of cultural legitimacy has produced not liberation, but new forms of digital containment and subjugation disguised as empowerment.</p>' +
-            '</div>' +
-            '<aside class="thesis__side">' +
+          '</div>' +
+          '<aside class="thesis__side">' +
               '<a class="btn btn--solid thesis__read" href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Read the thesis</a>' +
               '<div class="thesis__metrics" hidden>' +
                 '<h4>Readership</h4>' +
                 '<plumx-widget type="artifact" identifier-type="plumx_id" identifier="GsuIoMHkaTymNk1rMCOTkwu4PiG_jdldOhIjJHO6iHQ" display="badge" site="plumx" config=\'{"hideWhenEmpty":true,"applyFiltersToMetricsPage":true,"popupDirection":"top","printSize":"large","detailsLinkBaseUrl":"https://plumx.elsevier.com/a"}\'></plumx-widget>' +
               '</div>' +
             '</aside>' +
+          '</div>' +
+          '<div class="thesis__grid">' +
+            '<div class="thesis__abstract" data-collapse="Read the full abstract">' +
+              '<h4>Abstract</h4>' +
+              '<p>This thesis examines the transformation of romance reader identity through the lens of BookTok, investigating how digital platforms grant cultural legitimacy while simultaneously subjugating community practices to algorithmic control. Romance readers historically developed emotional labor practices, counter-public formation strategies, and fan-driven meaning-making to resist decades of cultural marginalization. Through analysis of TikTok&rsquo;s platform attributes, user behaviors, and the viral Tillie Cole controversy, this study traces how BookTok converts these resistant practices into behavioral data optimized for engagement rather than authentic discourse. The research employs theoretical frameworks including Janice Radway&rsquo;s ethnographic analysis, Shoshana Zuboff&rsquo;s surveillance capitalism, Nick Srnicek&rsquo;s platform capitalism, and Nancy Fraser&rsquo;s counterpublic theory to examine three critical dimensions: first, how romance readers developed emotional labor as cultural resistance; second, how TikTok&rsquo;s technological affordances exploit these historical practices; and third, how platform and surveillance capitalism converge to create an algorithmic hive mind that fragments community solidarity. Findings reveal that while romance readers achieve unprecedented mainstream visibility and influence through BookTok, this cultural legitimacy operates within systems fundamentally indifferent to community welfare.</p>' +
+              '<p>This transformation has broader implications for participatory cultures in digital spaces, revealing how surveillance capitalism can weaponize communities&rsquo; greatest strengths of emotional authenticity, defensive solidarity, and collective meaning-making into extractable vulnerabilities. The thesis examines how many romance readers navigate tensions between algorithmic visibility and autonomous community practices, arguing that for significant segments of this community, the pursuit of cultural legitimacy has produced not liberation, but new forms of digital containment and subjugation disguised as empowerment.</p>' +
+            '</div>' +
           '</div>' +
           '<div class="thesis__defense">' +
             '<h4>The thesis defense</h4>' +
