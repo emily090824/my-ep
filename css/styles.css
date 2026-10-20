@@ -926,3 +926,13 @@ button.arc__btn { cursor: pointer; }
 /* the Writer page keeps the reader in the book: no site menu (side tabs or the phone Menu button);
    the way back is the rolodex link at the foot of the page, or the monogram */
 .persona-page--writer .site-nav, .persona-page--writer .menu-toggle { display: none !important; }
+
+/* a published piece with its cover beside it */
+.works__item--cover { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: clamp(18px, 3vw, 32px); align-items: start; }
+.works__cover { display: block; }
+.works__cover img { display: block; width: 100%; height: auto; border-radius: 2px 4px 4px 2px; box-shadow: 0 1px 2px rgba(47, 34, 25, 0.25), 0 10px 22px -10px rgba(47, 34, 25, 0.5); transition: transform 0.2s; }
+.works__cover:hover img { transform: translateY(-2px); }
+.works__more { margin: 12px 0 0; font: 400 0.86rem var(--type); letter-spacing: 0.06em; }
+.works__more a { color: var(--green-800); }
+.works__more a::after { content: " \2192"; }
+@media (max-width: 520px) { .works__item--cover { grid-template-columns: 96px minmax(0, 1fr); } }

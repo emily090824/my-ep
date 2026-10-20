@@ -207,7 +207,7 @@ window.PERSONAS = [
           '</div>' +
         '</article>' +
         '<ul class="works__list">' +
-          '<li><p class="works__label">Book chapter &middot; 2026</p><h3><a href="https://doi.org/10.1007/978-3-032-20388-5_21" rel="noopener">Towards Positive Food Communication Systems</a></h3><p class="works__cite">Socha, T. J., Hill, E., et al. (2026). In T. J. Socha (Ed.), <em>The Palgrave Handbook of Positive Communication for Livable Futures</em>. Palgrave Macmillan.</p></li>' +
+          '<li class="works__item--cover"><a class="works__cover" href="https://link.springer.com/chapter/10.1007/978-3-032-20388-5_21" rel="noopener" tabindex="-1" aria-hidden="true"><img src="assets/palgrave-handbook.jpg" width="500" height="753" alt="" loading="lazy"></a><div><p class="works__label">Book chapter &middot; 2026</p><h3><a href="https://link.springer.com/chapter/10.1007/978-3-032-20388-5_21" rel="noopener">Towards Positive Food Communication Systems</a></h3><p class="works__cite">Socha, T. J., Hill, E., et al. (2026). In T. J. Socha (Ed.), <em>The Palgrave Handbook of Positive Communication for Livable Futures</em>. Palgrave Macmillan. <a href="https://doi.org/10.1007/978-3-032-20388-5_21" rel="noopener">DOI: 10.1007/978-3-032-20388-5_21</a></p><p class="works__more"><a href="https://link.springer.com/chapter/10.1007/978-3-032-20388-5_21" rel="noopener">Read the chapter on Springer</a></p></div></li>' +
           '<li><p class="works__label">Book &middot; In press</p><h3>Designing Positive Family Communication <span class="works__with">with Thomas Socha</span></h3><p class="works__cite">Socha, T. J., &amp; Hill, E. Old Dominion University.</p></li>' +
         '</ul>' +
       '</section>' +
