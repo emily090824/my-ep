@@ -77,7 +77,11 @@
       // when it first comes into view, and checked again now and then so it keeps rising
       var counters = document.querySelectorAll("[data-arc-count]"), shown = 0, seen = false, known = null;
       // the count comes from the script's doGet, which answers {"count": n}
-      var COUNT_URL = "https://script.google.com/macros/s/AKfycbwTjfnqw3CBk9ft-b_gpNMnA_WJsK5YvZN321N8gVTJPZ8wVi4atx6bgq-QH3j3fhyd/exec";
+      // the working deployment (the one the form posts to) first; the older one as a fallback
+      var COUNT_URLS = [
+        "https://script.google.com/macros/s/AKfycbwvI33WBWYR7P89TAl43bahbsJ0EIrwF7M3W-RjgMROPPiN7fM4Gkq_hSx6ZOl4qGVQow/exec",
+        "https://script.google.com/macros/s/AKfycbwTjfnqw3CBk9ft-b_gpNMnA_WJsK5YvZN321N8gVTJPZ8wVi4atx6bgq-QH3j3fhyd/exec"
+      ];
       function paint(n) {
         counters.forEach(function (el) {
           el.querySelector(".arc__count-n").textContent = n.toLocaleString();
@@ -100,10 +104,16 @@
         if (seen) tickTo(known);
       }
       function poll() {
-        fetch(COUNT_URL, { method: "GET", cache: "no-store" })
-          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-          .then(function (d) { if (d && d.count !== undefined && d.count !== null && d.count !== "") update(Number(d.count)); })
-          .catch(function () {});   // on failure the counter simply stays hidden
+        (function attempt(i) {
+          if (i >= COUNT_URLS.length) return;   // every address failed: the counter simply stays hidden
+          fetch(COUNT_URLS[i], { method: "GET", cache: "no-store" })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) {
+              if (!d || d.count === undefined || d.count === null || d.count === "") throw new Error("no count");
+              update(Number(d.count));
+            })
+            .catch(function () { attempt(i + 1); });
+        })(0);
       }
       if ("IntersectionObserver" in window) {
         var io = new IntersectionObserver(function (es) {
