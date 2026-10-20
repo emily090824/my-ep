@@ -961,41 +961,22 @@ button.arc__btn { cursor: pointer; }
 body.is-scrolled .float-btn--top { opacity: 1; transform: none; pointer-events: auto; }
 @media (max-width: 760px) { .float-btn { width: 50px; height: 50px; } .float-btn svg { width: 26px; height: 26px; } }
 
-/* the thesis defense, behind a cover card until it is asked for */
-.deck { background: #1d3124; }
+/* the thesis defense: its title slide stands in until the presentation is asked for */
+.deck { background: #8c0f12; }
 .deck iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.deck__cover {
-  position: absolute; inset: 0; z-index: 1; width: 100%; padding: clamp(18px, 5vw, 64px); border: 0; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(6px, 1.4vw, 14px); text-align: center;
-  color: #f6f0e1;
-  background:
-    linear-gradient(rgba(29, 49, 36, 0.78), rgba(29, 49, 36, 0.86)),
-    #7f9a87 url(../assets/montclair-plat-sage.jpg) 50% 4% / 160% auto no-repeat;
-  outline: 1px solid rgba(246, 240, 225, 0.55); outline-offset: -14px;
-  transition: background-size 0.6s;
-}
-.deck__cover:hover { background-size: auto, 168% auto; }
-.deck__kicker { font: 400 clamp(0.7rem, 1.2vw, 0.86rem) var(--type); letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
-.deck__title { font: 400 clamp(1.7rem, 4.6vw, 3.4rem)/1.15 "Petit Formal Script", cursive; }
-.deck__sub { max-width: 34ch; font: italic 400 clamp(0.95rem, 1.8vw, 1.3rem)/1.35 "IM Fell English", Georgia, serif; opacity: 0.92; }
+.deck__cover { position: absolute; inset: 0; z-index: 1; width: 100%; padding: 0; border: 0; cursor: pointer; background: none; display: block; }
+.deck__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter 0.3s; }
+.deck__cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(40, 6, 8, 0.45)); pointer-events: none; }
+.deck__cover:hover img { filter: brightness(0.94); }
 .deck__play {
-  display: inline-flex; align-items: center; gap: 10px; margin-top: clamp(6px, 1.6vw, 18px); padding: 0.6em 1.3em; border-radius: 999px;
-  background: #f6f0e1; color: #1d3124; font: 400 clamp(1rem, 1.7vw, 1.2rem)/1 "IM Fell English SC", Georgia, serif; letter-spacing: 0.1em;
-  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.5); transition: transform 0.2s;
+  position: absolute; z-index: 1; right: clamp(12px, 2.4vw, 28px); bottom: clamp(12px, 2.4vw, 28px);
+  display: inline-flex; align-items: center; gap: 10px; padding: 0.6em 1.3em; border-radius: 999px;
+  background: #f6f0e1; color: #8c0f12; font: 400 clamp(0.9rem, 1.6vw, 1.15rem)/1 "IM Fell English SC", Georgia, serif; letter-spacing: 0.1em;
+  box-shadow: 0 8px 18px -8px rgba(0, 0, 0, 0.6); transition: transform 0.2s;
 }
 .deck__play svg { width: 1em; height: 1em; fill: currentColor; }
-.deck__cover:hover .deck__play, .deck__cover:focus-visible .deck__play { transform: scale(1.04); }
-.deck__cover:focus-visible { outline: 3px solid #f6f0e1; outline-offset: -8px; }
-.deck.is-loading .deck__play { opacity: 0.7; }
-.deck.is-loading .deck__play svg { display: none; }
-.deck.is-loading .deck__play::before { content: "Opening\2026"; }
+.deck__cover:hover .deck__play, .deck__cover:focus-visible .deck__play { transform: scale(1.05); }
+.deck__cover:focus-visible { outline: 3px solid #f6f0e1; outline-offset: -6px; }
 .deck.is-loading .deck__play { font-size: 0; }
-.deck.is-loading .deck__play::before { font-size: clamp(1rem, 1.7vw, 1.2rem); }
-@media (max-width: 520px) { .deck__sub { display: none; } }
-
-/* the Writer page ends with its published work: no "Emily as a Writer" card or card switcher below
-   (the rolodex button in the corner is the way back) */
-.persona-page--writer #persona, .persona-page--writer #persona-switch { display: none; }
-/* the Writer page's footer, in the book's deep green */
-.persona-page--writer .colophon { background: #1d3124; border-top: 0; padding-top: 34px; padding-bottom: 44px; }
-.persona-page--writer .colophon p { color: #f6f0e1; opacity: 0.85; }
+.deck.is-loading .deck__play svg { display: none; }
+.deck.is-loading .deck__play::before { content: "Opening\2026"; font-size: clamp(0.9rem, 1.6vw, 1.15rem); }

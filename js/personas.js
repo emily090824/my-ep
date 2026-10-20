@@ -204,10 +204,8 @@ window.PERSONAS = [
             '<h4>The thesis defense</h4>' +
             // a cover card stands in for Canva's viewer, which is heavy; the deck loads only when asked for
             '<div class="embed16x9 deck" data-src="https://www.canva.com/design/DAG1_LjUa2E/Rus8krM1B10mFc2k1P2zYg/view?embed">' +
-              '<button class="deck__cover" type="button">' +
-                '<span class="deck__kicker">Master&rsquo;s thesis defense &middot; Old Dominion University</span>' +
-                '<span class="deck__title">Reading the Romance Reader</span>' +
-                '<span class="deck__sub">BookTok, Algorithmic Subjugation, and the Fight for Cultural Legitimacy</span>' +
+              '<button class="deck__cover" type="button" aria-label="View the presentation: Reading the Romance Reader, a thesis defense by Emily Hill">' +
+                '<img src="assets/thesis-defense-cover-960.jpg" srcset="assets/thesis-defense-cover-960.jpg 960w, assets/thesis-defense-cover.jpg 1920w" sizes="(max-width: 1100px) 100vw, 1000px" width="1920" height="1080" alt="" loading="lazy">' +
                 '<span class="deck__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>View the presentation</span>' +
               '</button>' +
             '</div>' +
