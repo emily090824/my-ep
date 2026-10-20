@@ -189,7 +189,7 @@ window.PERSONAS = [
               '<a class="btn btn--solid thesis__read" href="https://digitalcommons.odu.edu/communication_etds/35" rel="noopener">Read the thesis</a>' +
               '<div class="thesis__metrics" hidden>' +
                 '<h4>Readership</h4>' +
-                '<plumx-widget type="artifact" identifier-type="plumx_id" identifier="GsuIoMHkaTymNk1rMCOTkwu4PiG_jdldOhIjJHO6iHQ" display="badge" site="plumx" config=\'{"hideWhenEmpty":true,"applyFiltersToMetricsPage":true,"popupDirection":"top","printSize":"large","detailsLinkBaseUrl":"https://plumx.elsevier.com/a"}\'></plumx-widget>' +
+                '<plumx-widget type="artifact" identifier-type="doi" identifier="10.25777/67hy-yr98" display="badge" site="plumx" theme="liberty" config=\'{"hideWhenEmpty":true,"popupDirection":"right","printSize":"large","detailsLinkBaseUrl":"https://plumx.elsevier.com/a"}\'></plumx-widget>' +
               '</div>' +
             '</aside>' +
           '</div>' +
