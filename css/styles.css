@@ -646,9 +646,8 @@ body:not(.has-desk) main { padding-top: 66px; }
 .arc {
   --sage: #7f9a87;
   color: #fbf6ea;
-  min-height: calc(100svh - 66px);
   display: flex; align-items: center;
-  padding: clamp(32px, 6vw, 72px) var(--gutter);
+  padding: clamp(32px, 5vw, 64px) var(--gutter) clamp(28px, 4vw, 48px);
 }
 .arc__inner {
   width: 100%; max-width: var(--max); margin: 0 auto;
@@ -779,16 +778,16 @@ button.arc__btn { cursor: pointer; }
   background: #7f9a87 url(../assets/montclair-plat-sage.jpg) 50% 0 / cover no-repeat;
   padding-bottom: clamp(48px, 8vw, 110px);
 }
-.arc-quote { padding: clamp(12px, 3vw, 40px) var(--gutter) clamp(16px, 3vw, 44px); }
+.arc-quote { padding: 0 var(--gutter) clamp(12px, 2vw, 28px); }
 .arc-quote blockquote {
   margin: 0 auto; max-width: 900px; text-align: center; color: #fbf6ea;
-  padding: clamp(10px, 2vw, 24px) clamp(8px, 3vw, 40px);
+  padding: clamp(4px, 1vw, 12px) clamp(8px, 3vw, 40px);
   background: radial-gradient(closest-side, rgba(127, 154, 135, 0.88), rgba(127, 154, 135, 0.6) 65%, rgba(127, 154, 135, 0));
   text-shadow: 0 1px 2px rgba(20, 40, 28, 0.45);
 }
-.arc-quote blockquote::before { content: "\201C"; display: block; height: 0.55em; font: 400 clamp(4rem, 9vw, 7rem)/1 "Petit Formal Script", cursive; opacity: 0.85; }
-.arc-quote p { margin: 0; font: italic 400 clamp(1.5rem, 3.2vw, 2.5rem)/1.4 "IM Fell English", Georgia, serif; }
-.arc-quote footer { margin-top: 10px; font: 400 clamp(0.95rem, 1.6vw, 1.15rem) "IM Fell English SC", Georgia, serif; letter-spacing: 0.14em; }
+.arc-quote blockquote::before { content: "\201C"; display: block; height: 0.42em; margin-bottom: -0.04em; font: 400 clamp(4rem, 9vw, 7rem)/1 "Petit Formal Script", cursive; opacity: 0.85; }
+.arc-quote p { margin: 0; font: italic 400 clamp(1.5rem, 3.2vw, 2.5rem)/1.28 "IM Fell English", Georgia, serif; }
+.arc-quote footer { margin-top: 6px; font: 400 clamp(0.95rem, 1.6vw, 1.15rem) "IM Fell English SC", Georgia, serif; letter-spacing: 0.14em; }
 .arc-quote footer::before { content: "\2014\00a0"; }
 
 /* ivory sheets laid on the map, ruled like the cover label */
