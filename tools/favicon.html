@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Dev tool: draws the EMH monogram icon (browser tab, home screen). Not linked from the site. -->
+<html lang="en"><head><meta charset="utf-8"><title>Icon</title>
+<link rel="stylesheet" href="../css/fonts.css">
+<style>html,body{margin:0;background:#777}</style></head>
+<body><canvas id="c"></canvas>
+<script>
+(async () => {
+  const q = new URLSearchParams(location.search), S = +(q.get("s") || 512), small = S <= 48, tiny = S <= 32;
+  await Promise.all(["600 100px Fraunces", "italic 300 100px Fraunces"].map((f) => document.fonts.load(f)));
+  const c = document.getElementById("c"); c.width = c.height = S; const g = c.getContext("2d");
+  const r = S * 0.16;
+  g.fillStyle = "#f4eedf"; g.beginPath(); g.roundRect(0, 0, S, S, r); g.fill();      // ivory tile
+  if (!tiny) {   // the monogram's inked rule (left off at tab size, where every pixel goes to the letters)
+    g.strokeStyle = "#2f2219"; g.lineWidth = Math.max(1, S * (small ? 0.05 : 0.03));
+    const i = S * (small ? 0.07 : 0.1); g.beginPath(); g.roundRect(i, i, S - 2 * i, S - 2 * i, r * 0.5); g.stroke();
+  } else { g.strokeStyle = "#2f2219"; g.lineWidth = 1; g.beginPath(); g.roundRect(0.5, 0.5, S - 1, S - 1, r); g.stroke(); }
+  if (!small) { g.lineWidth = S * 0.01; const j = S * 0.15; g.strokeStyle = "rgba(47,34,25,0.5)"; g.beginPath(); g.roundRect(j, j, S - 2 * j, S - 2 * j, r * 0.35); g.stroke(); }
+  // the letters: E and H upright, the M in green italic, as on the site
+  const fs = S * (tiny ? 0.52 : small ? 0.36 : 0.27);
+  const parts = [["E", `600 ${fs}px Fraunces`, "#4a3426"], ["M", `italic 600 ${fs}px Fraunces`, "#3f5e48"], ["H", `600 ${fs}px Fraunces`, "#4a3426"]];
+  const gap = tiny ? -S * 0.01 : S * (small ? 0.0 : 0.01);
+  const w = parts.map(([t, f]) => { g.font = f; return g.measureText(t).width; });
+  let x = (S - w.reduce((a, b) => a + b, 0) - gap * 2) / 2;
+  g.textBaseline = "alphabetic";
+  parts.forEach(([t, f, col], k) => { g.font = f; g.fillStyle = col; g.fillText(t, x, S * 0.5 + fs * 0.34); x += w[k] + gap; });
+  window.__done = c.toDataURL("image/png");
+})();
+</script></body></html>
