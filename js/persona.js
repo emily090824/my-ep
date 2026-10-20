@@ -4,6 +4,22 @@
   var switcher = document.getElementById("persona-switch");
   var fill = window.EMH.fill;
 
+  // the E H monogram, drawn as a book on its side: the E is the spine and the two boards, the H the fore-edge,
+  // the shared bar the middle. Used by the Writer page's name header and its corner button.
+  var EH_BOOK =
+    '<svg class="eh-book" viewBox="6 5.5 37 37" aria-hidden="true">' +
+      '<path class="leaves" d="M14.2 12.7H30.3M14.2 15.2H29.9M14.2 17.8H29.9M14.2 20.3H30.3M14.2 28.9H30.3M14.2 31.4H29.9M14.2 34H29.9M14.2 36.5H30.3"/>' +
+      '<path class="ink" d="M9.5 8.2Q11.6 6.6 13.7 8.2V39.8Q11.6 41.4 9.5 39.8Z"/>' +
+      '<path class="ink" d="M7.1 7.2h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M7.1 39.7h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M35.3 8.2Q37.4 6.6 39.5 8.2V39.8Q37.4 41.4 35.3 39.8Z"/>' +
+      '<path class="ink" d="M32.9 7.2h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M32.9 39.7h9v1.1h-9Z"/>' +
+      '<path class="ink" d="M11.8 7.2H31.6L32.6 12.2H31.8Q30.6 9.6 28.4 9.2H11.8Z"/>' +
+      '<path class="ink" d="M11.8 40.8H31.6L32.6 35.8H31.8Q30.6 38.4 28.4 38.8H11.8Z"/>' +
+      '<path class="ink" d="M12 23.9H36V26.1H12Z"/>' +
+    '</svg>';
+
   var slug = new URLSearchParams(location.search).get("p") || "marketer";
   document.body.classList.add("persona-page--" + slug);
   var p = window.PERSONAS.find(function (x) { return x.slug === slug; });
@@ -40,7 +56,15 @@
         "</ul></section>";
     });
     root.insertAdjacentHTML("beforeend", html);
-    if (p.promo && !document.querySelector(".arc")) root.insertAdjacentHTML("beforebegin", p.promo);
+    if (p.promo && !document.querySelector(".arc")) {
+      root.insertAdjacentHTML("beforebegin", p.promo);
+      // the author's name across the top of the page, over a green that fades into the map
+      document.querySelector(".arc-page").insertAdjacentHTML("afterbegin",
+        '<header class="author-head">' + EH_BOOK +
+          '<p class="author-head__name">Emily Elizabeth Hill</p>' +
+          '<p class="author-head__line">Southern Gothic &amp; literary fiction</p>' +
+        '</header>');
+    }
     var dlg = document.getElementById("arc-signup");
     if (dlg && !dlg.dataset.wired) {
       dlg.dataset.wired = "1";
@@ -156,19 +180,7 @@
     if (p.promo && !document.querySelector(".float-btn")) {
       document.body.insertAdjacentHTML("beforeend",
         '<a class="float-btn float-btn--home" href="https://emilymarantohill.com/" aria-label="Back to the rolodex" title="Back to the rolodex">' +
-          '<svg class="eh-book" viewBox="6 5.5 37 37" aria-hidden="true">' +
-            // E H as a book on its side: the E is the spine and the two boards, the H the fore-edge, the shared bar the middle
-            '<path class="leaves" d="M14.2 12.7H30.3M14.2 15.2H29.9M14.2 17.8H29.9M14.2 20.3H30.3M14.2 28.9H30.3M14.2 31.4H29.9M14.2 34H29.9M14.2 36.5H30.3"/>' +
-            '<path class="ink" d="M9.5 8.2Q11.6 6.6 13.7 8.2V39.8Q11.6 41.4 9.5 39.8Z"/>' +
-            '<path class="ink" d="M7.1 7.2h9v1.1h-9Z"/>' +
-            '<path class="ink" d="M7.1 39.7h9v1.1h-9Z"/>' +
-            '<path class="ink" d="M35.3 8.2Q37.4 6.6 39.5 8.2V39.8Q37.4 41.4 35.3 39.8Z"/>' +
-            '<path class="ink" d="M32.9 7.2h9v1.1h-9Z"/>' +
-            '<path class="ink" d="M32.9 39.7h9v1.1h-9Z"/>' +
-            '<path class="ink" d="M11.8 7.2H31.6L32.6 12.2H31.8Q30.6 9.6 28.4 9.2H11.8Z"/>' +
-            '<path class="ink" d="M11.8 40.8H31.6L32.6 35.8H31.8Q30.6 38.4 28.4 38.8H11.8Z"/>' +
-            '<path class="ink" d="M12 23.9H36V26.1H12Z"/>' +
-          '</svg></a>' +
+          EH_BOOK + '</a>' +
         '<button class="float-btn float-btn--top" type="button" aria-label="Back to top" title="Back to top">' +
           '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 36V13M14 22l10-10 10 10"/></svg></button>');
       var topBtn = document.querySelector(".float-btn--top");
