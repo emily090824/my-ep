@@ -936,3 +936,27 @@ button.arc__btn { cursor: pointer; }
 .works__more a { color: var(--green-800); }
 .works__more a::after { content: " \2192"; }
 @media (max-width: 520px) { .works__item--cover { grid-template-columns: 96px minmax(0, 1fr); } }
+
+/* ---------- floating corner buttons (Writer page): the rolodex, and back to top ---------- */
+.float-btn {
+  position: fixed; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 40;
+  width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: #f6f0e1; color: #1d3124; border: 1.5px solid #1d3124;
+  box-shadow: 0 0 0 4px #f6f0e1, 0 0 0 5px rgba(29, 49, 36, 0.35), 0 10px 22px -8px rgba(20, 40, 28, 0.55);   /* a double rule, like the cards */
+  text-decoration: none; transition: transform 0.25s, opacity 0.25s, background 0.2s, color 0.2s;
+}
+.float-btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.float-btn:hover, .float-btn:focus-visible { background: #1d3124; color: #f6f0e1; }
+.float-btn:focus-visible { outline: 2px solid #9b4a2f; outline-offset: 6px; }
+.float-btn .cards rect { fill: #f6f0e1; stroke-width: 1.7; }
+.float-btn:hover .cards rect, .float-btn:focus-visible .cards rect { fill: #1d3124; }
+.float-btn circle { fill: #f6f0e1; }
+.float-btn:hover circle, .float-btn:focus-visible circle { fill: #1d3124; }
+.float-btn .dot { fill: currentColor; stroke: none; }
+.float-btn--home svg { width: 42px; height: 42px; margin-top: -2px; }
+@media (max-width: 760px) { .float-btn--home svg { width: 36px; height: 36px; } }
+.float-btn--home { left: max(18px, env(safe-area-inset-left)); }
+.float-btn--top { right: max(18px, env(safe-area-inset-right)); opacity: 0; transform: translateY(12px); pointer-events: none; }
+.float-btn--top svg { width: 26px; height: 26px; stroke-width: 2.4; }
+body.is-scrolled .float-btn--top { opacity: 1; transform: none; pointer-events: auto; }
+@media (max-width: 760px) { .float-btn { width: 50px; height: 50px; } .float-btn svg { width: 26px; height: 26px; } }
