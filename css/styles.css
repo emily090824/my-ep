@@ -948,13 +948,10 @@ button.arc__btn { cursor: pointer; }
 .float-btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .float-btn:hover, .float-btn:focus-visible { background: #1d3124; color: #f6f0e1; }
 .float-btn:focus-visible { outline: 2px solid #9b4a2f; outline-offset: 6px; }
-.float-btn .cards rect { fill: #f6f0e1; stroke-width: 1.7; }
-.float-btn:hover .cards rect, .float-btn:focus-visible .cards rect { fill: #1d3124; }
-.float-btn circle { fill: #f6f0e1; }
-.float-btn:hover circle, .float-btn:focus-visible circle { fill: #1d3124; }
-.float-btn .dot { fill: currentColor; stroke: none; }
-.float-btn--home svg { width: 42px; height: 42px; margin-top: -2px; }
-@media (max-width: 760px) { .float-btn--home svg { width: 36px; height: 36px; } }
+.float-btn .eh-book .ink { fill: currentColor; stroke: none; }
+.float-btn .eh-book .leaves { stroke-width: 0.9; stroke-linecap: butt; }
+.float-btn--home svg { width: 34px; height: 34px; }
+@media (max-width: 760px) { .float-btn--home svg { width: 30px; height: 30px; } }
 .float-btn--home { left: max(18px, env(safe-area-inset-left)); }
 .float-btn--top { right: max(18px, env(safe-area-inset-right)); opacity: 0; transform: translateY(12px); pointer-events: none; }
 .float-btn--top svg { width: 26px; height: 26px; stroke-width: 2.4; }

@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Dev tool: draws the site icon (browser tab, home screen): the rolodex from the corner
+<!-- Dev tool: draws the site icon (browser tab, home screen): the E H monogram from the corner
      button, on an ivory tile. Not linked from the site. -->
 <html lang="en"><head><meta charset="utf-8"><title>Icon</title>
 <style>html,body{margin:0;background:#777}</style></head>
@@ -16,19 +16,16 @@
     g.strokeStyle = GREEN; g.lineWidth = S * 0.03; const i = S * 0.07;
     g.beginPath(); g.roundRect(i, i, S - 2 * i, S - 2 * i, r * 0.7); g.stroke();
   }
-  // the rolodex, drawn in the corner button's own 48-unit space
-  const pad = tiny ? S * 0.02 : S * 0.15, k = (S - 2 * pad) / 48;
-  g.save(); g.translate(pad, pad + (tiny ? S * 0.01 : 0)); g.scale(k, k);
-  g.lineJoin = g.lineCap = "round"; g.strokeStyle = GREEN;
-  g.lineWidth = tiny ? (S <= 16 ? 4.2 : 3) : 2.1;
-  const card = (deg) => {
-    g.save(); g.translate(24, 27); g.rotate(deg * Math.PI / 180); g.translate(-24, -27);
-    g.beginPath(); g.roundRect(15, 6, 18, 13, 1.8); g.fillStyle = IVORY; g.fill(); g.stroke(); g.restore();
-  };
-  (tiny ? [-34, 34, 0] : [-42, 42, -21, 21, 0]).forEach(card);   // fewer cards at tab size, so they stay distinct
-  g.beginPath(); g.arc(24, 27, 4.2, 0, Math.PI * 2); g.fillStyle = IVORY; g.fill(); g.stroke();
-  g.beginPath(); g.arc(24, 27, 1.3, 0, Math.PI * 2); g.fillStyle = GREEN; g.fill();
-  g.beginPath(); g.moveTo(24, 31.5); g.lineTo(17, 40.5); g.moveTo(24, 31.5); g.lineTo(31, 40.5); g.moveTo(12, 41); g.lineTo(36, 41); g.stroke();
+  // the monogram: E H as a book on its side, drawn in the corner button's own units (viewBox 6 5.5 37 37)
+  const pad = tiny ? S * 0.02 : S * 0.2, k = (S - 2 * pad) / 37;
+  g.save(); g.translate(pad, pad); g.scale(k, k); g.translate(-6, -5.5);
+  g.fillStyle = g.strokeStyle = GREEN;
+  if (S > 16) {   // the leaves blur to a grey smudge at the smallest size
+    g.lineWidth = tiny ? 1.1 : 0.8;
+    g.stroke(new Path2D("M14.2 12.7H30.3M14.2 15.2H29.9M14.2 17.8H29.9M14.2 20.3H30.3M14.2 28.9H30.3M14.2 31.4H29.9M14.2 34H29.9M14.2 36.5H30.3"));
+  }
+  // each piece filled on its own, so where two overlap they don't cancel out
+  "M9.5 8.2Q11.6 6.6 13.7 8.2V39.8Q11.6 41.4 9.5 39.8ZM7.1 7.2h9v1.1h-9ZM7.1 39.7h9v1.1h-9ZM35.3 8.2Q37.4 6.6 39.5 8.2V39.8Q37.4 41.4 35.3 39.8ZM32.9 7.2h9v1.1h-9ZM32.9 39.7h9v1.1h-9ZM11.8 7.2H31.6L32.6 12.2H31.8Q30.6 9.6 28.4 9.2H11.8ZM11.8 40.8H31.6L32.6 35.8H31.8Q30.6 38.4 28.4 38.8H11.8ZM12 23.9H36V26.1H12Z".split("M").filter(Boolean).forEach(d => g.fill(new Path2D("M" + d)));
   g.restore();
   window.__done = c.toDataURL("image/png");
 })();
