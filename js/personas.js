@@ -134,7 +134,7 @@ window.PERSONAS = [
             '<p class="arc__lead">Sign up to be an<br> <abbr title="advance reader copy">ARC</abbr> reader of</p>' +
             '<h2 class="arc__title" id="arc-title">The Blood of<br> a&nbsp;Begonia</h2>' +
             '<button class="arc__btn" type="button" data-open="arc-signup">Sign up</button>' +
-            '<p class="arc__count" data-arc-count hidden>Join the <span class="arc__count-n">0</span> other ARC readers</p>' +
+            '<p class="arc__count" data-arc-count hidden>Join the <span class="arc__count-n">0</span> other ARC readers excited to read <abbr title="The Blood of a Begonia">TBOAB</abbr></p>' +
           '</div>' +
         '</div>' +
       '</section>' +
@@ -163,7 +163,7 @@ window.PERSONAS = [
         '<div class="arc-sheet__cta">' +
           '<p>Read it before anyone else.</p>' +
           '<button class="arc__btn arc__btn--dark" type="button" data-open="arc-signup">Sign up</button>' +
-          '<p class="arc__count" data-arc-count hidden>Join the <span class="arc__count-n">0</span> other ARC readers</p>' +
+          '<p class="arc__count" data-arc-count hidden>Join the <span class="arc__count-n">0</span> other ARC readers excited to read <abbr title="The Blood of a Begonia">TBOAB</abbr></p>' +
         '</div>' +
       '</section>' +
       // meet the author

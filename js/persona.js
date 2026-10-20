@@ -114,9 +114,10 @@
       ];
       function paint(n) {
         counters.forEach(function (el) {
-          // "Join the 5 other ARC readers"; with none yet, an invitation to be the first
-          if (n === 0) { el.innerHTML = "Be the first ARC reader"; return; }
-          el.innerHTML = "Join " + (n === 1 ? "" : "the ") + '<span class="arc__count-n">' + n.toLocaleString() + "</span> other ARC reader" + (n === 1 ? "" : "s");
+          // "Join the 10 other ARC readers excited to read TBOAB"; with none yet, an invitation to be the first
+          var book = ' <abbr title="The Blood of a Begonia">TBOAB</abbr>';
+          if (n === 0) { el.innerHTML = "Be the first ARC reader of" + book; return; }
+          el.innerHTML = "Join " + (n === 1 ? "" : "the ") + '<span class="arc__count-n">' + n.toLocaleString() + "</span> other ARC reader" + (n === 1 ? "" : "s") + " excited to read" + book;
         });
       }
       function tickTo(target) {

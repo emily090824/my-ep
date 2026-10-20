@@ -846,6 +846,7 @@ button.arc__btn { cursor: pointer; }
 /* the running count of ARC readers */
 .arc__count { margin: 18px 0 0; font: italic 400 clamp(1.05rem, 1.6vw, 1.25rem)/1.3 "IM Fell English", Georgia, serif; color: #fbf6ea; }
 .arc__count-n { font: 400 1.25em/1 var(--body); font-style: normal; font-variant-numeric: lining-nums tabular-nums; letter-spacing: 0.02em; margin: 0 0.06em; }
+.arc__count abbr { text-decoration: none; }
 .arc-sheet .arc__count { color: #2e4535; margin-top: 14px; text-shadow: none; }
 
 /* ---------- Writer page: other published work, back on the ivory page ---------- */
@@ -927,13 +928,15 @@ button.arc__btn { cursor: pointer; }
    the way back is the rolodex link at the foot of the page, or the rolodex button in the corner */
 .persona-page--writer .site-nav, .persona-page--writer .menu-toggle { display: none !important; }
 
-/* the Writer page's masthead is a dark green nameplate: the author's name, and the book beneath it */
-.persona-page--writer .masthead {
-  justify-content: center; padding: 16px var(--gutter) 15px; background: #1d3124; backdrop-filter: none;
-  border-bottom: 0; box-shadow: 0 1px 0 #1d3124, 0 4px 0 -1px #f6f0e1, 0 5px 0 -1px #1d3124;   /* a fine ivory double rule */
+/* the Writer page's masthead carries the author's name on deep green that fades into the map;
+   it sits at the top of the page and scrolls away with it */
+body.persona-page--writer .masthead {
+  position: absolute; justify-content: center; padding: 16px var(--gutter) 46px; backdrop-filter: none; border: 0; box-shadow: none;
+  background: linear-gradient(180deg, #14241a 0%, #1d3124 50%, rgba(29, 49, 36, 0.7) 75%, rgba(29, 49, 36, 0) 100%);
 }
 .persona-page--writer .masthead .monogram { display: none; }
-body.persona-page--writer main { padding-top: var(--head-h, 84px); }
+body.persona-page--writer main { padding-top: 0; }
+.persona-page--writer .arc { padding-top: calc(var(--head-h, 126px) + clamp(4px, 2vw, 22px)); }   /* the banner starts below the fade */
 /* the monogram stands as tall as the name and the line beneath it, set off by a hairline */
 .author-head {
   --name: clamp(1.45rem, 3vw, 2.3rem); --line: clamp(0.82rem, 1.2vw, 1rem);
