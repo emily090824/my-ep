@@ -20,6 +20,9 @@
     { box: [0.2246, 0.4771, 0.3985, 0.6210], r: 0.16, lines: [["$40M", "serif", 0.3], ["AD SPEND", "mono", 0.075], ["MANAGED YEARLY", "mono", 0.075]] },
     { box: [0.6000, 0.5404, 0.7192, 0.6345], r: 0.14, lines: [["20", "serif", 0.44], ["CHANNELS", "mono", 0.1]] },
     { box: [0.6115, 0.4589, 0.6677, 0.5063], r: 0.12, lines: [["8", "serif", 0.5], ["YEARS", "mono", 0.15]] },
+    // the two little sets with nothing to say still play something, so the whole window is lit
+    { box: [0.1350, 0.5815, 0.1862, 0.6210], r: 0.14, picture: "bars" },
+    { box: [0.7000, 0.4605, 0.7523, 0.5000], r: 0.12, picture: "sky" },
   ];
   const FONTS = { serif: (s) => `600 ${s}px Fraunces, Georgia, serif`, mono: (s) => `700 ${s}px 'Courier Prime', monospace` };
   function rounded(x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
@@ -33,11 +36,19 @@
     const glow = g.createRadialGradient(x + w / 2, y + h * 0.45, 0, x + w / 2, y + h / 2, w * 0.65);
     glow.addColorStop(0, "rgba(120,150,140,0.55)"); glow.addColorStop(1, "rgba(20,30,28,0.1)");
     g.fillStyle = glow; g.fillRect(x, y, w, h);
+    if (s.picture === "bars") {   // colour bars
+      ["#c9c9c9", "#c9c214", "#14c2c2", "#14c214", "#c214c2", "#c21414", "#1414c2"].forEach((col, i) => { g.fillStyle = col; g.fillRect(x + i * w / 7, y, w / 7 + 1, h * 0.72); });
+      g.fillStyle = "#101418"; g.fillRect(x, y + h * 0.72, w, h * 0.28);
+    } else if (s.picture === "sky") {   // a broadcast caught mid-picture: sky over a stadium
+      const sky = g.createLinearGradient(0, y, 0, y + h); sky.addColorStop(0, "#9fd0ff"); sky.addColorStop(0.55, "#3f86c9"); sky.addColorStop(0.56, "#2f6a3a"); sky.addColorStop(1, "#1f4026");
+      g.fillStyle = sky; g.fillRect(x, y, w, h);
+      g.fillStyle = "rgba(240,90,60,0.85)"; g.fillRect(x, y + h * 0.18, w, h * 0.14);
+    }
     // the type
-    const total = s.lines.reduce((t, l) => t + l[2] * w * 1.12, 0);
+    const lines = s.lines || [], total = lines.reduce((t, l) => t + l[2] * w * 1.12, 0);
     let ty = y + h / 2 - total / 2;
     g.textAlign = "center";
-    for (const [text, font, size] of s.lines) {
+    for (const [text, font, size] of lines) {
       const px = size * w; ty += px * 1.12;
       g.font = FONTS[font](px); g.letterSpacing = font === "mono" ? px * 0.14 + "px" : "0px";
       g.shadowColor = "rgba(210,255,235,0.9)"; g.shadowBlur = px * 0.3;
