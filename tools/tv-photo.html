@@ -1,0 +1,73 @@
+<!doctype html>
+<!-- Dev tool: puts Emily's numbers on the televisions in the shop-window photograph (assets/tv-window.jpg)
+     and letters the glass in gold leaf. Not linked from the site.
+     ?src=<photo>&crop=x0,y0,x1,y1 (fractions; the wide page crop by default)  The finished picture is a JPEG data URL in window.__done. Screen positions are fractions of the photo. -->
+<html lang="en"><head><meta charset="utf-8"><title>TV window photo</title>
+<link rel="stylesheet" href="../css/fonts.css">
+<style>html,body{margin:0;background:#222}canvas{display:block;max-width:100%}</style></head>
+<body><canvas id="c"></canvas>
+<script>
+(async () => {
+  const q = new URLSearchParams(location.search);
+  const img = new Image(); img.src = q.get("src") || "_src.jpg"; await img.decode();
+  await Promise.all(["600 100px Fraunces", "700 40px 'Courier Prime'", "400 80px 'Pinyon Script'", "400 40px 'IM Fell English SC'"].map((f) => document.fonts.load(f)));
+  const W = img.naturalWidth, H = img.naturalHeight, c = document.getElementById("c"), g = c.getContext("2d");
+  c.width = W; c.height = H; g.drawImage(img, 0, 0);
+  const X = (f) => f * W, Y = (f) => f * H;
+
+  // each screen: its box in the photo (fractions), corner radius (fraction of width), and what it shows
+  const SCREENS = [
+    { box: [0.2246, 0.4771, 0.3985, 0.6210], r: 0.16, lines: [["$40M", "serif", 0.3], ["AD SPEND", "mono", 0.075], ["MANAGED YEARLY", "mono", 0.075]] },
+    { box: [0.6000, 0.5404, 0.7192, 0.6345], r: 0.14, lines: [["20", "serif", 0.44], ["CHANNELS", "mono", 0.1]] },
+    { box: [0.6115, 0.4589, 0.6677, 0.5063], r: 0.12, lines: [["8", "serif", 0.5], ["YEARS", "mono", 0.15]] },
+  ];
+  const FONTS = { serif: (s) => `600 ${s}px Fraunces, Georgia, serif`, mono: (s) => `700 ${s}px 'Courier Prime', monospace` };
+  function rounded(x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+
+  for (const s of SCREENS) {
+    const [x0, y0, x1, y1] = s.box, x = X(x0), y = Y(y0), w = X(x1) - x, h = Y(y1) - y, r = s.r * w;
+    g.save(); rounded(x, y, w, h, r); g.clip();
+    // the tube switched on: the picture glows, keeping the glass's own highlights from the photo
+    g.globalCompositeOperation = "multiply"; g.fillStyle = "rgb(120,132,128)"; g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = "screen";
+    const glow = g.createRadialGradient(x + w / 2, y + h * 0.45, 0, x + w / 2, y + h / 2, w * 0.65);
+    glow.addColorStop(0, "rgba(120,150,140,0.55)"); glow.addColorStop(1, "rgba(20,30,28,0.1)");
+    g.fillStyle = glow; g.fillRect(x, y, w, h);
+    // the type
+    const total = s.lines.reduce((t, l) => t + l[2] * w * 1.12, 0);
+    let ty = y + h / 2 - total / 2;
+    g.textAlign = "center";
+    for (const [text, font, size] of s.lines) {
+      const px = size * w; ty += px * 1.12;
+      g.font = FONTS[font](px); g.letterSpacing = font === "mono" ? px * 0.14 + "px" : "0px";
+      g.shadowColor = "rgba(210,255,235,0.9)"; g.shadowBlur = px * 0.3;
+      g.fillStyle = "rgba(236,250,242,0.95)"; g.fillText(text, x + w / 2, ty - px * 0.2);
+    }
+    g.shadowBlur = 0; g.globalCompositeOperation = "multiply";
+    for (let sy = y; sy < y + h; sy += Math.max(2, h / 90)) { g.fillStyle = "rgba(0,0,0,0.18)"; g.fillRect(x, sy, w, Math.max(1, h / 260)); }   // scan lines
+    const v = g.createRadialGradient(x + w / 2, y + h / 2, w * 0.25, x + w / 2, y + h / 2, w * 0.72);
+    v.addColorStop(0, "rgba(255,255,255,1)"); v.addColorStop(1, "rgba(60,60,60,1)");
+    g.fillStyle = v; g.fillRect(x, y, w, h);
+    g.restore();
+  }
+
+  // gold leaf on the glass, the way a shop letters its window
+  function gilt(text, font, cx, cy, size, track = 0) {
+    g.save(); g.font = font(size); g.textAlign = "center"; g.letterSpacing = track * size + "px";
+    g.lineJoin = "round"; g.strokeStyle = "rgba(40,24,8,0.75)"; g.lineWidth = size * 0.07; g.strokeText(text, cx, cy);   // sign-writer's outline
+    const gr = g.createLinearGradient(0, cy - size, 0, cy + size * 0.2);
+    gr.addColorStop(0, "#fbe6a8"); gr.addColorStop(0.45, "#d4a84f"); gr.addColorStop(0.55, "#a8782c"); gr.addColorStop(1, "#f0d283");
+    g.fillStyle = gr; g.fillText(text, cx, cy);
+    g.restore();
+  }
+  const cx = X(0.405);
+  gilt("Lead Buyer", (s) => `400 ${s}px 'Pinyon Script', cursive`, cx, Y(0.318), W * 0.07);
+  gilt("CTV · PAID SOCIAL · PROGRAMMATIC", (s) => `400 ${s}px 'IM Fell English SC', Georgia, serif`, cx, Y(0.362), W * 0.026, 0.12);
+
+  // crop to the window: the whole display for the page, tighter round the sets for phones
+  const [cx0, cy0, cx1, cy1] = (q.get("crop") || "0,0.19,1,0.93").split(",").map(Number);
+  const out = document.createElement("canvas"); out.width = Math.round((cx1 - cx0) * W); out.height = Math.round((cy1 - cy0) * H);
+  out.getContext("2d").drawImage(c, -cx0 * W, -cy0 * H);
+  window.__done = out.toDataURL("image/jpeg", 0.88);
+})();
+</script></body></html>
