@@ -50,6 +50,35 @@ window.PERSONAS = [
     tagline: "Brand stories built on how audiences actually behave.",
     summary:
       "Strategy, voice, and campaigns grounded in audience research — the same questions I study as a scholar, put to work for brands.",
+    // a wall of old televisions (js/tv-wall.js): each screen's box in the photo, as fractions [left, top, right, bottom];
+    // what it shows, and what it changes channel to on hover or tap. Sets without a "face" are switched off until touched.
+    tvwall: {
+      photo: "assets/tv-wall.jpg", width: 477, height: 612,
+      label: "Emily as a Marketer, by the numbers",
+      screens: [
+        { box: [0.325, 0.730, 0.676, 0.940], ch: 40, face: ["$40M", "Ad spend managed yearly"],
+          more: ["$40M a year", "Planned, bought and optimized across CTV, paid social, programmatic and more."] },
+        { box: [0.089, 0.194, 0.346, 0.337], ch: 20, face: ["20", "Channels"],
+          more: ["20 channels", "Bought across, from the biggest screen in the house to the feed in your pocket."] },
+        { box: [0.498, 0.192, 0.723, 0.320], ch: 8, face: ["8", "Years in paid media"],
+          more: ["8 years", "Buying media for brands, and watching how audiences really behave."] },
+        { box: [0.299, 0.462, 0.493, 0.658], ch: 1, face: ["Lead buyer"], tall: true,
+          more: ["Lead buyer", "In CTV, paid social and programmatic. Try the sets around me."] },
+        { box: [0.000, 0.429, 0.183, 0.580], ch: 4, face: ["CTV"],
+          more: ["CTV", "Connected TV: streaming audiences on the biggest screen in the house."] },
+        { box: [0.577, 0.380, 0.755, 0.482], ch: 7, face: ["Paid Social"], fs: 21,
+          more: ["Paid social", "Reaching people where they scroll, with creative made for the feed."] },
+        { box: [0.577, 0.546, 0.755, 0.650], ch: 9, face: ["Program\u00admatic"], fs: 17,
+          more: ["Programmatic", "Automated buying across the open web, aimed and tuned in real time."] },
+        // the rest of the wall: off until you touch one
+        { box: [0.010, 0.056, 0.178, 0.151], ch: 2, test: "bars" },
+        { box: [0.210, 0.051, 0.377, 0.141], ch: 3, test: "card" },
+        { box: [0.487, 0.033, 0.658, 0.124], ch: 5, test: "bars" },
+        { box: [0.774, 0.033, 0.949, 0.127], ch: 6, test: "card" },
+        { box: [0.865, 0.188, 1.000, 0.331], ch: 11, test: "card" },
+        { box: [0.844, 0.408, 1.000, 0.549], ch: 13, test: "bars" }
+      ]
+    },
     sections: [
       {
         heading: "What I do",

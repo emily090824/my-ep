@@ -56,6 +56,8 @@
         "</ul></section>";
     });
     root.insertAdjacentHTML("beforeend", html);
+    // the TV wall is in preview until it is approved: it shows only with ?tvwall in the address
+    if (p.tvwall && window.TVWALL && new URLSearchParams(location.search).has("tvwall")) window.TVWALL.mount(root.querySelector(".persona__summary"), p.tvwall);
     if (p.promo && !document.querySelector(".arc")) {
       root.insertAdjacentHTML("beforebegin", p.promo);
       // the author's name on a dark green bar across the top, in place of the site masthead's monogram;
