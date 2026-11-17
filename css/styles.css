@@ -804,16 +804,16 @@ button.arc__btn { cursor: pointer; }
 .arc-blurb, .arc-author { width: min(1100px, calc(100% - 2 * var(--gutter))); }
 .arc-blurb__hook, .arc-blurb__comps { max-width: 760px; margin-left: auto !important; margin-right: auto !important; }
 /* the body reads in two columns across the wide sheet, so the lines stay a comfortable length */
-.arc-blurb__body { display: grid; grid-template-columns: 1fr 1fr; align-items: start; --g: clamp(24px, 3vw, 40px); }
-.arc-blurb__col:first-child { padding-right: var(--g); }
-.arc-blurb__col + .arc-blurb__col { border-left: 1px solid rgba(29, 49, 36, 0.18); padding-left: var(--g); }   /* the rule sits midway */
-.arc-blurb__col > :last-child { margin-bottom: 0; }
+/* the text flows down one column and into the next; the browser balances them so both end level */
+.arc-blurb__body { --g: clamp(24px, 3vw, 40px); column-count: 2; column-gap: calc(2 * var(--g)); column-rule: 1px solid rgba(29, 49, 36, 0.18); column-fill: balance; }
+.arc-blurb__col { display: contents; }
+.arc-blurb__body p { break-inside: auto; orphans: 2; widows: 2; }
+.arc-blurb__body .arc-blurb__turn { break-inside: avoid; break-after: avoid; }
+.arc-blurb__col:last-child > :last-child { margin-bottom: 0; }
 .arc-blurb p, .arc-author p { text-wrap: pretty; hyphens: manual; }
 .arc-blurb__hook, .arc-quote p { text-wrap: balance; }
 @media (max-width: 860px) {
-  .arc-blurb__body { grid-template-columns: 1fr; }
-  .arc-blurb__col:first-child { padding-right: 0; }
-  .arc-blurb__col + .arc-blurb__col { border-left: 0; padding-left: 0; margin-left: 0; margin-top: 1.05em; }
+  .arc-blurb__body { column-count: 1; }
 }
 .arc-blurb p { margin: 0 0 1.05em; font: 400 clamp(1.05rem, 1.6vw, 1.18rem)/1.7 var(--body); }
 .arc-blurb .arc-blurb__hook { margin: 0 0 0.35em; text-align: center; font: italic 400 clamp(1.35rem, 2.6vw, 1.75rem)/1.35 "IM Fell English", Georgia, serif; color: #1d3124; }
