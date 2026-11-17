@@ -804,7 +804,7 @@ button.arc__btn { cursor: pointer; }
 .arc-blurb, .arc-author { width: min(1100px, calc(100% - 2 * var(--gutter))); }
 .arc-blurb__hook, .arc-blurb__comps { max-width: 760px; margin-left: auto !important; margin-right: auto !important; }
 /* the body reads in two columns across the wide sheet, so the lines stay a comfortable length */
-.arc-blurb__body { display: grid; grid-template-columns: 1fr 1fr; --g: clamp(24px, 3vw, 40px); }
+.arc-blurb__body { display: grid; grid-template-columns: 1fr 1fr; align-items: start; --g: clamp(24px, 3vw, 40px); }
 .arc-blurb__col:first-child { padding-right: var(--g); }
 .arc-blurb__col + .arc-blurb__col { border-left: 1px solid rgba(29, 49, 36, 0.18); padding-left: var(--g); }   /* the rule sits midway */
 .arc-blurb__col > :last-child { margin-bottom: 0; }

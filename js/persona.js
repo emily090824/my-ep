@@ -184,6 +184,31 @@
       sync();
     });
 
+    // the book summary's two columns: set their widths so both end at the same line, with no gap under the shorter one
+    document.querySelectorAll(".arc-blurb__body").forEach(function (body) {
+      var cols = body.querySelectorAll(".arc-blurb__col");
+      if (cols.length !== 2 || body.dataset.balanced) return;
+      body.dataset.balanced = "1";
+      var wide = matchMedia("(min-width: 861px)");
+      function setF(f) { body.style.gridTemplateColumns = f + "fr " + (1 - f) + "fr"; }
+      function balance() {
+        if (!wide.matches || body.classList.contains("is-folded")) { body.style.gridTemplateColumns = ""; return; }
+        var lo = 0.35, hi = 0.75, best = 0.5, bestH = Infinity;
+        for (var i = 0; i < 14; i++) {
+          var f = (lo + hi) / 2; setF(f);
+          var a = cols[0].offsetHeight, b = cols[1].offsetHeight, h = Math.max(a, b);
+          if (h < bestH || (h === bestH && Math.abs(f - 0.5) < Math.abs(best - 0.5))) { bestH = h; best = f; }
+          if (a > b) lo = f; else hi = f;   // left still taller: give it more room
+        }
+        setF(best);
+      }
+      var t;
+      addEventListener("resize", function () { clearTimeout(t); t = setTimeout(balance, 120); });
+      (wide.addEventListener ? wide.addEventListener("change", balance) : wide.addListener(balance));
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(balance);
+      balance();
+    });
+
     // the PlumX badge only shows once PlumX's own script has loaded and defined the element
     // two round buttons that float in the bottom corners: home to the rolodex, and back to the top
     if (p.promo && !document.querySelector(".float-btn")) {
